@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 // ==================== MAIN LANDING PAGE ====================
 export function LandingPage() {
@@ -43,10 +44,10 @@ function LandingHeader() {
 
                     {/* CTA Buttons */}
                     <div className="hidden md:flex items-center gap-3">
-                        <a href="/login" className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">Đăng nhập</a>
-                        <a href="/register" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm shadow-emerald-500/20">
+                        <Link to="/login" className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">Đăng nhập</Link>
+                        <Link to="/register" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm shadow-emerald-500/20">
                             Dùng thử miễn phí
-                        </a>
+                        </Link>
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -73,10 +74,10 @@ function LandingHeader() {
                             <a href="#pricing" className="text-slate-600 hover:text-emerald-600 text-sm font-medium">Bảng giá</a>
                             <a href="#testimonials" className="text-slate-600 hover:text-emerald-600 text-sm font-medium">Khách hàng</a>
                             <hr className="border-slate-100" />
-                            <a href="/login" className="text-slate-600 text-sm font-medium">Đăng nhập</a>
-                            <a href="/register" className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg text-center">
+                            <Link to="/login" className="text-slate-600 text-sm font-medium">Đăng nhập</Link>
+                            <Link to="/register" className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg text-center">
                                 Dùng thử miễn phí
-                            </a>
+                            </Link>
                         </nav>
                     </div>
                 )}
@@ -113,12 +114,12 @@ function HeroSection() {
 
                     {/* CTAs */}
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-                        <a
-                            href="/register"
+                        <Link
+                            to="/register"
                             className="w-full sm:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 hover:-translate-y-0.5"
                         >
                             Dùng thử miễn phí
-                        </a>
+                        </Link>
                         <a
                             href="#demo"
                             className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-xl border border-slate-200 transition-colors flex items-center justify-center gap-2"
@@ -462,8 +463,8 @@ function PricingSection() {
                         <div
                             key={index}
                             className={`relative rounded-2xl p-8 ${plan.popular
-                                    ? 'bg-white border-2 border-emerald-500 shadow-xl shadow-emerald-500/10'
-                                    : 'bg-white border border-slate-200'
+                                ? 'bg-white border-2 border-emerald-500 shadow-xl shadow-emerald-500/10'
+                                : 'bg-white border border-slate-200'
                                 }`}
                         >
                             {plan.popular && (
@@ -492,8 +493,8 @@ function PricingSection() {
 
                             <button
                                 className={`w-full py-3 rounded-xl font-semibold transition-colors ${plan.popular
-                                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                                     }`}
                             >
                                 {plan.cta}
@@ -519,12 +520,12 @@ function CTASection() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
-                    <a
-                        href="/register"
+                    <Link
+                        to="/register"
                         className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-slate-50 text-emerald-600 font-semibold rounded-xl transition-colors shadow-lg"
                     >
                         Bắt đầu dùng thử miễn phí
-                    </a>
+                    </Link>
                     <a
                         href="/contact"
                         className="w-full sm:w-auto px-8 py-4 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl transition-colors border border-emerald-500"
