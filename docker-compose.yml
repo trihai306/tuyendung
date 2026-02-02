@@ -1,0 +1,141 @@
+services:
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: recruitment_app
+    restart: unless-stopped
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - recruitment_network
+    environment:
+      - APP_ENV=local
+      - DB_HOST=mysql
+      - REDIS_HOST=redis
+      - BROADCAST_CONNECTION=pusher
+      - PUSHER_HOST=soketi
+      - PUSHER_PORT=6001
+
+  nginx:
+    image: nginx:alpine
+    container_name: recruitment_nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./backend:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - recruitment_network
+
+  mysql:
+    image: mysql:8.0
+    container_name: recruitment_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: recruitment
+      MYSQL_USER: recruitment
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: secret
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - recruitment_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: recruitment_redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6380:6379"
+    networks:
+      - recruitment_network
+
+  soketi:
+    image: quay.io/soketi/soketi:latest
+    container_name: recruitment_soketi
+    restart: unless-stopped
+    ports:
+      - "6001:6001"
+      - "9601:9601"
+    environment:
+      SOKETI_DEBUG: "false"
+      SOKETI_DEFAULT_APP_ID: "recruitment"
+      SOKETI_DEFAULT_APP_KEY: "recruitment-key"
+      SOKETI_DEFAULT_APP_SECRET: "recruitment-secret"
+    networks:
+      - recruitment_network
+
+  queue:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: recruitment_queue
+    restart: unless-stopped
+    # Install zalo-service npm dependencies, then start queue worker
+    command: bash -c "cd /var/www/zalo-service && npm install --omit=dev 2>/dev/null || true && cd /var/www/html && php artisan queue:work --queue=default,zalo --tries=3 --timeout=120"
+    volumes:
+      - ./backend:/var/www/html
+      - ./zalo-service:/var/www/zalo-service
+      - ./zalo-service/data:/var/www/zalo-service/data
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - recruitment_network
+    environment:
+      - ZALO_CLI_PATH=/var/www/zalo-service/cli/index.js
+
+  scheduler:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: recruitment_scheduler
+    restart: unless-stopped
+    command: php artisan schedule:work
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - recruitment_network
+
+  # Frontend is now built into backend/public/app/ and served by nginx
+
+  # Zalo Daemon - Event listener that forwards to Laravel webhook
+  # QR login now via CLI + Soketi (no HTTP server needed)
+  zalo-daemon:
+    build:
+      context: ./zalo-service
+      dockerfile: Dockerfile
+    container_name: recruitment_zalo_daemon
+    restart: unless-stopped
+    command: node daemon/index.js
+    environment:
+      - WEBHOOK_URL=http://nginx/api/zalo-webhook
+      - WEBHOOK_SECRET=
+    volumes:
+      - ./zalo-service/data:/app/data
+    depends_on:
+      - nginx
+    networks:
+      - recruitment_network
+
+networks:
+  recruitment_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:

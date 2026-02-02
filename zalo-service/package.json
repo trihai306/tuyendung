@@ -1,0 +1,29 @@
+{
+  "name": "zalo-service",
+  "version": "1.0.0",
+  "description": "Zalo Personal Account API Service using zca-js",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "cli": "node cli/index.js"
+  },
+  "bin": {
+    "zalo-cli": "./cli/index.js"
+  },
+  "keywords": [
+    "zalo",
+    "api",
+    "zca-js"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^12.1.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1",
+    "zca-js": "^2.0.4"
+  }
+}
