@@ -16,9 +16,10 @@ export function pinCommand(program) {
         .requiredOption('--thread <threadId>', 'Thread ID to pin/unpin')
         .option('--type <type>', 'Thread type: user or group', 'user')
         .option('--unpin', 'Unpin instead of pin')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const threadType = options.type === 'group' ? 1 : 0;
 
                 const conversations = [{

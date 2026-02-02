@@ -1,39 +1,113 @@
 import { useState } from 'react';
+import { useTheme } from '../../../contexts/ThemeContext';
+import { ShiftPicker } from './ShiftPicker';
+import { InterviewScheduler } from './InterviewScheduler';
+import { BenefitsPicker } from './BenefitsPicker';
+import type { Benefit } from './BenefitsPicker';
+import { BriefcaseIcon, CalendarIcon } from '../../../components/ui/icons';
 
-interface Job {
-    id: number;
+interface Shift {
+    id: string;
+    name: string;
+    startTime: string;
+    endTime: string;
+}
+
+interface TimeSlot {
+    id: string;
+    startTime: string;
+    endTime: string;
+}
+
+interface InterviewSchedule {
+    type: 'onsite' | 'online' | 'phone';
+    location: string;
+    timeSlots: TimeSlot[];
+}
+
+interface JobFormData {
+    // Tab 1: Thông tin công việc
     title: string;
-    department?: string;
-    location?: string;
-    job_type?: string;
-    salary_range?: string;
-    description?: string;
-    requirements?: string;
-    benefits?: string;
+    category: string;
+    location: string;
+    headcount: number;
+    salaryType: 'per_shift' | 'per_hour';
+    salaryAmount: string;
+    description: string;
+    requirements: string;
+    benefits: Benefit[];
+
+    // Tab 2: Ca làm & Lịch hẹn
+    workDays: string[];
+    shifts: Shift[];
+    startDate: string;
+    endDate: string;
+    interviewSchedule: InterviewSchedule;
 }
 
 interface JobFormProps {
-    job?: Job;
-    onSubmit: (data: Partial<Job>) => void;
+    job?: Partial<JobFormData>;
+    onSubmit: (data: JobFormData) => void;
     onCancel: () => void;
     isLoading?: boolean;
 }
 
+const jobCategories = [
+    { value: 'fnb', label: 'F&B (Nhà hàng, Quán cafe)' },
+    { value: 'hotel', label: 'Khách sạn, Resort' },
+    { value: 'event', label: 'Sự kiện, Activation' },
+    { value: 'retail', label: 'Bán lẻ, Siêu thị' },
+    { value: 'warehouse', label: 'Kho vận, Logistics' },
+    { value: 'pgpb', label: 'PG/PB, MC' },
+    { value: 'office', label: 'Văn phòng, Hành chính' },
+    { value: 'other', label: 'Khác' },
+];
+
+const weekDays = [
+    { value: 'mon', label: 'T2' },
+    { value: 'tue', label: 'T3' },
+    { value: 'wed', label: 'T4' },
+    { value: 'thu', label: 'T5' },
+    { value: 'fri', label: 'T6' },
+    { value: 'sat', label: 'T7' },
+    { value: 'sun', label: 'CN' },
+];
+
 export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
-    const [formData, setFormData] = useState<Partial<Job>>({
+    const { resolvedTheme } = useTheme();
+    const isDark = resolvedTheme === 'dark';
+    const [activeTab, setActiveTab] = useState<'info' | 'schedule'>('info');
+
+    const [formData, setFormData] = useState<JobFormData>({
         title: job?.title || '',
-        department: job?.department || '',
+        category: job?.category || 'fnb',
         location: job?.location || '',
-        job_type: job?.job_type || 'full_time',
-        salary_range: job?.salary_range || '',
+        headcount: job?.headcount || 1,
+        salaryType: job?.salaryType || 'per_shift',
+        salaryAmount: job?.salaryAmount || '',
         description: job?.description || '',
         requirements: job?.requirements || '',
-        benefits: job?.benefits || '',
+        benefits: job?.benefits || [],
+        workDays: job?.workDays || ['mon', 'tue', 'wed', 'thu', 'fri'],
+        shifts: job?.shifts || [],
+        startDate: job?.startDate || '',
+        endDate: job?.endDate || '',
+        interviewSchedule: job?.interviewSchedule || {
+            type: 'onsite',
+            location: '',
+            timeSlots: [],
+        },
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+    const updateField = <K extends keyof JobFormData>(field: K, value: JobFormData[K]) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const toggleWorkDay = (day: string) => {
+        const days = formData.workDays.includes(day)
+            ? formData.workDays.filter(d => d !== day)
+            : [...formData.workDays, day];
+        updateField('workDays', days);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -41,160 +115,292 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
         onSubmit(formData);
     };
 
+    const tabs = [
+        { id: 'info' as const, label: 'Thông tin công việc', icon: <BriefcaseIcon className="w-4 h-4" /> },
+        { id: 'schedule' as const, label: 'Ca làm & Lịch hẹn', icon: <CalendarIcon className="w-4 h-4" /> },
+    ];
+
+    const inputClass = `
+        w-full px-4 py-2.5 rounded-lg text-sm
+        ${isDark
+            ? 'bg-slate-800 border-slate-700 text-white placeholder:text-slate-500'
+            : 'bg-white border-slate-200 text-slate-800 placeholder:text-slate-400'
+        }
+        border focus:ring-2 focus:ring-emerald-500/30 focus:outline-none
+    `;
+
+    const labelClass = `block text-sm font-medium mb-1.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`;
+
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className={`
+                w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden
+                ${isDark ? 'bg-slate-900' : 'bg-white'}
+            `}>
                 {/* Header */}
-                <div className="p-6 border-b border-gray-100">
-                    <h2 className="text-xl font-bold text-gray-900">
-                        {job ? 'Chỉnh sửa tin tuyển dụng' : 'Tạo tin tuyển dụng mới'}
+                <div className={`px-6 py-4 border-b ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
+                    <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        {job ? '✏️ Chỉnh sửa tin tuyển dụng' : '📋 Tạo tin tuyển dụng thời vụ'}
                     </h2>
                 </div>
 
+                {/* Tabs */}
+                <div className={`flex border-b ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
+                    {tabs.map(tab => (
+                        <button
+                            key={tab.id}
+                            type="button"
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`
+                                flex-1 py-3 px-4 text-sm font-medium flex items-center justify-center gap-2 transition-colors
+                                ${activeTab === tab.id
+                                    ? isDark
+                                        ? 'text-emerald-400 border-b-2 border-emerald-500 bg-emerald-500/5'
+                                        : 'text-emerald-600 border-b-2 border-emerald-500 bg-emerald-50'
+                                    : isDark
+                                        ? 'text-slate-400 hover:text-slate-300'
+                                        : 'text-slate-500 hover:text-slate-700'
+                                }
+                            `}
+                        >
+                            {tab.icon}
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
+
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-180px)]">
-                    {/* Title */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Tiêu đề vị trí <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            name="title"
-                            value={formData.title}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="VD: Frontend Developer"
-                            required
-                        />
-                    </div>
+                <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto max-h-[calc(90vh-200px)]">
+                    {activeTab === 'info' && (
+                        <>
+                            {/* Tên công việc */}
+                            <div>
+                                <label className={labelClass}>
+                                    Tên công việc <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.title}
+                                    onChange={(e) => updateField('title', e.target.value)}
+                                    className={inputClass}
+                                    placeholder="VD: Nhân viên phục vụ, PG/PB, Nhân viên kho..."
+                                    required
+                                />
+                            </div>
 
-                    {/* Department & Location */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Phòng ban
-                            </label>
-                            <input
-                                type="text"
-                                name="department"
-                                value={formData.department}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="VD: Engineering"
+                            {/* Ngành nghề & Địa điểm */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className={labelClass}>Ngành nghề</label>
+                                    <select
+                                        value={formData.category}
+                                        onChange={(e) => updateField('category', e.target.value)}
+                                        className={inputClass}
+                                    >
+                                        {jobCategories.map(cat => (
+                                            <option key={cat.value} value={cat.value}>{cat.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className={labelClass}>
+                                        Địa chỉ làm việc <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.location}
+                                        onChange={(e) => updateField('location', e.target.value)}
+                                        className={inputClass}
+                                        placeholder="VD: 123 Nguyễn Huệ, Q.1, TP.HCM"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Số lượng & Mức lương */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className={labelClass}>
+                                        Số lượng cần tuyển <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            value={formData.headcount}
+                                            onChange={(e) => updateField('headcount', parseInt(e.target.value) || 1)}
+                                            className={inputClass}
+                                        />
+                                        <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>người</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Mức lương</label>
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex-1 min-w-0">
+                                            <input
+                                                type="text"
+                                                value={formData.salaryAmount}
+                                                onChange={(e) => updateField('salaryAmount', e.target.value)}
+                                                className={inputClass}
+                                                placeholder="VD: 200,000"
+                                            />
+                                        </div>
+                                        <select
+                                            value={formData.salaryType}
+                                            onChange={(e) => updateField('salaryType', e.target.value as 'per_shift' | 'per_hour')}
+                                            className={`${inputClass} !w-auto shrink-0`}
+                                        >
+                                            <option value="per_shift">/ca</option>
+                                            <option value="per_hour">/giờ</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Mô tả công việc */}
+                            <div>
+                                <label className={labelClass}>Mô tả công việc</label>
+                                <textarea
+                                    value={formData.description}
+                                    onChange={(e) => updateField('description', e.target.value)}
+                                    rows={3}
+                                    className={inputClass}
+                                    placeholder="Mô tả chi tiết về công việc, nhiệm vụ..."
+                                />
+                            </div>
+
+                            {/* Yêu cầu */}
+                            <div>
+                                <label className={labelClass}>Yêu cầu ứng viên</label>
+                                <textarea
+                                    value={formData.requirements}
+                                    onChange={(e) => updateField('requirements', e.target.value)}
+                                    rows={3}
+                                    className={inputClass}
+                                    placeholder="VD: Ngoại hình khá, giao tiếp tốt, có kinh nghiệm ưu tiên..."
+                                />
+                            </div>
+
+                            {/* Phúc lợi */}
+                            <BenefitsPicker
+                                benefits={formData.benefits}
+                                onChange={(benefits) => updateField('benefits', benefits)}
                             />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Địa điểm
-                            </label>
-                            <input
-                                type="text"
-                                name="location"
-                                value={formData.location}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="VD: Hà Nội"
+                        </>
+                    )}
+
+                    {activeTab === 'schedule' && (
+                        <>
+                            {/* Ngày làm việc */}
+                            <div>
+                                <label className={labelClass}>📅 Ngày làm việc trong tuần</label>
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                    {weekDays.map(day => (
+                                        <button
+                                            key={day.value}
+                                            type="button"
+                                            onClick={() => toggleWorkDay(day.value)}
+                                            className={`
+                                                px-4 py-2 rounded-lg text-sm font-medium transition-all
+                                                ${formData.workDays.includes(day.value)
+                                                    ? isDark
+                                                        ? 'bg-emerald-500 text-white'
+                                                        : 'bg-emerald-500 text-white'
+                                                    : isDark
+                                                        ? 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                }
+                                            `}
+                                        >
+                                            {day.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Ca làm việc */}
+                            <ShiftPicker
+                                shifts={formData.shifts}
+                                onChange={(shifts) => updateField('shifts', shifts)}
                             />
-                        </div>
-                    </div>
 
-                    {/* Job Type & Salary */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Loại hình
-                            </label>
-                            <select
-                                name="job_type"
-                                value={formData.job_type}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                                <option value="full_time">Full-time</option>
-                                <option value="part_time">Part-time</option>
-                                <option value="contract">Contract</option>
-                                <option value="internship">Internship</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Mức lương
-                            </label>
-                            <input
-                                type="text"
-                                name="salary_range"
-                                value={formData.salary_range}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="VD: 15-25 triệu"
-                            />
-                        </div>
-                    </div>
+                            {/* Thời gian tuyển */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className={labelClass}>📆 Ngày bắt đầu</label>
+                                    <input
+                                        type="date"
+                                        value={formData.startDate}
+                                        onChange={(e) => updateField('startDate', e.target.value)}
+                                        className={inputClass}
+                                    />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>📆 Ngày kết thúc</label>
+                                    <input
+                                        type="date"
+                                        value={formData.endDate}
+                                        onChange={(e) => updateField('endDate', e.target.value)}
+                                        className={inputClass}
+                                    />
+                                </div>
+                            </div>
 
-                    {/* Description */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Mô tả công việc
-                        </label>
-                        <textarea
-                            name="description"
-                            value={formData.description}
-                            onChange={handleChange}
-                            rows={4}
-                            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                            placeholder="Mô tả chi tiết về công việc..."
-                        />
-                    </div>
-
-                    {/* Requirements */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Yêu cầu ứng viên
-                        </label>
-                        <textarea
-                            name="requirements"
-                            value={formData.requirements}
-                            onChange={handleChange}
-                            rows={4}
-                            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                            placeholder="Các yêu cầu về kỹ năng, kinh nghiệm..."
-                        />
-                    </div>
-
-                    {/* Benefits */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Quyền lợi
-                        </label>
-                        <textarea
-                            name="benefits"
-                            value={formData.benefits}
-                            onChange={handleChange}
-                            rows={3}
-                            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                            placeholder="Các quyền lợi dành cho ứng viên..."
-                        />
-                    </div>
+                            {/* Lịch phỏng vấn */}
+                            <div className={`pt-4 border-t ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+                                <h3 className={`text-sm font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                                    📋 Thiết lập lịch phỏng vấn
+                                </h3>
+                                <InterviewScheduler
+                                    schedule={formData.interviewSchedule}
+                                    onChange={(schedule) => updateField('interviewSchedule', schedule)}
+                                />
+                            </div>
+                        </>
+                    )}
                 </form>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-gray-100 flex items-center justify-end gap-3">
+                <div className={`
+                    px-6 py-4 border-t flex items-center justify-between gap-3
+                    ${isDark ? 'border-slate-800 bg-slate-900/80' : 'border-slate-100 bg-slate-50'}
+                `}>
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                        className={`
+                            px-4 py-2 rounded-lg text-sm font-medium transition-colors
+                            ${isDark
+                                ? 'text-slate-400 hover:bg-slate-800'
+                                : 'text-slate-600 hover:bg-slate-100'
+                            }
+                        `}
                     >
                         Hủy
                     </button>
-                    <button
-                        type="submit"
-                        onClick={handleSubmit}
-                        disabled={isLoading}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                    >
-                        {isLoading ? 'Đang lưu...' : job ? 'Cập nhật' : 'Tạo tin'}
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            type="button"
+                            className={`
+                                px-4 py-2 rounded-lg text-sm font-medium transition-colors border
+                                ${isDark
+                                    ? 'border-slate-700 text-slate-300 hover:bg-slate-800'
+                                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                                }
+                            `}
+                        >
+                            Lưu nháp
+                        </button>
+                        <button
+                            type="submit"
+                            onClick={handleSubmit}
+                            disabled={isLoading}
+                            className="px-5 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600 transition-colors disabled:opacity-50"
+                        >
+                            {isLoading ? 'Đang lưu...' : job ? 'Cập nhật' : '🚀 Đăng tin'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

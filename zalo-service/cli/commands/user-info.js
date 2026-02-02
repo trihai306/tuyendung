@@ -14,9 +14,10 @@ export function userInfoCommand(program) {
         .description('Get user profile information')
         .requiredOption('--account <ownId>', 'Account ownId')
         .requiredOption('--user <userId>', 'User ID to get info')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const info = await api.getUserInfo(options.user);
 
                 // getUserInfo can accept array, returns object keyed by uid

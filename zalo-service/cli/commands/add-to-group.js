@@ -15,10 +15,11 @@ export function addToGroupCommand(program) {
         .requiredOption('--account <ownId>', 'Account ownId')
         .requiredOption('--group <groupId>', 'Group ID')
         .requiredOption('--user <userId>', 'User ID to add (or comma-separated list)')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
                 const userIds = options.user.split(',').map(id => id.trim());
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
 
                 const results = [];
                 for (const userId of userIds) {

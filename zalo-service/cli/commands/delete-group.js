@@ -14,9 +14,10 @@ export function deleteGroupCommand(program) {
         .description('Delete/disband a group (owner only)')
         .requiredOption('--account <ownId>', 'Account ownId')
         .requiredOption('--group <groupId>', 'Group ID to delete')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const result = await api.disperseGroup(options.group);
 
                 output({

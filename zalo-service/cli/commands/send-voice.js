@@ -18,6 +18,7 @@ export function sendVoiceCommand(program) {
         .requiredOption('--to <threadId>', 'Recipient thread ID')
         .requiredOption('--file <path>', 'Voice file path (mp3, m4a, etc.)')
         .option('--type <type>', 'Thread type: user or group', 'user')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
                 // Validate file exists
@@ -27,7 +28,7 @@ export function sendVoiceCommand(program) {
                     return;
                 }
 
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const threadType = options.type === 'group' ? 1 : 0;
 
                 const result = await api.sendVoice(filePath, options.to, threadType);

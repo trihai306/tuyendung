@@ -69,7 +69,12 @@ export function loginCommand(program) {
                         ownId,
                         displayName: profile.displayName,
                         phone: profile.phoneNumber,
-                        avatar: profile.avatar
+                        avatar: profile.avatar,
+                        credentials: {
+                            imei: context.imei,
+                            cookie: context.cookie,
+                            userAgent: context.userAgent
+                        }
                     }
                 });
 

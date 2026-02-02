@@ -15,9 +15,10 @@ export function demoteCommand(program) {
         .requiredOption('--account <ownId>', 'Account ownId')
         .requiredOption('--group <groupId>', 'Group ID')
         .requiredOption('--user <userId>', 'User ID to demote')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const result = await api.removeGroupDeputy(options.user, options.group);
 
                 output({

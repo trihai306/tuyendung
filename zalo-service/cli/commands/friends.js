@@ -14,9 +14,10 @@ export function friendsCommand(program) {
         .description('List all friends')
         .requiredOption('--account <ownId>', 'Account ownId')
         .option('--limit <number>', 'Maximum friends to return', '100')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const friends = await api.getAllFriends();
 
                 const limit = parseInt(options.limit);

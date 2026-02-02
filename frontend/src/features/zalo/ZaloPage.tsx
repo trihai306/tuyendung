@@ -41,11 +41,15 @@ function QRLoginModal({ isOpen, onClose, isDark }: { isOpen: boolean; onClose: (
 
         try {
             // Call Laravel API to initiate login (dispatches job)
-            const response = await fetch('/api/zalo/login', {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+            const token = localStorage.getItem('token');
+
+            const response = await fetch(`${apiUrl}/zalo/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
                 },
                 credentials: 'include',
             });

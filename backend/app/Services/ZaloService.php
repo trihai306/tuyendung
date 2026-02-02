@@ -5,36 +5,45 @@ namespace App\Services;
 use App\Models\ZaloAccount;
 use App\Models\ZaloGroup;
 use App\Models\ZaloUser;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 
 /**
- * ZaloService - Hybrid Bridge (CLI + HTTP fallback)
+ * ZaloService - CLI Bridge
  * 
- * Primary: CLI commands for operations (no HTTP server needed)
- * Fallback: HTTP for legacy/special operations
- * 
+ * All operations use CLI commands with credentials from DB
  * CLI Path: ../zalo-service/cli/index.js
  */
 class ZaloService
 {
-    protected string $baseUrl;
     protected string $cliPath;
 
     public function __construct()
     {
-        // HTTP fallback URL (Docker internal network)
-        $this->baseUrl = config('services.zalo.base_url', 'http://zalo:3001');
-
         // CLI path - use env variable (Docker) or fallback to relative path (local)
         $this->cliPath = env('ZALO_CLI_PATH', base_path('../zalo-service/cli/index.js'));
     }
 
     /**
+     * Get credentials from database for an account
+     * Returns JSON string for CLI --credentials argument
+     */
+    public function getCredentials(string $ownId): ?string
+    {
+        $account = ZaloAccount::where('own_id', $ownId)->first();
+
+        if (!$account || empty($account->credentials)) {
+            Log::warning("ZaloService: No credentials found for account", ['ownId' => $ownId]);
+            return null;
+        }
+
+        return json_encode($account->credentials);
+    }
+
+    /**
      * Execute CLI command and return parsed JSON result
      * 
-     * @param string $command CLI command name (e.g., 'send', 'accounts')
+     * @param string $command CLI command name (e.g., 'send', 'groups')
      * @param array $args Arguments as key => value pairs
      * @return array{success: bool, data?: mixed, error?: string}
      */
@@ -103,103 +112,35 @@ class ZaloService
         }
     }
 
-
     /**
-     * Get HTTP client with default headers
+     * Execute CLI command with credentials from DB
      */
-    protected function client()
+    protected function executeWithCredentials(string $command, string $ownId, array $args = []): array
     {
-        return Http::baseUrl($this->baseUrl)
-            ->withHeaders([
-                'Content-Type' => 'application/json',
-            ])
-            ->timeout(30);
-    }
-
-    /**
-     * Initiate QR login process
-     */
-    public function initiateQrLogin(?string $proxyUrl = null): array
-    {
-        try {
-            $response = $this->client()->post('/api/login', [
-                'proxy' => $proxyUrl,
-            ]);
-
-            if ($response->successful()) {
-                return [
-                    'success' => true,
-                    'qr_code' => $response->json('qrCode'),
-                    'session_id' => $response->json('sessionId'),
-                ];
-            }
-
+        $credentials = $this->getCredentials($ownId);
+        if (!$credentials) {
             return [
                 'success' => false,
-                'error' => $response->json('error', 'Failed to initiate login'),
-            ];
-        } catch (\Exception $e) {
-            Log::error('ZaloService::initiateQrLogin failed', ['error' => $e->getMessage()]);
-            return [
-                'success' => false,
-                'error' => $e->getMessage(),
+                'error' => "No credentials found for account {$ownId}",
             ];
         }
+
+        $args['account'] = $ownId;
+        $args['credentials'] = $credentials;
+
+        return $this->executeCliCommand($command, $args);
     }
 
-    /**
-     * Get all logged-in accounts (CLI-based)
-     */
-    public function getAccounts(): array
-    {
-        $result = $this->executeCliCommand('accounts');
-        return $result['success'] ? ($result['data'] ?? []) : [];
-    }
+    // ===========================================
+    // MESSAGING
+    // ===========================================
 
     /**
-     * Get account details by ownId
-     */
-    public function getAccountDetails(string $ownId): ?array
-    {
-        try {
-            $response = $this->client()->get("/api/accounts/{$ownId}");
-
-            if ($response->successful()) {
-                return $response->json('data');
-            }
-
-            return null;
-        } catch (\Exception $e) {
-            Log::error('ZaloService::getAccountDetails failed', ['error' => $e->getMessage()]);
-            return null;
-        }
-    }
-
-    /**
-     * Check service status
-     */
-    public function checkStatus(): array
-    {
-        try {
-            $response = $this->client()->get('/health');
-
-            if ($response->successful()) {
-                return $response->json();
-            }
-
-            return ['connected' => false];
-        } catch (\Exception $e) {
-            return ['connected' => false, 'error' => $e->getMessage()];
-        }
-    }
-
-    /**
-     * Send message to user or group (CLI-based)
+     * Send message to user or group
      */
     public function sendMessage(string $ownId, string $threadId, string $message, string $type = 'user'): array
     {
-        return $this->executeCliCommand('send', [
-            'account' => $ownId,
+        return $this->executeWithCredentials('send', $ownId, [
             'to' => $threadId,
             'message' => $message,
             'type' => $type,
@@ -207,77 +148,369 @@ class ZaloService
     }
 
     /**
-     * Get groups for an account
+     * Send sticker
+     */
+    public function sendSticker(string $ownId, string $threadId, string $stickerId, string $type = 'user'): array
+    {
+        return $this->executeWithCredentials('send-sticker', $ownId, [
+            'to' => $threadId,
+            'sticker' => $stickerId,
+            'type' => $type,
+        ]);
+    }
+
+    /**
+     * Send voice message
+     */
+    public function sendVoice(string $ownId, string $threadId, string $filePath, string $type = 'user'): array
+    {
+        return $this->executeWithCredentials('send-voice', $ownId, [
+            'to' => $threadId,
+            'file' => $filePath,
+            'type' => $type,
+        ]);
+    }
+
+    /**
+     * Send file
+     */
+    public function sendFile(string $ownId, string $threadId, string $filePath, string $type = 'user'): array
+    {
+        return $this->executeWithCredentials('send-file', $ownId, [
+            'to' => $threadId,
+            'file' => $filePath,
+            'type' => $type,
+        ]);
+    }
+
+    /**
+     * Send contact card
+     */
+    public function sendCard(string $ownId, string $threadId, string $userId, string $phone, string $type = 'user'): array
+    {
+        return $this->executeWithCredentials('send-card', $ownId, [
+            'to' => $threadId,
+            'userId' => $userId,
+            'phone' => $phone,
+            'type' => $type,
+        ]);
+    }
+
+    /**
+     * React to message
+     */
+    public function reactToMessage(string $ownId, string $threadId, string $msgId, string $icon, string $type = 'user'): array
+    {
+        return $this->executeWithCredentials('react', $ownId, [
+            'thread' => $threadId,
+            'msgId' => $msgId,
+            'icon' => $icon,
+            'type' => $type,
+        ]);
+    }
+
+    /**
+     * Delete message
+     */
+    public function deleteMessage(string $ownId, string $threadId, string $msgId, bool $forAll = false, string $type = 'user'): array
+    {
+        return $this->executeWithCredentials('delete-message', $ownId, [
+            'thread' => $threadId,
+            'msgId' => $msgId,
+            'forAll' => $forAll,
+            'type' => $type,
+        ]);
+    }
+
+    // ===========================================
+    // ACCOUNT & USER
+    // ===========================================
+
+    /**
+     * Get account info
+     */
+    public function getAccountInfo(string $ownId): array
+    {
+        return $this->executeWithCredentials('account-info', $ownId);
+    }
+
+    /**
+     * Get user info
+     */
+    public function getUserInfo(string $ownId, string $userId): array
+    {
+        return $this->executeWithCredentials('user-info', $ownId, [
+            'userId' => $userId,
+        ]);
+    }
+
+    /**
+     * Find user by phone
+     */
+    public function findUser(string $ownId, string $phone): array
+    {
+        return $this->executeWithCredentials('find-user', $ownId, [
+            'phone' => $phone,
+        ]);
+    }
+
+    /**
+     * Set alias for user
+     */
+    public function setAlias(string $ownId, string $userId, string $alias): array
+    {
+        return $this->executeWithCredentials('set-alias', $ownId, [
+            'userId' => $userId,
+            'alias' => $alias,
+        ]);
+    }
+
+    /**
+     * Pin conversation
+     */
+    public function pinConversation(string $ownId, string $threadId, bool $pinned = true): array
+    {
+        return $this->executeWithCredentials('pin', $ownId, [
+            'threadId' => $threadId,
+            'pin' => $pinned,
+        ]);
+    }
+
+    // ===========================================
+    // FRIENDS
+    // ===========================================
+
+    /**
+     * Get friends list
+     */
+    public function getFriends(string $ownId): array
+    {
+        return $this->executeWithCredentials('friends', $ownId);
+    }
+
+    /**
+     * Send friend request
+     */
+    public function sendFriendRequest(string $ownId, string $userId, string $message = 'Xin chào!'): array
+    {
+        return $this->executeWithCredentials('add-friend', $ownId, [
+            'userId' => $userId,
+            'message' => $message,
+        ]);
+    }
+
+    /**
+     * Accept friend request
+     */
+    public function acceptFriendRequest(string $ownId, string $userId): array
+    {
+        return $this->executeWithCredentials('accept-friend', $ownId, [
+            'userId' => $userId,
+        ]);
+    }
+
+    /**
+     * Block user
+     */
+    public function blockUser(string $ownId, string $userId): array
+    {
+        return $this->executeWithCredentials('block', $ownId, [
+            'userId' => $userId,
+        ]);
+    }
+
+    /**
+     * Unblock user
+     */
+    public function unblockUser(string $ownId, string $userId): array
+    {
+        return $this->executeWithCredentials('unblock', $ownId, [
+            'userId' => $userId,
+        ]);
+    }
+
+    // ===========================================
+    // GROUPS
+    // ===========================================
+
+    /**
+     * Get groups
      */
     public function getGroups(string $ownId): array
     {
-        try {
-            $response = $this->client()->get("/api/accounts/{$ownId}/groups");
-
-            if ($response->successful()) {
-                return $response->json('data', []);
-            }
-
-            return [];
-        } catch (\Exception $e) {
-            Log::error('ZaloService::getGroups failed', ['error' => $e->getMessage()]);
-            return [];
-        }
+        $result = $this->executeWithCredentials('groups', $ownId);
+        return $result['success'] ? ($result['data'] ?? []) : [];
     }
 
     /**
-     * Disconnect (logout) a Zalo account
+     * Get group info
      */
-    public function disconnectAccount(string $ownId): array
+    public function getGroupInfo(string $ownId, string $groupId): array
     {
-        try {
-            $response = $this->client()->post("/api/accounts/{$ownId}/disconnect");
-
-            if ($response->successful()) {
-                return [
-                    'success' => true,
-                    'data' => $response->json('data'),
-                ];
-            }
-
-            return [
-                'success' => false,
-                'error' => $response->json('error', 'Failed to disconnect'),
-            ];
-        } catch (\Exception $e) {
-            Log::error('ZaloService::disconnectAccount failed', ['error' => $e->getMessage()]);
-            return [
-                'success' => false,
-                'error' => $e->getMessage(),
-            ];
-        }
+        return $this->executeWithCredentials('group-info', $ownId, [
+            'groupId' => $groupId,
+        ]);
     }
 
     /**
-     * Sync accounts to database
+     * Create group
      */
-    public function syncAccountsToDatabase(int $companyId): array
+    public function createGroup(string $ownId, string $name, array $members = []): array
     {
-        $accounts = $this->getAccounts();
-        $synced = [];
-
-        foreach ($accounts as $account) {
-            $zaloAccount = ZaloAccount::updateOrCreate(
-                ['own_id' => $account['ownId']],
-                [
-                    'company_id' => $companyId,
-                    'display_name' => $account['displayName'] ?? 'Unknown',
-                    'phone' => $account['phone'] ?? null,
-                    'avatar' => $account['avatar'] ?? null,
-                    'is_connected' => $account['isOnline'] ?? false,
-                ]
-            );
-
-            $synced[] = $zaloAccount;
-        }
-
-        return $synced;
+        return $this->executeWithCredentials('create-group', $ownId, [
+            'name' => $name,
+            'members' => $members,
+        ]);
     }
+
+    /**
+     * Rename group
+     */
+    public function renameGroup(string $ownId, string $groupId, string $name): array
+    {
+        return $this->executeWithCredentials('rename-group', $ownId, [
+            'groupId' => $groupId,
+            'name' => $name,
+        ]);
+    }
+
+    /**
+     * Delete group
+     */
+    public function deleteGroup(string $ownId, string $groupId): array
+    {
+        return $this->executeWithCredentials('delete-group', $ownId, [
+            'groupId' => $groupId,
+        ]);
+    }
+
+    /**
+     * Add member to group
+     */
+    public function addMemberToGroup(string $ownId, string $groupId, string $userId): array
+    {
+        return $this->executeWithCredentials('add-to-group', $ownId, [
+            'groupId' => $groupId,
+            'userId' => $userId,
+        ]);
+    }
+
+    /**
+     * Remove member from group
+     */
+    public function removeMemberFromGroup(string $ownId, string $groupId, string $userId): array
+    {
+        return $this->executeWithCredentials('remove-from-group', $ownId, [
+            'groupId' => $groupId,
+            'userId' => $userId,
+        ]);
+    }
+
+    /**
+     * Promote to admin
+     */
+    public function promoteToAdmin(string $ownId, string $groupId, string $userId): array
+    {
+        return $this->executeWithCredentials('promote', $ownId, [
+            'groupId' => $groupId,
+            'userId' => $userId,
+        ]);
+    }
+
+    /**
+     * Demote from admin
+     */
+    public function demoteFromAdmin(string $ownId, string $groupId, string $userId): array
+    {
+        return $this->executeWithCredentials('demote', $ownId, [
+            'groupId' => $groupId,
+            'userId' => $userId,
+        ]);
+    }
+
+    /**
+     * Transfer ownership
+     */
+    public function transferOwnership(string $ownId, string $groupId, string $userId): array
+    {
+        return $this->executeWithCredentials('transfer-owner', $ownId, [
+            'groupId' => $groupId,
+            'userId' => $userId,
+        ]);
+    }
+
+    // ===========================================
+    // POLLS & NOTES
+    // ===========================================
+
+    /**
+     * Create poll
+     */
+    public function createPoll(string $ownId, string $groupId, string $question, array $options, array $settings = []): array
+    {
+        return $this->executeWithCredentials('create-poll', $ownId, array_merge([
+            'groupId' => $groupId,
+            'question' => $question,
+            'options' => $options,
+        ], $settings));
+    }
+
+    /**
+     * Lock poll
+     */
+    public function lockPoll(string $ownId, string $pollId): array
+    {
+        return $this->executeWithCredentials('lock-poll', $ownId, [
+            'pollId' => $pollId,
+        ]);
+    }
+
+    /**
+     * Create note
+     */
+    public function createNote(string $ownId, string $groupId, string $title, string $content, int $pinAct = 1): array
+    {
+        return $this->executeWithCredentials('create-note', $ownId, [
+            'groupId' => $groupId,
+            'title' => $title,
+            'content' => $content,
+            'pinAct' => $pinAct,
+        ]);
+    }
+
+    /**
+     * Edit note
+     */
+    public function editNote(string $ownId, string $noteId, string $title, string $content, ?int $pinAct = null): array
+    {
+        $args = [
+            'noteId' => $noteId,
+            'title' => $title,
+            'content' => $content,
+        ];
+        if ($pinAct !== null) {
+            $args['pinAct'] = $pinAct;
+        }
+        return $this->executeWithCredentials('edit-note', $ownId, $args);
+    }
+
+    // ===========================================
+    // STICKERS
+    // ===========================================
+
+    /**
+     * Get stickers
+     */
+    public function getStickers(string $ownId, string $keyword = 'hello'): array
+    {
+        return $this->executeWithCredentials('stickers', $ownId, [
+            'keyword' => $keyword,
+        ]);
+    }
+
+    // ===========================================
+    // DATABASE SYNC
+    // ===========================================
 
     /**
      * Sync groups for an account
@@ -306,231 +539,12 @@ class ZaloService
         return $synced;
     }
 
-    /**
-     * ==========================================
-     * EXTENDED FEATURES (CLI Parity)
-     * All methods require ownId to select account
-     * ==========================================
-     */
-
-    /**
-     * Find user by phone number
-     */
-    public function findUser(string $ownId, string $phone): array
-    {
-        return $this->makeRequest('post', '/api/find-user', [
-            'ownId' => $ownId,
-            'phone' => $phone
-        ]);
-    }
-
-    /**
-     * Get all friends for account
-     */
-    public function getFriends(string $ownId): array
-    {
-        return $this->makeRequest('get', "/api/accounts/{$ownId}/friends");
-    }
-
-    /**
-     * Send friend request
-     */
-    public function sendFriendRequest(string $ownId, string $userId, string $message = 'Xin chào!'): array
-    {
-        return $this->makeRequest('post', '/api/friends/add', [
-            'ownId' => $ownId,
-            'userId' => $userId,
-            'message' => $message
-        ]);
-    }
-
-    /**
-     * Accept friend request
-     */
-    public function acceptFriendRequest(string $ownId, string $userId): array
-    {
-        return $this->makeRequest('post', '/api/friends/accept', [
-            'ownId' => $ownId,
-            'userId' => $userId
-        ]);
-    }
-
-    /**
-     * Create group
-     */
-    public function createGroup(string $ownId, string $name, array $members = []): array
-    {
-        return $this->makeRequest('post', '/api/groups/create', [
-            'ownId' => $ownId,
-            'name' => $name,
-            'members' => $members
-        ]);
-    }
-
-    /**
-     * Add member to group
-     */
-    public function addMemberToGroup(string $ownId, string $groupId, string $userId): array
-    {
-        return $this->makeRequest('post', "/api/groups/{$groupId}/add", [
-            'ownId' => $ownId,
-            'userId' => $userId
-        ]);
-    }
-
-    /**
-     * Remove member from group
-     */
-    public function removeMemberFromGroup(string $ownId, string $groupId, string $userId): array
-    {
-        return $this->makeRequest('post', "/api/groups/{$groupId}/remove", [
-            'ownId' => $ownId,
-            'userId' => $userId
-        ]);
-    }
-
-    /**
-     * Block user
-     */
-    public function blockUser(string $ownId, string $userId): array
-    {
-        return $this->makeRequest('post', "/api/users/{$userId}/block", [
-            'ownId' => $ownId,
-            'block' => true
-        ]);
-    }
-
-    /**
-     * Unblock user
-     */
-    public function unblockUser(string $ownId, string $userId): array
-    {
-        return $this->makeRequest('post', "/api/users/{$userId}/block", [
-            'ownId' => $ownId,
-            'block' => false
-        ]);
-    }
-
-    /**
-     * React to message
-     */
-    public function reactToMessage(string $ownId, string $threadId, string $msgId, string $icon, string $type = 'user'): array
-    {
-        return $this->makeRequest('post', '/api/react', [
-            'ownId' => $ownId,
-            'threadId' => $threadId,
-            'msgId' => $msgId,
-            'icon' => $icon,
-            'type' => $type
-        ]);
-    }
-
-    /**
-     * Delete message
-     */
-    public function deleteMessage(string $ownId, string $threadId, string $msgId, bool $forAll = false, string $type = 'user'): array
-    {
-        return $this->makeRequest('post', '/api/delete-message', [
-            'ownId' => $ownId,
-            'threadId' => $threadId,
-            'msgId' => $msgId,
-            'forAll' => $forAll,
-            'type' => $type
-        ]);
-    }
-
-    /**
-     * Send sticker
-     */
-    public function sendSticker(string $ownId, string $threadId, string $stickerId, string $type = 'user'): array
-    {
-        return $this->makeRequest('post', '/api/send-sticker', [
-            'ownId' => $ownId,
-            'threadId' => $threadId,
-            'stickerId' => $stickerId,
-            'type' => $type
-        ]);
-    }
-
-    /**
-     * Helper method for HTTP requests
-     */
-    protected function makeRequest(string $method, string $endpoint, array $data = []): array
-    {
-        try {
-            $response = $method === 'get'
-                ? $this->client()->get($endpoint, $data)
-                : $this->client()->post($endpoint, $data);
-
-            if ($response->successful()) {
-                return [
-                    'success' => true,
-                    'data' => $response->json('data'),
-                ];
-            }
-
-            return [
-                'success' => false,
-                'error' => $response->json('error', 'Request failed'),
-            ];
-        } catch (\Exception $e) {
-            Log::error("ZaloService::{$endpoint} failed", ['error' => $e->getMessage()]);
-            return [
-                'success' => false,
-                'error' => $e->getMessage(),
-            ];
-        }
-    }
-
     // ===========================================
-    // ADDITIONAL FEATURES (Full CLI Parity)
+    // USER CACHING
     // ===========================================
-
-    /**
-     * Send voice message
-     */
-    public function sendVoice(string $ownId, string $threadId, string $filePath, string $type = 'user'): array
-    {
-        return $this->makeRequest('POST', '/api/send-voice', [
-            'ownId' => $ownId,
-            'threadId' => $threadId,
-            'filePath' => $filePath,
-            'type' => $type,
-        ]);
-    }
-
-    /**
-     * Send contact card
-     */
-    public function sendCard(string $ownId, string $threadId, string $userId, string $phone, string $type = 'user'): array
-    {
-        return $this->makeRequest('POST', '/api/send-card', [
-            'ownId' => $ownId,
-            'threadId' => $threadId,
-            'userId' => $userId,
-            'phone' => $phone,
-            'type' => $type,
-        ]);
-    }
-
-    /**
-     * Get user info
-     */
-    public function getUserInfo(string $ownId, string $userId): array
-    {
-        return $this->makeRequest('POST', '/api/user-info', [
-            'ownId' => $ownId,
-            'userId' => $userId,
-        ]);
-    }
 
     /**
      * Fetch user profile and cache in database
-     * 
-     * @param string $ownId Account ID to use for API call
-     * @param string $zaloUserId User ID to fetch
-     * @param bool $forceRefresh Force refresh even if cached
-     * @return ZaloUser|null
      */
     public function fetchAndCacheUserProfile(string $ownId, string $zaloUserId, bool $forceRefresh = false): ?ZaloUser
     {
@@ -565,51 +579,7 @@ class ZaloService
     }
 
     /**
-     * Batch fetch and cache multiple user profiles
-     * 
-     * @param string $ownId Account ID to use
-     * @param array $userIds Array of user IDs to fetch
-     * @return array<string, ZaloUser> Keyed by zalo_user_id
-     */
-    public function fetchAndCacheUserProfiles(string $ownId, array $userIds): array
-    {
-        $results = [];
-
-        // Check which users we already have cached
-        $cachedUsers = ZaloUser::whereIn('zalo_user_id', $userIds)
-            ->where('fetched_at', '>', now()->subHours(24))
-            ->get()
-            ->keyBy('zalo_user_id');
-
-        // Find users that need fetching
-        $needsFetching = array_filter($userIds, fn($id) => !isset($cachedUsers[$id]));
-
-        // Fetch missing users (API supports array of userIds)
-        if (!empty($needsFetching)) {
-            $result = $this->makeRequest('POST', '/api/user-info', [
-                'ownId' => $ownId,
-                'userId' => array_values($needsFetching),
-            ]);
-
-            if ($result['success'] && isset($result['data']['changed_profiles'])) {
-                foreach ($result['data']['changed_profiles'] as $userId => $profileData) {
-                    $user = ZaloUser::updateFromApiResponse($userId, $profileData);
-                    $results[$userId] = $user;
-                }
-            }
-        }
-
-        // Merge with cached
-        foreach ($cachedUsers as $userId => $user) {
-            $results[$userId] = $user;
-        }
-
-        return $results;
-    }
-
-    /**
      * Get cached user info or fetch if not available
-     * Returns array with display_name and avatar
      */
     public function getCachedUserInfo(string $ownId, string $zaloUserId): array
     {
@@ -621,153 +591,4 @@ class ZaloService
             'zalo_name' => $user?->zalo_name ?? null,
         ];
     }
-
-    /**
-     * Get group info
-     */
-    public function getGroupInfo(string $ownId, string $groupId): array
-    {
-        return $this->makeRequest('GET', "/api/groups/{$groupId}/info?ownId={$ownId}");
-    }
-
-    /**
-     * Rename group
-     */
-    public function renameGroup(string $ownId, string $groupId, string $name): array
-    {
-        return $this->makeRequest('POST', "/api/groups/{$groupId}/rename", [
-            'ownId' => $ownId,
-            'name' => $name,
-        ]);
-    }
-
-    /**
-     * Delete/disperse group
-     */
-    public function deleteGroup(string $ownId, string $groupId): array
-    {
-        return $this->makeRequest('POST', "/api/groups/{$groupId}/delete", [
-            'ownId' => $ownId,
-        ]);
-    }
-
-    /**
-     * Promote user to admin
-     */
-    public function promoteToAdmin(string $ownId, string $groupId, string $userId): array
-    {
-        return $this->makeRequest('POST', "/api/groups/{$groupId}/promote", [
-            'ownId' => $ownId,
-            'userId' => $userId,
-        ]);
-    }
-
-    /**
-     * Demote admin to member
-     */
-    public function demoteFromAdmin(string $ownId, string $groupId, string $userId): array
-    {
-        return $this->makeRequest('POST', "/api/groups/{$groupId}/demote", [
-            'ownId' => $ownId,
-            'userId' => $userId,
-        ]);
-    }
-
-    /**
-     * Transfer group ownership
-     */
-    public function transferOwnership(string $ownId, string $groupId, string $userId): array
-    {
-        return $this->makeRequest('POST', "/api/groups/{$groupId}/transfer", [
-            'ownId' => $ownId,
-            'userId' => $userId,
-        ]);
-    }
-
-    /**
-     * Create poll
-     */
-    public function createPoll(string $ownId, string $groupId, string $question, array $options, array $settings = []): array
-    {
-        return $this->makeRequest('POST', "/api/groups/{$groupId}/poll", array_merge([
-            'ownId' => $ownId,
-            'question' => $question,
-            'options' => $options,
-        ], $settings));
-    }
-
-    /**
-     * Lock poll
-     */
-    public function lockPoll(string $ownId, string $pollId): array
-    {
-        return $this->makeRequest('POST', "/api/polls/{$pollId}/lock", [
-            'ownId' => $ownId,
-        ]);
-    }
-
-    /**
-     * Create note
-     */
-    public function createNote(string $ownId, string $groupId, string $title, string $content, int $pinAct = 1): array
-    {
-        return $this->makeRequest('POST', "/api/groups/{$groupId}/note", [
-            'ownId' => $ownId,
-            'title' => $title,
-            'content' => $content,
-            'pinAct' => $pinAct,
-        ]);
-    }
-
-    /**
-     * Edit note
-     */
-    public function editNote(string $ownId, string $noteId, string $title, string $content, ?int $pinAct = null): array
-    {
-        return $this->makeRequest('PUT', "/api/notes/{$noteId}", array_filter([
-            'ownId' => $ownId,
-            'title' => $title,
-            'content' => $content,
-            'pinAct' => $pinAct,
-        ]));
-    }
-
-    /**
-     * Get stickers
-     */
-    public function getStickers(string $ownId, string $keyword = 'hello'): array
-    {
-        return $this->makeRequest('GET', "/api/stickers?ownId={$ownId}&keyword=" . urlencode($keyword));
-    }
-
-    /**
-     * Get own account profile
-     */
-    public function getAccountInfo(string $ownId): array
-    {
-        return $this->makeRequest('GET', "/api/accounts/{$ownId}/info");
-    }
-
-    /**
-     * Set alias for user
-     */
-    public function setAlias(string $ownId, string $userId, string $alias): array
-    {
-        return $this->makeRequest('POST', "/api/users/{$userId}/alias", [
-            'ownId' => $ownId,
-            'alias' => $alias,
-        ]);
-    }
-
-    /**
-     * Pin/unpin conversation
-     */
-    public function pinConversation(string $ownId, string $threadId, bool $pinned = true): array
-    {
-        return $this->makeRequest('POST', "/api/conversations/{$threadId}/pin", [
-            'ownId' => $ownId,
-            'pinned' => $pinned,
-        ]);
-    }
 }
-

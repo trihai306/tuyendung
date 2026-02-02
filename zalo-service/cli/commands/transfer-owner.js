@@ -15,9 +15,10 @@ export function transferOwnerCommand(program) {
         .requiredOption('--account <ownId>', 'Account ownId')
         .requiredOption('--group <groupId>', 'Group ID')
         .requiredOption('--user <userId>', 'New owner user ID')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const result = await api.changeGroupOwner(options.group, options.user);
 
                 output({

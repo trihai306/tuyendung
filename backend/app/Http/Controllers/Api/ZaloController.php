@@ -36,7 +36,7 @@ class ZaloController extends Controller
 
         if ($company) {
             // Check if user is owner or admin
-            if ($user->isAdmin()) {
+            if ($user->isCompanyAdmin()) {
                 // Owner/Admin: Get all company accounts + unassigned accounts
                 $query->where(function ($q) use ($company) {
                     $q->where('company_id', $company->id)
@@ -105,7 +105,8 @@ class ZaloController extends Controller
         );
 
         // Dispatch job to handle CLI login with Soketi broadcast
-        \App\Jobs\ZaloLoginJob::dispatch($sessionId, $user->company_id);
+        // Pass user_id so account is assigned to current user
+        \App\Jobs\ZaloLoginJob::dispatch($sessionId, $user->company_id, $user->id);
 
         return response()->json([
             'success' => true,
@@ -142,7 +143,11 @@ class ZaloController extends Controller
     {
         $company = Auth::user()->company;
 
-        if ($zaloAccount->company_id !== $company->id) {
+        // Allow access if: unassigned account OR belongs to user's company
+        $canAccess = !$zaloAccount->company_id ||
+            ($company && $zaloAccount->company_id === $company->id);
+
+        if (!$canAccess) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -173,7 +178,13 @@ class ZaloController extends Controller
     {
         $company = Auth::user()->company;
 
-        if ($zaloAccount->company_id !== $company->id) {
+        // Allow access if:
+        // 1. Account has no company (unassigned) - anyone can access
+        // 2. Account belongs to user's company
+        $canAccess = !$zaloAccount->company_id ||
+            ($company && $zaloAccount->company_id === $company->id);
+
+        if (!$canAccess) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -206,7 +217,11 @@ class ZaloController extends Controller
     {
         $company = Auth::user()->company;
 
-        if ($zaloAccount->company_id !== $company->id) {
+        // Allow access if: unassigned account OR belongs to user's company
+        $canAccess = !$zaloAccount->company_id ||
+            ($company && $zaloAccount->company_id === $company->id);
+
+        if (!$canAccess) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -244,7 +259,11 @@ class ZaloController extends Controller
     {
         $company = Auth::user()->company;
 
-        if ($zaloAccount->company_id !== $company->id) {
+        // Allow access if: unassigned account OR belongs to user's company
+        $canAccess = !$zaloAccount->company_id ||
+            ($company && $zaloAccount->company_id === $company->id);
+
+        if (!$canAccess) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -276,7 +295,11 @@ class ZaloController extends Controller
     {
         $company = Auth::user()->company;
 
-        if ($zaloAccount->company_id !== $company->id) {
+        // Allow access if: unassigned account OR belongs to user's company
+        $canAccess = !$zaloAccount->company_id ||
+            ($company && $zaloAccount->company_id === $company->id);
+
+        if (!$canAccess) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 

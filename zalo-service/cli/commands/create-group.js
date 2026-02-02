@@ -16,6 +16,7 @@ export function createGroupCommand(program) {
         .requiredOption('--name <name>', 'Group name')
         .requiredOption('--members <uids>', 'Comma-separated member user IDs (min 2)')
         .option('--avatar <path>', 'Group avatar image path')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
                 const memberIds = options.members.split(',').map(id => id.trim());
@@ -25,7 +26,7 @@ export function createGroupCommand(program) {
                     return;
                 }
 
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const result = await api.createGroup({
                     name: options.name,
                     members: memberIds,

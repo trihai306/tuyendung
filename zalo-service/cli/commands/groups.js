@@ -10,9 +10,10 @@ export function groupsCommand(program) {
         .description('Get all groups for an account')
         .requiredOption('--account <ownId>', 'Account ownId')
         .option('--limit <number>', 'Maximum groups to fetch', '50')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const groups = await api.getAllGroups();
 
                 // Get group IDs

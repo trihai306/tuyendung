@@ -15,9 +15,10 @@ export function findUserCommand(program) {
         .description('Find user by phone number')
         .requiredOption('--account <ownId>', 'Account ownId')
         .requiredOption('--phone <phoneNumber>', 'Phone number to search')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const user = await api.findUser(options.phone);
 
                 output({

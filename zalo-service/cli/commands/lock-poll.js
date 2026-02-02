@@ -14,9 +14,10 @@ export function lockPollCommand(program) {
         .description('Lock/close a poll')
         .requiredOption('--account <ownId>', 'Account ownId')
         .requiredOption('--poll <pollId>', 'Poll ID to lock')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const result = await api.lockPoll(options.poll);
 
                 output({

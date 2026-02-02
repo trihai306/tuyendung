@@ -15,9 +15,10 @@ export function promoteCommand(program) {
         .requiredOption('--account <ownId>', 'Account ownId')
         .requiredOption('--group <groupId>', 'Group ID')
         .requiredOption('--user <userId>', 'User ID to promote')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const result = await api.addGroupDeputy(options.user, options.group);
 
                 output({

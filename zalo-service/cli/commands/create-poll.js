@@ -18,6 +18,7 @@ export function createPollCommand(program) {
         .requiredOption('--options <list>', 'Comma-separated poll options')
         .option('--multi', 'Allow multiple selections')
         .option('--anonymous', 'Anonymous voting')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
                 const pollOptions = options.options.split(',').map(o => o.trim());
@@ -27,7 +28,7 @@ export function createPollCommand(program) {
                     return;
                 }
 
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
 
                 const result = await api.createPoll({
                     question: options.question,

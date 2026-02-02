@@ -19,12 +19,14 @@ class ZaloAccount extends Model
         'display_name',
         'avatar',
         'status',
+        'credentials',
         'proxy_url',
         'webhook_config',
         'last_active_at',
     ];
 
     protected $casts = [
+        'credentials' => 'array',
         'webhook_config' => 'array',
         'last_active_at' => 'datetime',
     ];

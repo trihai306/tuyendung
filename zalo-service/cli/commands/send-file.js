@@ -19,6 +19,7 @@ export function sendFileCommand(program) {
         .requiredOption('--file <path>', 'File path to send')
         .option('--message <text>', 'Optional message with file', '')
         .option('--type <type>', 'Thread type: user or group', 'user')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
                 // Validate file exists
@@ -28,7 +29,7 @@ export function sendFileCommand(program) {
                     return;
                 }
 
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const threadType = options.type === 'group' ? 1 : 0;
 
                 const messageContent = {

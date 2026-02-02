@@ -1,5 +1,8 @@
 /**
  * Shared Zalo utilities
+ * 
+ * Credentials are passed from Laravel via --credentials argument
+ * No file-based storage - database is source of truth
  */
 
 import { Zalo } from 'zca-js';
@@ -9,11 +12,9 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, '../../data');
-const COOKIES_DIR = path.join(DATA_DIR, 'cookies');
 
-// Ensure directories exist
+// Ensure data dir exists for QR images
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-if (!fs.existsSync(COOKIES_DIR)) fs.mkdirSync(COOKIES_DIR, { recursive: true });
 
 /**
  * Output JSON result to stdout
@@ -31,60 +32,30 @@ export function error(message, code = 1) {
 }
 
 /**
- * Get cookies path for an account
+ * Parse credentials from JSON string or object
  */
-export function getCookiePath(ownId) {
-    return path.join(COOKIES_DIR, `cred_${ownId}.json`);
-}
+export function parseCredentials(credentialsArg) {
+    if (!credentialsArg) return null;
 
-/**
- * Save credentials for an account
- */
-export function saveCredentials(ownId, credentials) {
-    fs.writeFileSync(getCookiePath(ownId), JSON.stringify(credentials, null, 2));
-}
-
-/**
- * Load credentials for an account
- */
-export function loadCredentials(ownId) {
-    const cookiePath = getCookiePath(ownId);
-    if (!fs.existsSync(cookiePath)) {
-        return null;
+    if (typeof credentialsArg === 'string') {
+        try {
+            return JSON.parse(credentialsArg);
+        } catch {
+            return null;
+        }
     }
-    return JSON.parse(fs.readFileSync(cookiePath, 'utf8'));
+    return credentialsArg;
 }
 
 /**
- * Get all saved account IDs
+ * Create Zalo instance and login with credentials
+ * Credentials MUST be passed via --credentials argument (from DB)
  */
-export function getSavedAccounts() {
-    if (!fs.existsSync(COOKIES_DIR)) return [];
+export async function getZaloApi(ownId, credentialsArg) {
+    const credentials = parseCredentials(credentialsArg);
 
-    return fs.readdirSync(COOKIES_DIR)
-        .filter(f => f.startsWith('cred_') && f.endsWith('.json'))
-        .map(f => f.replace('cred_', '').replace('.json', ''));
-}
-
-/**
- * Delete credentials for an account
- */
-export function deleteCredentials(ownId) {
-    const cookiePath = getCookiePath(ownId);
-    if (fs.existsSync(cookiePath)) {
-        fs.unlinkSync(cookiePath);
-        return true;
-    }
-    return false;
-}
-
-/**
- * Create Zalo instance and login with saved credentials
- */
-export async function getZaloApi(ownId) {
-    const credentials = loadCredentials(ownId);
     if (!credentials) {
-        throw new Error(`Account ${ownId} not found. Please login first.`);
+        throw new Error(`No credentials provided for account ${ownId}. Credentials must be passed via --credentials argument.`);
     }
 
     const zalo = new Zalo({
@@ -97,4 +68,4 @@ export async function getZaloApi(ownId) {
     return api;
 }
 
-export { DATA_DIR, COOKIES_DIR };
+export { DATA_DIR };

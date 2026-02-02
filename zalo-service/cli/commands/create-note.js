@@ -17,9 +17,10 @@ export function createNoteCommand(program) {
         .requiredOption('--content <text>', 'Note content')
         .option('--title <text>', 'Note title')
         .option('--pinned', 'Pin the note')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
 
                 const result = await api.createNote({
                     groupId: options.group,

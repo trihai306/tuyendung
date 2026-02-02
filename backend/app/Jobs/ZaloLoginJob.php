@@ -29,7 +29,8 @@ class ZaloLoginJob implements ShouldQueue
 
     public function __construct(
         public string $sessionId,
-        public int $companyId
+        public int $companyId,
+        public ?int $userId = null
     ) {
         $this->onQueue('zalo');
     }
@@ -41,6 +42,7 @@ class ZaloLoginJob implements ShouldQueue
         Log::info('ZaloLoginJob: Starting QR login', [
             'sessionId' => $this->sessionId,
             'companyId' => $this->companyId,
+            'userId' => $this->userId,
         ]);
 
         // Broadcast that we're starting
@@ -117,15 +119,18 @@ class ZaloLoginJob implements ShouldQueue
             case 'login_success':
                 $accountData = $data['data'] ?? [];
 
-                // Save to database
+                // Save to database with credentials
                 $account = ZaloAccount::updateOrCreate(
                     ['own_id' => $accountData['ownId'] ?? ''],
                     [
                         'company_id' => $this->companyId,
+                        'user_id' => $this->userId,
                         'display_name' => $accountData['displayName'] ?? 'Unknown',
                         'phone' => $accountData['phone'] ?? null,
                         'avatar' => $accountData['avatar'] ?? null,
-                        'is_connected' => true,
+                        'credentials' => $accountData['credentials'] ?? null,
+                        'status' => ZaloAccount::STATUS_CONNECTED,
+                        'last_active_at' => now(),
                     ]
                 );
 

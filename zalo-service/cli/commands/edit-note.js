@@ -16,6 +16,7 @@ export function editNoteCommand(program) {
         .requiredOption('--note <noteId>', 'Note ID to edit')
         .option('--content <text>', 'New note content')
         .option('--title <text>', 'New note title')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
                 if (!options.content && !options.title) {
@@ -23,7 +24,7 @@ export function editNoteCommand(program) {
                     return;
                 }
 
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
 
                 const updateData = { noteId: options.note };
                 if (options.content) updateData.content = options.content;

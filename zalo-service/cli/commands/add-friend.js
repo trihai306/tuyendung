@@ -15,9 +15,10 @@ export function addFriendCommand(program) {
         .requiredOption('--account <ownId>', 'Account ownId')
         .requiredOption('--user <userId>', 'User ID to add')
         .option('--message <text>', 'Friend request message', 'Xin chào! Mình muốn kết bạn.')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const result = await api.sendFriendRequest(options.message, options.user);
 
                 output({

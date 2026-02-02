@@ -30,9 +30,10 @@ export function reactCommand(program) {
         .requiredOption('--thread <threadId>', 'Thread ID containing the message')
         .option('--emoji <emoji>', 'Emoji to react with', 'like')
         .option('--type <type>', 'Thread type: user or group', 'user')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const threadType = options.type === 'group' ? 1 : 0;
 
                 // Map common names to emojis

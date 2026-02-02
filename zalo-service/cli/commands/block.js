@@ -14,9 +14,10 @@ export function blockCommand(program) {
         .description('Block a user')
         .requiredOption('--account <ownId>', 'Account ownId')
         .requiredOption('--user <userId>', 'User ID to block')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const result = await api.blockUser(options.user);
 
                 output({

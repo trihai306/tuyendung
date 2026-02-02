@@ -15,9 +15,10 @@ export function renameGroupCommand(program) {
         .requiredOption('--account <ownId>', 'Account ownId')
         .requiredOption('--group <groupId>', 'Group ID')
         .requiredOption('--name <name>', 'New group name')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const result = await api.changeGroupName(options.group, options.name);
 
                 output({

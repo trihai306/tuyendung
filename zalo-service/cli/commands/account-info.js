@@ -13,9 +13,10 @@ export function accountInfoCommand(program) {
         .command('account-info')
         .description('Get logged-in account information')
         .requiredOption('--account <ownId>', 'Account ownId')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const info = await api.fetchAccountInfo();
 
                 output({

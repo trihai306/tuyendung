@@ -17,9 +17,10 @@ export function deleteMessageCommand(program) {
         .requiredOption('--thread <threadId>', 'Thread ID containing the message')
         .option('--type <type>', 'Thread type: user or group', 'user')
         .option('--for-all', 'Delete for everyone (undo/recall)')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const threadType = options.type === 'group' ? 1 : 0;
 
                 let result;

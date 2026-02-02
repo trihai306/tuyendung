@@ -14,9 +14,10 @@ export function stickersCommand(program) {
         .description('Get available sticker packs')
         .requiredOption('--account <ownId>', 'Account ownId')
         .option('--limit <number>', 'Maximum sticker packs to return', '20')
+        .option('--credentials <json>', 'Credentials JSON from database')
         .action(async (options) => {
             try {
-                const api = await getZaloApi(options.account);
+                const api = await getZaloApi(options.account, options.credentials);
                 const stickers = await api.getStickers();
 
                 const limit = parseInt(options.limit);

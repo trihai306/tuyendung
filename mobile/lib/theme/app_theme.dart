@@ -79,12 +79,12 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         hintStyle: const TextStyle(color: textSecondary),
       ),
-      cardTheme: CardTheme(
+      cardTheme: const CardThemeData(
         color: surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: border),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
+          side: BorderSide(color: border),
         ),
       ),
     );
@@ -144,12 +144,12 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         hintStyle: const TextStyle(color: textSecondaryDark),
       ),
-      cardTheme: CardTheme(
+      cardTheme: const CardThemeData(
         color: surfaceDark,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: borderDark),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
+          side: BorderSide(color: borderDark),
         ),
       ),
     );
