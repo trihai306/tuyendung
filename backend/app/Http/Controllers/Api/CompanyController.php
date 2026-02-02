@@ -221,7 +221,8 @@ class CompanyController extends Controller
         $validated = $request->validate([
             'email' => 'required|email',
             'name' => 'required|string|max:255',
-            'role' => ['required', Rule::in(['admin', 'recruiter'])],
+            'password' => 'required|string|min:8',
+            'role' => ['required', Rule::in(['admin', 'member', 'recruiter'])],
         ]);
 
         // Check if email exists
@@ -246,19 +247,17 @@ class CompanyController extends Controller
             ]);
         }
 
-        // Create new user with random password
+        // Create new user with provided password
         $newUser = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => Hash::make(Str::random(16)),
+            'password' => Hash::make($validated['password']),
             'company_id' => $company->id,
             'company_role' => $validated['role'],
         ]);
 
-        // TODO: Send invitation email with password reset link
-
         return response()->json([
-            'message' => 'Đã gửi lời mời đến ' . $validated['email'],
+            'message' => 'Đã tạo tài khoản thành viên thành công',
             'data' => $newUser->only(['id', 'name', 'email', 'company_role']),
         ], 201);
     }

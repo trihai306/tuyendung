@@ -21,22 +21,31 @@ class ZaloController extends Controller
     }
 
     /**
-     * Get all Zalo accounts for the current company + unassigned accounts
+     * Get Zalo accounts based on user role:
+     * - Owner/Admin: See all company accounts + unassigned accounts
+     * - Member: Only see accounts assigned to them (user_id = current user)
      */
     public function index(): JsonResponse
     {
-        $company = Auth::user()->company;
+        $user = Auth::user();
+        $company = $user->company;
 
         // Get accounts: either belonging to company OR unassigned (no company_id)
         $query = ZaloAccount::with(['groups', 'user'])
             ->orderBy('created_at', 'desc');
 
         if ($company) {
-            // Get company accounts + unassigned accounts that can be claimed
-            $query->where(function ($q) use ($company) {
-                $q->where('company_id', $company->id)
-                    ->orWhereNull('company_id');
-            });
+            // Check if user is owner or admin
+            if ($user->isAdmin()) {
+                // Owner/Admin: Get all company accounts + unassigned accounts
+                $query->where(function ($q) use ($company) {
+                    $q->where('company_id', $company->id)
+                        ->orWhereNull('company_id');
+                });
+            } else {
+                // Member: Only see accounts assigned to them
+                $query->where('user_id', $user->id);
+            }
         } else {
             // No company - only show unassigned accounts
             $query->whereNull('company_id');

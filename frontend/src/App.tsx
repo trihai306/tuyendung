@@ -13,6 +13,7 @@ import { CompanyPage } from './features/company/CompanyPage';
 import { DashboardPage } from './features/dashboard/DashboardPage';
 import { ZaloPage } from './features/zalo/ZaloPage';
 import { LandingPage } from './features/landing/LandingPage';
+import { PermissionsPage } from './features/permissions/PermissionsPage';
 import PricingPage from './features/pricing/PricingPage';
 import { WebSocketTest as WebSocketTestPage } from './components/debug/WebSocketTest';
 import { DashboardLayout } from './components/layout/DashboardLayout';
@@ -143,6 +144,16 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/permissions"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <PermissionsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/zalo"
         element={
           <ProtectedRoute>
@@ -187,7 +198,7 @@ function App() {
     <Provider store={store}>
       <ThemeProvider>
         <ToastProvider>
-          <BrowserRouter basename="/app">
+          <BrowserRouter>
             <AppRoutes />
           </BrowserRouter>
         </ToastProvider>

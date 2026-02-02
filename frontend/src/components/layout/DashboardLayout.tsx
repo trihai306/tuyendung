@@ -138,7 +138,7 @@ function Sidebar() {
                     </div>
                     {!collapsed && (
                         <span className="text-base font-bold bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
-                            RecruitAI
+                            TDTV
                         </span>
                     )}
                 </Link>

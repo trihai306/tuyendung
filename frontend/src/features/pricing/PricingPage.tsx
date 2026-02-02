@@ -118,7 +118,7 @@ const PricingPage = () => {
                         <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center">
                             <span className="text-white font-bold text-sm">R</span>
                         </div>
-                        <span className="font-semibold text-gray-900">RecruitAI</span>
+                        <span className="font-semibold text-gray-900">TDTV</span>
                     </Link>
                     <div className="flex items-center gap-4">
                         {isAuthenticated ? (
@@ -294,7 +294,7 @@ const PricingPage = () => {
             <section className="py-16 px-8 bg-white">
                 <div className="max-w-5xl mx-auto">
                     <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-                        Tại sao chọn RecruitAI?
+                        Tại sao chọn TDTV?
                     </h2>
                     <div className="grid md:grid-cols-3 gap-8">
                         <div className="text-center">
@@ -365,10 +365,10 @@ const PricingPage = () => {
                         <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center">
                             <span className="text-white font-bold text-sm">R</span>
                         </div>
-                        <span className="font-semibold">RecruitAI</span>
+                        <span className="font-semibold">TDTV</span>
                     </div>
                     <p className="text-gray-400">
-                        © 2026 RecruitAI. Giải pháp tuyển dụng thông minh cho doanh nghiệp Việt Nam.
+                        © 2026 TDTV. Giải pháp tuyển dụng thông minh cho doanh nghiệp Việt Nam.
                     </p>
                 </div>
             </footer>

@@ -32,7 +32,7 @@ function LandingHeader() {
                         <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
                             <span className="text-white font-bold text-sm">TD</span>
                         </div>
-                        <span className="font-bold text-slate-800 text-lg hidden sm:block">Tuyển dụng thông minh</span>
+                        <span className="font-bold text-slate-800 text-lg hidden sm:block">Tuyển dụng thời vụ</span>
                     </a>
 
                     {/* Desktop Nav */}
@@ -103,7 +103,7 @@ function HeroSection() {
 
                     {/* Headline */}
                     <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6">
-                        Tuyển dụng thông minh
+                        Tuyển dụng thời vụ
                         <span className="block text-emerald-600">Tìm nhân tài, nhanh hơn 10x</span>
                     </h1>
 
@@ -516,7 +516,7 @@ function CTASection() {
                     Sẵn sàng nâng cấp quy trình tuyển dụng?
                 </h2>
                 <p className="text-lg text-emerald-100 mb-8 max-w-2xl mx-auto">
-                    Tham gia cùng hàng trăm doanh nghiệp đang sử dụng Tuyển dụng thông minh. Bắt đầu miễn phí ngay hôm nay.
+                    Tham gia cùng hàng trăm doanh nghiệp đang sử dụng Tuyển dụng thời vụ. Bắt đầu miễn phí ngay hôm nay.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
@@ -554,7 +554,7 @@ function LandingFooter() {
                             <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
                                 <span className="text-white font-bold text-sm">TD</span>
                             </div>
-                            <span className="font-bold text-white text-lg">Tuyển dụng thông minh</span>
+                            <span className="font-bold text-white text-lg">Tuyển dụng thời vụ</span>
                         </div>
                         <p className="text-slate-400 text-sm mb-4">
                             Nền tảng quản lý tuyển dụng toàn diện với AI. Giúp doanh nghiệp tìm nhân tài nhanh hơn.
@@ -612,7 +612,7 @@ function LandingFooter() {
                 {/* Bottom */}
                 <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p className="text-slate-500 text-sm">
-                        © 2026 Tuyển dụng thông minh. All rights reserved.
+                        © 2026 Tuyển dụng thời vụ. All rights reserved.
                     </p>
                     <div className="flex gap-6 text-sm">
                         <a href="#" className="text-slate-500 hover:text-white transition-colors">Điều khoản</a>

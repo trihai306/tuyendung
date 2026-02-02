@@ -205,7 +205,7 @@ export function CompanyPage() {
                                         onClick={() => setShowInviteModal(true)}
                                         className={`hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium ${isDark ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-700 hover:bg-slate-100'} rounded-lg transition-colors`}
                                     >
-                                        <PlusIcon /> Mời thành viên
+                                        <PlusIcon /> Thêm thành viên
                                     </button>
                                     <button className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm">
                                         <BriefcaseIcon className="w-4 h-4" /> Đăng tin
@@ -423,7 +423,7 @@ function TeamTab({ members, canManage, onInviteClick, onRemove, onUpdateRole, is
                                 onClick={onInviteClick}
                                 className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
                             >
-                                <PlusIcon /> Mời thành viên
+                                <PlusIcon /> Thêm thành viên
                             </button>
                         )}
                     </div>
@@ -728,12 +728,16 @@ function EditCompanyForm({ formData, setFormData, onSave, onCancel }: {
 }
 
 function InviteMemberModal({ onClose, onSuccess, isDark: _isDark }: { onClose: () => void; onSuccess: () => void; isDark: boolean }) {
-    const [form, setForm] = useState({ name: '', email: '', role: 'member' });
+    const [form, setForm] = useState({ name: '', email: '', password: '', role: 'member' });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (form.password.length < 8) {
+            setError('Mật khẩu phải có ít nhất 8 ký tự');
+            return;
+        }
         setLoading(true);
         setError('');
         try {
@@ -748,7 +752,7 @@ function InviteMemberModal({ onClose, onSuccess, isDark: _isDark }: { onClose: (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-slate-800 rounded-xl w-full max-w-md shadow-2xl">
                 <div className="p-6">
-                    <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">Mời thành viên mới</h2>
+                    <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">Thêm thành viên mới</h2>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Họ tên *</label>
@@ -757,6 +761,11 @@ function InviteMemberModal({ onClose, onSuccess, isDark: _isDark }: { onClose: (
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email *</label>
                             <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" required />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mật khẩu *</label>
+                            <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" placeholder="Tối thiểu 8 ký tự" required />
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Thành viên sẽ dùng mật khẩu này để đăng nhập</p>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Vai trò</label>
@@ -769,7 +778,7 @@ function InviteMemberModal({ onClose, onSuccess, isDark: _isDark }: { onClose: (
                         <div className="flex justify-end gap-3 pt-2">
                             <button type="button" onClick={onClose} className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">Hủy</button>
                             <button type="submit" disabled={loading} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
-                                {loading ? 'Đang gửi...' : 'Gửi lời mời'}
+                                {loading ? 'Đang tạo...' : 'Tạo tài khoản'}
                             </button>
                         </div>
                     </form>
