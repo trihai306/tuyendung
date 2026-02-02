@@ -187,7 +187,7 @@ function App() {
     <Provider store={store}>
       <ThemeProvider>
         <ToastProvider>
-          <BrowserRouter>
+          <BrowserRouter basename="/app">
             <AppRoutes />
           </BrowserRouter>
         </ToastProvider>
