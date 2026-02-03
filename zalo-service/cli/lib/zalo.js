@@ -68,4 +68,42 @@ export async function getZaloApi(ownId, credentialsArg) {
     return api;
 }
 
+/**
+ * Save credentials - stub function for compatibility
+ * In new architecture, credentials are returned via stdout and saved by Laravel to DB
+ */
+export function saveCredentials(ownId, credentials) {
+    // No-op: Credentials are now saved via Laravel to database
+    return;
+}
+
+/**
+ * Load credentials - stub function for compatibility
+ * In new architecture, credentials should be passed via --credentials argument from Laravel
+ */
+export function loadCredentials(ownId) {
+    // No-op: Credentials should be passed via --credentials argument
+    // This returns null - caller should handle missing credentials
+    return null;
+}
+
+/**
+ * Delete credentials - stub function for compatibility
+ * In new architecture, deletion happens in Laravel database
+ */
+export function deleteCredentials(ownId) {
+    // No-op: Credentials are deleted from Laravel database
+    return;
+}
+
+/**
+ * Get saved accounts - stub function for compatibility
+ * In new architecture, accounts list comes from Laravel database
+ */
+export function getSavedAccounts() {
+    // No-op: Accounts are now fetched from Laravel database
+    // Return empty array - this command should not be used in new architecture
+    return [];
+}
+
 export { DATA_DIR };

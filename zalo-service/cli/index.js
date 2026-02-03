@@ -47,6 +47,7 @@ import { promoteCommand } from './commands/promote.js';
 import { demoteCommand } from './commands/demote.js';
 import { transferOwnerCommand } from './commands/transfer-owner.js';
 import { deleteGroupCommand } from './commands/delete-group.js';
+import { leaveGroupCommand } from './commands/leave-group.js';
 
 // Extended commands
 import { blockCommand } from './commands/block.js';
@@ -105,6 +106,7 @@ promoteCommand(program);
 demoteCommand(program);
 transferOwnerCommand(program);
 deleteGroupCommand(program);
+leaveGroupCommand(program);
 
 // Register Extended commands
 blockCommand(program);

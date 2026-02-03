@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
         // Demo data for testing
         $this->call([
             CompanySeeder::class,
+            JobSeeder::class,
         ]);
     }
 }

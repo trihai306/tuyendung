@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:dio/dio.dart';
 import 'api_service.dart';
 
 class AuthService extends ChangeNotifier {
@@ -39,19 +40,39 @@ class AuthService extends ChangeNotifier {
     try {
       final response = await _apiService.login(email, password);
       
-      if (response['success'] == true && response['data']?['token'] != null) {
-        await _apiService.saveToken(response['data']['token']);
+      // Backend returns: { data: { user: {...}, token: "..." } }
+      final token = response['data']?['token'];
+      if (token != null) {
+        await _apiService.saveToken(token);
         _user = response['data']['user'];
         _isLoggedIn = true;
         notifyListeners();
       } else {
         throw Exception(response['message'] ?? 'Đăng nhập thất bại');
       }
-    } catch (e) {
-      if (e.toString().contains('401')) {
+    } on DioException catch (e) {
+      // Show detailed Dio errors for debugging
+      if (e.type == DioExceptionType.connectionTimeout) {
+        throw Exception('Kết nối timeout. Kiểm tra server.');
+      } else if (e.type == DioExceptionType.connectionError) {
+        throw Exception('Không thể kết nối tới server. URL: ${e.requestOptions.uri}');
+      } else if (e.response?.statusCode == 401) {
         throw Exception('Email hoặc mật khẩu không đúng');
+      } else if (e.response?.statusCode == 422) {
+        final errors = e.response?.data['errors'];
+        if (errors != null && errors is Map) {
+          final firstError = errors.values.first;
+          if (firstError is List && firstError.isNotEmpty) {
+            throw Exception(firstError.first);
+          }
+        }
+        throw Exception(e.response?.data['message'] ?? 'Thông tin không hợp lệ');
+      } else {
+        throw Exception('Lỗi mạng: ${e.message}');
       }
-      throw Exception('Có lỗi xảy ra. Vui lòng thử lại.');
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Có lỗi xảy ra: $e');
     }
   }
   

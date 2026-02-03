@@ -4,7 +4,7 @@ export const inboxApi = api.injectEndpoints({
     endpoints: (builder) => ({
         getConversations: builder.query({
             query: (params) => ({
-                url: '/inbox/conversations',
+                url: '/zalo/inbox/conversations',
                 params,
             }),
             providesTags: ['Conversation'],
@@ -14,7 +14,7 @@ export const inboxApi = api.injectEndpoints({
             providesTags: (_result, _error, id) => [{ type: 'Conversation', id }],
         }),
         getMessages: builder.query({
-            query: (conversationId: number) => `/inbox/conversations/${conversationId}/messages`,
+            query: (threadId: string) => `/zalo/inbox/messages/${threadId}`,
             providesTags: (_result, _error, id) => [{ type: 'Message', id }],
         }),
         sendMessage: builder.mutation({

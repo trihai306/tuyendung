@@ -17,8 +17,18 @@ class InboxService
         array $filters = [],
         int $perPage = 20
     ): LengthAwarePaginator {
+        // Get user's company and role
+        $user = \App\Models\User::find($userId);
+        $company = $user?->companies()->first();
+
+        if (!$company) {
+            return new LengthAwarePaginator([], 0, $perPage);
+        }
+
+        // For now, all company users can see all company conversations
+        // TODO: Add RBAC filtering when PlatformAccount has user assignment relationship
         $query = Conversation::query()
-            ->whereHas('channel.platformAccount', fn($q) => $q->where('user_id', $userId))
+            ->whereHas('channel.platformAccount', fn($q) => $q->where('company_id', $company->id))
             ->with(['channel.platformAccount', 'assignedUser', 'latestMessage'])
             ->orderByDesc('last_message_at');
 

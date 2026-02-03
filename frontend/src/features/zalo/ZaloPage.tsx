@@ -274,12 +274,13 @@ function QRLoginModal({ isOpen, onClose, isDark }: { isOpen: boolean; onClose: (
 }
 
 // Account Card Component with Groups
-function AccountCard({ account, isDark, onRefresh, onDelete, onDisconnect }: {
+function AccountCard({ account, isDark, onRefresh, onDelete, onDisconnect, onLeaveGroup }: {
     account: ZaloAccountUI;
     isDark: boolean;
     onRefresh: () => void;
     onDelete: () => void;
     onDisconnect: () => void;
+    onLeaveGroup: (groupId: string, groupName: string) => void;
 }) {
     const [isExpanded, setIsExpanded] = useState(true);
 
@@ -417,6 +418,16 @@ function AccountCard({ account, isDark, onRefresh, onDelete, onDisconnect }: {
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                                         </svg>
                                     </button>
+                                    <button
+                                        onClick={() => onLeaveGroup(group.id, group.name)}
+                                        className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-red-500/10 text-slate-500 hover:text-red-400' : 'hover:bg-red-50 text-slate-400 hover:text-red-500'
+                                            }`}
+                                        title="Rời nhóm"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -453,6 +464,10 @@ export function ZaloPage() {
     // Delete confirmation state
     const [deleteAccountState, setDeleteAccountState] = useState<ZaloAccountUI | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // Leave group confirmation state
+    const [leaveGroupData, setLeaveGroupData] = useState<{ account: ZaloAccountUI; groupId: string; groupName: string } | null>(null);
+    const [isLeavingGroup, setIsLeavingGroup] = useState(false);
 
     // Handle disconnect confirmation
     const handleDisconnectConfirm = async () => {
@@ -502,6 +517,24 @@ export function ZaloPage() {
         } catch (err) {
             console.error('Sync error:', err);
             toast.error('Lỗi đồng bộ', 'Không thể đồng bộ nhóm. Vui lòng thử lại.');
+        }
+    };
+
+    // Handle leave group confirmation
+    const handleLeaveGroupConfirm = async () => {
+        if (!leaveGroupData) return;
+
+        setIsLeavingGroup(true);
+        try {
+            await zaloApi.leaveGroup(parseInt(leaveGroupData.account.id), leaveGroupData.groupId);
+            toast.success('Đã rời nhóm', `Bạn đã rời khỏi nhóm ${leaveGroupData.groupName}`);
+            fetchAccounts(); // Refresh list
+        } catch (err) {
+            console.error('Leave group error:', err);
+            toast.error('Lỗi rời nhóm', 'Không thể rời nhóm. Vui lòng thử lại.');
+        } finally {
+            setIsLeavingGroup(false);
+            setLeaveGroupData(null);
         }
     };
 
@@ -672,6 +705,7 @@ export function ZaloPage() {
                             onRefresh={() => handleSyncGroups(account)}
                             onDelete={() => setDeleteAccountState(account)}
                             onDisconnect={() => setDisconnectAccount(account)}
+                            onLeaveGroup={(groupId, groupName) => setLeaveGroupData({ account, groupId, groupName })}
                         />
                     ))
                 )}
@@ -708,6 +742,19 @@ export function ZaloPage() {
                 cancelText="Hủy"
                 variant="danger"
                 isLoading={isDeleting}
+            />
+
+            {/* Leave Group Confirmation Modal */}
+            <ConfirmModal
+                isOpen={!!leaveGroupData}
+                onClose={() => setLeaveGroupData(null)}
+                onConfirm={handleLeaveGroupConfirm}
+                title="Rời khỏi nhóm"
+                message={`Bạn có chắc muốn rời khỏi nhóm "${leaveGroupData?.groupName}"? Bạn sẽ không thể nhận tin nhắn từ nhóm này nữa.`}
+                confirmText="Rời nhóm"
+                cancelText="Hủy"
+                variant="warning"
+                isLoading={isLeavingGroup}
             />
         </div>
     );

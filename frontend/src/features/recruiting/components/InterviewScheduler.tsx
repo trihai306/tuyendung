@@ -1,6 +1,8 @@
-import { useState } from 'react';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { CalendarIcon, MapPinIcon, PlusIcon, TrashIcon } from '../../../components/ui/icons';
+import {
+    CalendarIcon, MapPinIcon, PlusIcon, TrashIcon, ClockIcon,
+    BuildingOffice2Icon, ComputerDesktopIcon, PhoneIcon, LightBulbIcon
+} from '../../../components/ui/icons';
 
 type InterviewType = 'onsite' | 'online' | 'phone';
 
@@ -25,10 +27,10 @@ export function InterviewScheduler({ schedule, onChange }: InterviewSchedulerPro
     const { resolvedTheme } = useTheme();
     const isDark = resolvedTheme === 'dark';
 
-    const interviewTypes: { value: InterviewType; label: string; icon: string }[] = [
-        { value: 'onsite', label: 'Trực tiếp', icon: '🏢' },
-        { value: 'online', label: 'Online (Zoom/Meet)', icon: '💻' },
-        { value: 'phone', label: 'Điện thoại', icon: '📞' },
+    const interviewTypes: { value: InterviewType; label: string; icon: React.ReactNode }[] = [
+        { value: 'onsite', label: 'Trực tiếp', icon: <BuildingOffice2Icon className="w-6 h-6" /> },
+        { value: 'online', label: 'Online (Zoom/Meet)', icon: <ComputerDesktopIcon className="w-6 h-6" /> },
+        { value: 'phone', label: 'Điện thoại', icon: <PhoneIcon className="w-6 h-6" /> },
     ];
 
     const updateField = <K extends keyof InterviewSchedule>(field: K, value: InterviewSchedule[K]) => {
@@ -81,7 +83,7 @@ export function InterviewScheduler({ schedule, onChange }: InterviewSchedulerPro
                                 }
                             `}
                         >
-                            <div className="text-2xl mb-1">{icon}</div>
+                            <div className="mb-1 flex justify-center">{icon}</div>
                             <div className="text-sm font-medium">{label}</div>
                         </button>
                     ))}
@@ -124,8 +126,9 @@ export function InterviewScheduler({ schedule, onChange }: InterviewSchedulerPro
             {/* Time Slots */}
             <div>
                 <div className="flex items-center justify-between mb-2">
-                    <label className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                        ⏰ Khung giờ phỏng vấn
+                    <label className={`text-sm font-medium flex items-center gap-1.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                        <ClockIcon className="w-4 h-4 text-emerald-500" />
+                        Khung giờ phỏng vấn
                     </label>
                     <button
                         type="button"
@@ -203,10 +206,11 @@ export function InterviewScheduler({ schedule, onChange }: InterviewSchedulerPro
                     )}
                 </div>
 
-                <p className={`text-xs mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                    💡 Ứng viên sẽ chọn 1 trong các khung giờ này khi đặt lịch phỏng vấn
+                <p className={`text-xs mt-2 flex items-center gap-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <LightBulbIcon className="w-3.5 h-3.5" />
+                    Ứng viên sẽ chọn 1 trong các khung giờ này khi đặt lịch phỏng vấn
                 </p>
             </div>
-        </div>
+        </div >
     );
 }

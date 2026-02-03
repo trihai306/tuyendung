@@ -229,6 +229,14 @@ const zaloApi = {
     },
 
     /**
+     * Leave a group
+     */
+    leaveGroup: async (accountId: number, groupId: string, silent = false): Promise<{ success: boolean; message: string }> => {
+        const response = await apiClient.post(`/zalo/${accountId}/groups/leave`, { group_id: groupId, silent });
+        return response.data;
+    },
+
+    /**
      * Block user
      */
     blockUser: async (accountId: number, userId: string): Promise<{ success: boolean; data: unknown }> => {

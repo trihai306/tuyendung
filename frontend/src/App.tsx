@@ -15,6 +15,9 @@ import { ZaloPage } from './features/zalo/ZaloPage';
 import { LandingPage } from './features/landing/LandingPage';
 import { PermissionsPage } from './features/permissions/PermissionsPage';
 import PricingPage from './features/pricing/PricingPage';
+import { NotificationsPage } from './features/notifications';
+import CalendarPage from './features/calendar/CalendarPage';
+import { CandidatesPage } from './features/candidates';
 import { WebSocketTest as WebSocketTestPage } from './components/debug/WebSocketTest';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { ToastProvider } from './components/ui';
@@ -104,11 +107,21 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/calendar"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <CalendarPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/candidates"
         element={
           <ProtectedRoute>
             <DashboardLayout>
-              <div className="text-slate-600">Trang Ứng viên đang phát triển...</div>
+              <CandidatesPage />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -179,6 +192,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <DashboardLayout>
               <div className="text-slate-600">Trung tâm Trợ giúp đang phát triển...</div>
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <NotificationsPage />
             </DashboardLayout>
           </ProtectedRoute>
         }

@@ -1,12 +1,19 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'dart:io' show Platform;
 
 class ApiService {
   late final Dio _dio;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   
-  // TODO: Update with your actual API URL
-  static const String baseUrl = 'http://localhost:8000/api';
+  // Use 10.0.2.2 for Android emulator (maps to host's localhost)
+  // Use localhost for iOS simulator
+  static String get baseUrl {
+    if (Platform.isAndroid) {
+      return 'http://10.0.2.2:8000/api';
+    }
+    return 'http://localhost:8000/api';
+  }
   
   ApiService() {
     _dio = Dio(BaseOptions(
@@ -41,7 +48,7 @@ class ApiService {
   
   // Auth
   Future<Map<String, dynamic>> login(String email, String password) async {
-    final response = await _dio.post('/login', data: {
+    final response = await _dio.post('/auth/login', data: {
       'email': email,
       'password': password,
     });
@@ -49,17 +56,17 @@ class ApiService {
   }
   
   Future<Map<String, dynamic>> register(Map<String, dynamic> data) async {
-    final response = await _dio.post('/register', data: data);
+    final response = await _dio.post('/auth/register', data: data);
     return response.data;
   }
   
   Future<void> logout() async {
-    await _dio.post('/logout');
+    await _dio.post('/auth/logout');
     await _storage.delete(key: 'auth_token');
   }
   
   Future<Map<String, dynamic>> getProfile() async {
-    final response = await _dio.get('/user');
+    final response = await _dio.get('/auth/me');
     return response.data;
   }
   
@@ -122,5 +129,59 @@ class ApiService {
   
   Future<void> clearToken() async {
     await _storage.delete(key: 'auth_token');
+  }
+  
+  // Tasks
+  Future<List<dynamic>> getTasks({String? status, bool myTasks = false}) async {
+    final response = await _dio.get('/tasks', queryParameters: {
+      if (status != null) 'status': status,
+      if (myTasks) 'my_tasks': true,
+    });
+    return response.data['data'];
+  }
+  
+  Future<Map<String, dynamic>> getTask(int id) async {
+    final response = await _dio.get('/tasks/$id');
+    return response.data['data'];
+  }
+  
+  Future<Map<String, dynamic>> createTask(Map<String, dynamic> data) async {
+    final response = await _dio.post('/tasks', data: data);
+    return response.data['data'];
+  }
+  
+  Future<Map<String, dynamic>> updateTask(int id, Map<String, dynamic> data) async {
+    final response = await _dio.put('/tasks/$id', data: data);
+    return response.data['data'];
+  }
+  
+  Future<Map<String, dynamic>> updateTaskProgress(int id, int progress) async {
+    final response = await _dio.patch('/tasks/$id/progress', data: {
+      'progress': progress,
+    });
+    return response.data['data'];
+  }
+  
+  Future<Map<String, dynamic>> addTaskComment(int id, String content) async {
+    final response = await _dio.post('/tasks/$id/comments', data: {
+      'content': content,
+    });
+    return response.data['data'];
+  }
+  
+  Future<void> deleteTask(int id) async {
+    await _dio.delete('/tasks/$id');
+  }
+  
+  Future<Map<String, dynamic>> getTaskStats({bool myStats = false}) async {
+    final response = await _dio.get('/tasks/stats', queryParameters: {
+      if (myStats) 'my_stats': true,
+    });
+    return response.data['data'];
+  }
+  
+  Future<List<dynamic>> getTaskEmployees() async {
+    final response = await _dio.get('/tasks/employees');
+    return response.data['data'];
   }
 }

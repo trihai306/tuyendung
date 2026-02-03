@@ -297,79 +297,201 @@ function OverviewTab({ stats, metrics, activities, members, isLoading, onInviteC
 }) {
     return (
         <div className="space-y-6">
-            {/* Stats Grid */}
+            {/* Stats Grid - Premium Design */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {isLoading ? (
-                    Array(4).fill(0).map((_, i) => <div key={i} className={`h-28 rounded-xl animate-pulse ${isDark ? 'bg-slate-800' : 'bg-white'}`} />)
+                    Array(4).fill(0).map((_, i) => (
+                        <div key={i} className={`h-32 rounded-2xl animate-pulse ${isDark ? 'bg-slate-800/50' : 'bg-white'}`}>
+                            <div className="p-5 space-y-3">
+                                <div className={`h-10 w-10 rounded-xl ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`} />
+                                <div className={`h-6 w-16 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`} />
+                                <div className={`h-4 w-24 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`} />
+                            </div>
+                        </div>
+                    ))
                 ) : (
                     <>
-                        <StatCard icon={<BriefcaseIcon className="w-5 h-5" />} value={stats?.active_jobs ?? 0} label="Tin đang tuyển" sublabel="vị trí mở" color="emerald" />
-                        <StatCard icon={<UsersIcon />} value={stats?.total_candidates ?? 0} label="Ứng viên" sublabel="trong pipeline" color="blue" />
-                        <StatCard icon={<CheckCircleIcon />} value={metrics?.hired_this_month ?? 0} label="Tuyển tháng này" change={metrics?.hired_change} color="teal" />
-                        <StatCard icon={<ClockIcon />} value={stats?.avg_time_to_hire ?? 0} label="Thời gian TB" sublabel="ngày" color="amber" />
+                        <PremiumStatCard
+                            icon={<BriefcaseIcon className="w-5 h-5" />}
+                            value={stats?.active_jobs ?? 0}
+                            label="Tin đang tuyển"
+                            sublabel="vị trí đang mở"
+                            gradient="from-emerald-500 to-teal-500"
+                            bgGradient={isDark ? "from-emerald-950/50 to-teal-950/30" : "from-emerald-50 to-teal-50"}
+                            isDark={isDark}
+                        />
+                        <PremiumStatCard
+                            icon={<UsersIcon />}
+                            value={stats?.total_candidates ?? 0}
+                            label="Ứng viên"
+                            sublabel="trong pipeline"
+                            gradient="from-blue-500 to-indigo-500"
+                            bgGradient={isDark ? "from-blue-950/50 to-indigo-950/30" : "from-blue-50 to-indigo-50"}
+                            isDark={isDark}
+                        />
+                        <PremiumStatCard
+                            icon={<CheckCircleIcon />}
+                            value={metrics?.hired_this_month ?? 0}
+                            label="Tuyển tháng này"
+                            change={metrics?.hired_change}
+                            gradient="from-violet-500 to-purple-500"
+                            bgGradient={isDark ? "from-violet-950/50 to-purple-950/30" : "from-violet-50 to-purple-50"}
+                            isDark={isDark}
+                        />
+                        <PremiumStatCard
+                            icon={<ClockIcon />}
+                            value={stats?.avg_time_to_hire ?? 0}
+                            label="Thời gian TB"
+                            sublabel="ngày"
+                            gradient="from-amber-500 to-orange-500"
+                            bgGradient={isDark ? "from-amber-950/50 to-orange-950/30" : "from-amber-50 to-orange-50"}
+                            isDark={isDark}
+                        />
                     </>
                 )}
             </div>
 
             {/* Two Column Layout */}
             <div className="grid lg:grid-cols-3 gap-6">
-                {/* Activity Feed */}
-                <div className={`lg:col-span-2 rounded-xl border p-6 ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>Hoạt động gần đây</h3>
-                        <button className={`text-sm hover:underline ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>Xem tất cả</button>
+                {/* Activity Feed - Premium Timeline */}
+                <div className={`lg:col-span-2 rounded-2xl border p-6 ${isDark ? 'bg-slate-900/80 border-slate-800 backdrop-blur-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDark ? 'bg-emerald-500/20' : 'bg-emerald-100'}`}>
+                                <ActivityIcon className={isDark ? 'text-emerald-400' : 'text-emerald-600'} />
+                            </div>
+                            <div>
+                                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>Hoạt động gần đây</h3>
+                                <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Cập nhật realtime</p>
+                            </div>
+                        </div>
+                        <button className={`flex items-center gap-1.5 text-sm font-medium hover:underline ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                            Xem tất cả <ChevronRightIcon />
+                        </button>
                     </div>
-                    <div className="space-y-4">
-                        {activities.length === 0 ? (
-                            <p className={`text-center py-8 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Chưa có hoạt động nào</p>
-                        ) : (
-                            activities.slice(0, 6).map((activity) => (
-                                <ActivityItem key={activity.id} activity={activity} />
-                            ))
-                        )}
-                    </div>
+
+                    {activities.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12">
+                            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-4 ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}>
+                                <svg className={`w-10 h-10 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-2`}>Chưa có hoạt động nào</p>
+                            <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Hoạt động tuyển dụng sẽ hiển thị ở đây</p>
+                        </div>
+                    ) : (
+                        <div className="relative">
+                            {/* Timeline line */}
+                            <div className={`absolute left-4 top-2 bottom-2 w-0.5 ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+                            <div className="space-y-6">
+                                {activities.slice(0, 6).map((activity, index) => (
+                                    <PremiumActivityItem key={activity.id} activity={activity} isLast={index === Math.min(5, activities.length - 1)} isDark={isDark} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                {/* Team Overview */}
-                <div className={`rounded-xl border p-6 ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>Team</h3>
+                {/* Team Overview - Premium Design */}
+                <div className={`rounded-2xl border p-6 ${isDark ? 'bg-slate-900/80 border-slate-800 backdrop-blur-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDark ? 'bg-teal-500/20' : 'bg-teal-100'}`}>
+                                <TeamIcon className={`w-5 h-5 ${isDark ? 'text-teal-400' : 'text-teal-600'}`} />
+                            </div>
+                            <div>
+                                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>Team</h3>
+                                <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{members.length} thành viên</p>
+                            </div>
+                        </div>
                         {canManage && (
-                            <button onClick={onInviteClick} className={`text-sm hover:underline ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>Quản lý</button>
+                            <button onClick={onInviteClick} className={`text-sm font-medium hover:underline ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                                Quản lý
+                            </button>
                         )}
                     </div>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                        {members.map((member) => (
-                            <div key={member.id} className="group relative">
-                                <div className={`w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center text-white font-medium text-sm ring-2 ${isDark ? 'ring-slate-900' : 'ring-white'}`}>
+
+                    {/* Stacked Avatars */}
+                    <div className="flex items-center mb-6">
+                        <div className="flex -space-x-3">
+                            {members.slice(0, 5).map((member, index) => (
+                                <div
+                                    key={member.id}
+                                    className={`relative w-11 h-11 rounded-full flex items-center justify-center text-white font-medium text-sm ring-3 ${isDark ? 'ring-slate-900' : 'ring-white'} transition-transform hover:scale-110 hover:z-10`}
+                                    style={{
+                                        background: `linear-gradient(135deg, ${['#10b981', '#06b6d4', '#8b5cf6', '#f59e0b', '#ec4899'][index % 5]} 0%, ${['#059669', '#0891b2', '#7c3aed', '#d97706', '#db2777'][index % 5]} 100%)`,
+                                        zIndex: 5 - index
+                                    }}
+                                    title={member.name}
+                                >
                                     {member.name.charAt(0)}
                                 </div>
-                                <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none ${isDark ? 'bg-slate-700' : 'bg-slate-800'}`}>
-                                    {member.name}
+                            ))}
+                            {members.length > 5 && (
+                                <div className={`relative w-11 h-11 rounded-full flex items-center justify-center font-medium text-sm ring-3 ${isDark ? 'ring-slate-900 bg-slate-700 text-slate-300' : 'ring-white bg-slate-200 text-slate-600'}`} style={{ zIndex: 0 }}>
+                                    +{members.length - 5}
                                 </div>
-                            </div>
-                        ))}
+                            )}
+                        </div>
                         {canManage && (
                             <button
                                 onClick={onInviteClick}
-                                className={`w-10 h-10 border-2 border-dashed rounded-full flex items-center justify-center hover:border-emerald-400 hover:text-emerald-500 transition-colors ${isDark ? 'border-slate-600 text-slate-500' : 'border-slate-300 text-slate-400'}`}
+                                className={`ml-3 w-11 h-11 border-2 border-dashed rounded-full flex items-center justify-center transition-all hover:scale-105 ${isDark ? 'border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10' : 'border-emerald-300 text-emerald-500 hover:bg-emerald-50'}`}
                             >
                                 <PlusIcon />
                             </button>
                         )}
                     </div>
-                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                        {members.length} thành viên đang hoạt động
+
+                    {/* Team Quick Stats */}
+                    <div className={`grid grid-cols-2 gap-3 p-4 rounded-xl ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+                        <div className="text-center">
+                            <div className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{members.filter(m => m.company_role === 'admin' || m.company_role === 'owner').length}</div>
+                            <div className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Quản trị viên</div>
+                        </div>
+                        <div className="text-center">
+                            <div className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{members.filter(m => m.company_role === 'member').length}</div>
+                            <div className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Nhân viên</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Quick Metrics */}
+            {/* Quick Metrics - Premium Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <QuickMetricCard title="Tỷ lệ phản hồi" value={`${metrics?.response_rate ?? 0}%`} sublabel="Trả lời < 24h" />
-                <QuickMetricCard title="Ứng viên mới" value="--" sublabel="Hôm nay" />
-                <QuickMetricCard title="Phỏng vấn tuần này" value="--" sublabel="Đã lên lịch" />
-                <QuickMetricCard title="Offer chờ phản hồi" value="--" sublabel="Đang chờ" />
+                <QuickMetricCardPremium
+                    icon={<ResponseIcon />}
+                    title="Tỷ lệ phản hồi"
+                    value={`${metrics?.response_rate ?? 0}%`}
+                    sublabel="Trả lời < 24h"
+                    color="emerald"
+                    isDark={isDark}
+                />
+                <QuickMetricCardPremium
+                    icon={<NewUserIcon />}
+                    title="Ứng viên mới"
+                    value="--"
+                    sublabel="Hôm nay"
+                    color="blue"
+                    isDark={isDark}
+                />
+                <QuickMetricCardPremium
+                    icon={<CalendarIcon />}
+                    title="Phỏng vấn tuần này"
+                    value="--"
+                    sublabel="Đã lên lịch"
+                    color="violet"
+                    isDark={isDark}
+                />
+                <QuickMetricCardPremium
+                    icon={<OfferIcon />}
+                    title="Offer chờ phản hồi"
+                    value="--"
+                    sublabel="Đang chờ"
+                    color="amber"
+                    isDark={isDark}
+                />
             </div>
         </div>
     );
@@ -825,3 +947,122 @@ const ChartIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 const SettingsIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
 );
+const ChevronRightIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+);
+const ActivityIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
+);
+const ResponseIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" /></svg>
+);
+const NewUserIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" /></svg>
+);
+const OfferIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18a1.5 1.5 0 001.5-1.5v-1.5a1.5 1.5 0 00-1.5-1.5h-18a1.5 1.5 0 00-1.5 1.5v1.5a1.5 1.5 0 001.5 1.5z" /></svg>
+);
+
+// =============== PREMIUM COMPONENTS ===============
+
+function PremiumStatCard({ icon, value, label, sublabel, change, gradient, bgGradient, isDark }: {
+    icon: React.ReactNode;
+    value: number;
+    label: string;
+    sublabel?: string;
+    change?: number;
+    gradient: string;
+    bgGradient: string;
+    isDark: boolean;
+}) {
+    return (
+        <div className={`relative overflow-hidden rounded-2xl border p-5 transition-all hover:shadow-lg hover:-translate-y-0.5 ${isDark ? 'bg-slate-900/80 border-slate-800 hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-slate-200/80'}`}>
+            {/* Background gradient overlay */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${bgGradient} opacity-50`} />
+
+            <div className="relative z-10">
+                <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white shadow-lg mb-3`}>
+                    {icon}
+                </div>
+                <div className={`text-3xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                    {value}
+                </div>
+                <div className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{label}</div>
+                {sublabel && <div className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{sublabel}</div>}
+                {change !== undefined && (
+                    <div className={`inline-flex items-center gap-1 text-xs font-medium mt-2 px-2 py-0.5 rounded-full ${change >= 0
+                            ? isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-700'
+                            : isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-700'
+                        }`}>
+                        {change >= 0 ? '↑' : '↓'} {Math.abs(change)}% vs tháng trước
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function PremiumActivityItem({ activity, isLast: _isLast, isDark }: { activity: Activity; isLast: boolean; isDark: boolean }) {
+    const icons: Record<string, { gradient: string; icon: React.ReactNode }> = {
+        candidate_applied: { gradient: 'from-emerald-500 to-teal-500', icon: <PlusIcon className="w-3.5 h-3.5 text-white" /> },
+        interview_scheduled: { gradient: 'from-blue-500 to-indigo-500', icon: <CalendarIcon className="w-3.5 h-3.5 text-white" /> },
+        offer_sent: { gradient: 'from-amber-500 to-orange-500', icon: <MailIcon className="w-3.5 h-3.5 text-white" /> },
+        member_added: { gradient: 'from-teal-500 to-cyan-500', icon: <UsersIcon className="w-3.5 h-3.5 text-white" /> },
+        job_created: { gradient: 'from-violet-500 to-purple-500', icon: <BriefcaseIcon className="w-3.5 h-3.5 text-white" /> },
+    };
+    const { gradient, icon } = icons[activity.type] || icons.candidate_applied;
+
+    return (
+        <div className={`relative pl-12 group transition-all hover:translate-x-1`}>
+            {/* Timeline dot */}
+            <div className={`absolute left-0 top-1 w-8 h-8 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg z-10`}>
+                {icon}
+            </div>
+
+            <div className={`p-4 rounded-xl transition-colors ${isDark ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50'}`}>
+                <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{activity.title}</p>
+                        <p className={`text-sm mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'} truncate`}>{activity.description}</p>
+                    </div>
+                    <span className={`text-xs flex-shrink-0 px-2 py-1 rounded-md ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
+                        {activity.time_formatted}
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function QuickMetricCardPremium({ icon, title, value, sublabel, color, isDark }: {
+    icon: React.ReactNode;
+    title: string;
+    value: string;
+    sublabel: string;
+    color: 'emerald' | 'blue' | 'violet' | 'amber';
+    isDark: boolean;
+}) {
+    const colorClasses = {
+        emerald: isDark ? 'text-emerald-400 bg-emerald-500/20' : 'text-emerald-600 bg-emerald-100',
+        blue: isDark ? 'text-blue-400 bg-blue-500/20' : 'text-blue-600 bg-blue-100',
+        violet: isDark ? 'text-violet-400 bg-violet-500/20' : 'text-violet-600 bg-violet-100',
+        amber: isDark ? 'text-amber-400 bg-amber-500/20' : 'text-amber-600 bg-amber-100',
+    };
+
+    return (
+        <div className={`rounded-xl border p-4 transition-all hover:shadow-md ${isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
+            <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${colorClasses[color]}`}>
+                    {icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{title}</div>
+                    <div className="flex items-baseline gap-2">
+                        <span className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{value}</span>
+                        <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{sublabel}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

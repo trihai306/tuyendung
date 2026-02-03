@@ -12,7 +12,9 @@ class Candidate extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
+        'company_id',
+        'created_by_user_id',
+        'assigned_user_id',
         'full_name',
         'email',
         'phone',
@@ -34,9 +36,32 @@ class Candidate extends Model
         'tags' => 'array',
     ];
 
-    public function user(): BelongsTo
+    // ========================================
+    // RELATIONSHIPS
+    // ========================================
+
+    /**
+     * Company that owns this candidate
+     */
+    public function company(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * User who created this candidate
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    /**
+     * User responsible for this candidate (for member-level filtering)
+     */
+    public function assignedUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_user_id');
     }
 
     public function sourceChannel(): BelongsTo
@@ -59,15 +84,68 @@ class Candidate extends Model
         return $this->hasMany(Conversation::class);
     }
 
+    // ========================================
+    // SCOPES
+    // ========================================
+
+    /**
+     * Scope by company
+     */
+    public function scopeForCompany($query, int $companyId)
+    {
+        return $query->where('company_id', $companyId);
+    }
+
+    /**
+     * Scope for member access - only candidates assigned to them or created by them
+     */
+    public function scopeForMember($query, int $userId)
+    {
+        return $query->where(function ($q) use ($userId) {
+            $q->where('assigned_user_id', $userId)
+                ->orWhere('created_by_user_id', $userId);
+        });
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
     }
 
-    public static function findDuplicate(string $email = null, string $phone = null, int $userId = null): ?self
+    public function scopeStatus($query, string $status)
     {
+        return $query->where('status', $status);
+    }
+
+    public function scopeSource($query, string $source)
+    {
+        return $query->where('source', $source);
+    }
+
+    public function scopeSearch($query, string $search)
+    {
+        return $query->where(function ($q) use ($search) {
+            $q->where('full_name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%")
+                ->orWhere('phone', 'like', "%{$search}%");
+        });
+    }
+
+    // ========================================
+    // HELPERS
+    // ========================================
+
+    /**
+     * Find duplicate candidate within same company
+     */
+    public static function findDuplicate(int $companyId, ?string $email = null, ?string $phone = null): ?self
+    {
+        if (!$email && !$phone) {
+            return null;
+        }
+
         return static::query()
-            ->where('user_id', $userId)
+            ->where('company_id', $companyId)
             ->where(function ($q) use ($email, $phone) {
                 if ($email) {
                     $q->orWhere('email', $email);
@@ -77,5 +155,28 @@ class Candidate extends Model
                 }
             })
             ->first();
+    }
+
+    /**
+     * Check if user can access this candidate
+     */
+    public function isAccessibleBy(User $user): bool
+    {
+        // Get user's company membership
+        $member = $user->companies()->where('company_id', $this->company_id)->first();
+
+        if (!$member) {
+            return false;
+        }
+
+        $role = $member->pivot->role;
+
+        // Owner and Admin can see all candidates
+        if (in_array($role, ['owner', 'admin'])) {
+            return true;
+        }
+
+        // Member can only see their own candidates
+        return $this->assigned_user_id === $user->id || $this->created_by_user_id === $user->id;
     }
 }

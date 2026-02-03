@@ -13,6 +13,7 @@ import {
     PlayIcon,
 } from '../../../components/ui/icons';
 import { useState } from 'react';
+import { JobProgressCard } from './JobProgressCard';
 
 interface Job {
     id: number;
@@ -24,6 +25,8 @@ interface Job {
     applications_count?: number;
     created_at?: string;
     salary_range?: string;
+    target_count?: number;
+    hired_count?: number;
 }
 
 interface JobCardProps {
@@ -31,9 +34,10 @@ interface JobCardProps {
     onEdit?: (job: Job) => void;
     onDelete?: (job: Job) => void;
     onToggleStatus?: (job: Job) => void;
+    onAssign?: (job: Job) => void;
 }
 
-export function JobCard({ job, onEdit, onDelete, onToggleStatus }: JobCardProps) {
+export function JobCard({ job, onEdit, onDelete, onToggleStatus, onAssign }: JobCardProps) {
     const { resolvedTheme } = useTheme();
     const isDark = resolvedTheme === 'dark';
     const { isOwner, isAdmin } = useCompanyRole();
@@ -140,6 +144,16 @@ export function JobCard({ job, onEdit, onDelete, onToggleStatus }: JobCardProps)
                     </span>
                 )}
             </div>
+
+            {/* Progress Bar (if target_count exists) */}
+            {job.target_count && (
+                <JobProgressCard
+                    jobId={job.id}
+                    targetCount={job.target_count}
+                    hiredCount={job.hired_count}
+                    compact
+                />
+            )}
 
             {/* Actions */}
             <div className="flex items-center gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">

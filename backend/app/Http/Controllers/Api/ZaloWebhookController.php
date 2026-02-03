@@ -207,20 +207,31 @@ class ZaloWebhookController extends Controller
             $sessionData = \Illuminate\Support\Facades\Cache::pull("zalo_session:{$sessionId}");
         }
 
-        // Create or update account in database with auto-assign
-        $zaloAccount = ZaloAccount::updateOrCreate(
-            ['own_id' => $accountId],
-            [
-                'display_name' => $data['displayName'] ?? 'Unknown',
-                'phone' => $data['phone'] ?? null,
-                'avatar' => $data['avatar'] ?? null,
-                'status' => 'connected',
-                'last_active_at' => now(),
-                // Auto-assign to user who initiated the QR login
-                'user_id' => $sessionData['user_id'] ?? null,
-                'company_id' => $sessionData['company_id'] ?? null,
-            ]
-        );
+        // Find existing account - don't create new ones from daemon webhook
+        // New accounts are only created via QR login flow (ZaloLoginJob)
+        $zaloAccount = ZaloAccount::where('own_id', $accountId)->first();
+
+        if (!$zaloAccount) {
+            // Account doesn't exist in DB (was deleted or never created via QR)
+            // Skip - don't recreate from daemon restart
+            Log::info('Zalo webhook: Account not in DB, skipping', ['own_id' => $accountId]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Account not found in database',
+            ], 404);
+        }
+
+        // Update existing account
+        $zaloAccount->update([
+            'display_name' => $data['displayName'] ?? $zaloAccount->display_name,
+            'phone' => $data['phone'] ?? $zaloAccount->phone,
+            'avatar' => $data['avatar'] ?? $zaloAccount->avatar,
+            'status' => 'connected',
+            'last_active_at' => now(),
+            // Only update user/company if session data exists (from QR login)
+            'user_id' => $sessionData['user_id'] ?? $zaloAccount->user_id,
+            'company_id' => $sessionData['company_id'] ?? $zaloAccount->company_id,
+        ]);
 
         // Broadcast account login event
         broadcast(new ZaloAccountStatusChanged($accountId, 'login', [

@@ -24,16 +24,25 @@ export function groupsCommand(program) {
                 for (const groupId of groupIds.slice(0, limit)) {
                     try {
                         const info = await api.getGroupInfo(groupId);
-                        if (info) {
+                        // getGroupInfo returns object keyed by groupId in gridInfoMap
+                        const groupData = info.gridInfoMap?.[groupId] || info;
+
+                        if (groupData) {
                             groupDetails.push({
                                 id: groupId,
-                                name: info.name,
-                                memberCount: info.totalMember,
-                                avatar: info.avt
+                                name: groupData.name || 'Unknown Group',
+                                memberCount: groupData.memVerList?.length || groupData.totalMember || 0,
+                                avatar: groupData.avt || groupData.avatar
                             });
                         }
                     } catch (e) {
-                        // Skip failed groups
+                        // Skip failed groups, add with unknown name
+                        groupDetails.push({
+                            id: groupId,
+                            name: 'Unknown Group',
+                            memberCount: 0,
+                            avatar: null
+                        });
                     }
                 }
 
@@ -42,6 +51,7 @@ export function groupsCommand(program) {
                     total: groupIds.length,
                     fetched: groupDetails.length
                 });
+
 
                 process.exit(0);
 

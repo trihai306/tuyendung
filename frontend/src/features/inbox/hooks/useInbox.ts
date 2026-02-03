@@ -19,8 +19,27 @@ export function useInbox() {
     const { data, isFetching, refetch } = useGetConversationsQuery(filters);
 
     useEffect(() => {
-        if (data?.data) {
-            dispatch(setConversations(data.data));
+        if (data) {
+            // Debug: log API response structure
+            console.log('[useInbox] API Response:', data);
+
+            // Handle multiple response formats:
+            // 1. Flat array: { success, data: [...] }
+            // 2. Paginated: { success, data: { data: [...], current_page, ... } }
+            let conversations: any[] = [];
+
+            if (data.data) {
+                if (Array.isArray(data.data)) {
+                    // Flat array response
+                    conversations = data.data;
+                } else if (data.data.data && Array.isArray(data.data.data)) {
+                    // Paginated response - extract from nested data
+                    conversations = data.data.data;
+                }
+            }
+
+            console.log('[useInbox] Parsed conversations:', conversations.length);
+            dispatch(setConversations(conversations));
         }
     }, [data, dispatch]);
 

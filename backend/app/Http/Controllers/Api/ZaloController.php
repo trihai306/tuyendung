@@ -188,29 +188,88 @@ class ZaloController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        // Get group info from multizlogin
-        // Note: This requires knowing group IDs first. In practice, you'd get this from messages or other sources.
-        // For now, we'll fetch from the account details if available.
-        $details = $this->zaloService->getAccountDetails($zaloAccount->own_id);
+        try {
+            $synced = $this->zaloService->syncGroupsForAccount($zaloAccount);
 
-        if (!$details) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Groups synced successfully',
+                'synced_count' => count($synced),
+                'groups' => $synced,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Sync groups failed', [
+                'account_id' => $zaloAccount->id,
+                'error' => $e->getMessage(),
+            ]);
+
             return response()->json([
                 'success' => false,
-                'error' => 'Failed to fetch account details from Zalo',
-            ], 400);
+                'error' => 'Failed to sync groups: ' . $e->getMessage(),
+            ], 500);
         }
-
-        $synced = $this->zaloService->syncGroupsForAccount($zaloAccount);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Groups synced successfully',
-            'synced_count' => count($synced),
-            'groups' => $synced,
-        ]);
     }
 
     /**
+     * Leave a group
+     */
+    public function leaveGroup(Request $request, ZaloAccount $zaloAccount): JsonResponse
+    {
+        $company = Auth::user()->company;
+
+        // Allow access if: unassigned account OR belongs to user's company
+        $canAccess = !$zaloAccount->company_id ||
+            ($company && $zaloAccount->company_id === $company->id);
+
+        if (!$canAccess) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'group_id' => 'required|string',
+            'silent' => 'boolean',
+        ]);
+
+        try {
+            $result = $this->zaloService->leaveGroup(
+                $zaloAccount->own_id,
+                $request->input('group_id'),
+                $request->input('silent', false)
+            );
+
+            if (!$result['success']) {
+                return response()->json([
+                    'success' => false,
+                    'error' => $result['error'] ?? 'Failed to leave group',
+                ], 400);
+            }
+
+            // Remove group from database
+            ZaloGroup::where('zalo_account_id', $zaloAccount->id)
+                ->where('group_id', $request->input('group_id'))
+                ->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Left group successfully',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Leave group failed', [
+                'account_id' => $zaloAccount->id,
+                'group_id' => $request->input('group_id'),
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to leave group: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+    /**
+
      * Send message via Zalo account
      */
     public function sendMessage(Request $request, ZaloAccount $zaloAccount): JsonResponse
@@ -392,13 +451,15 @@ class ZaloController extends Controller
     }
 
     /**
-     * Get Zalo conversations (threads) for current user's accounts only
-     * Privacy: Only shows conversations from accounts where user_id = current user
+     * Get Zalo conversations (threads) with RBAC:
+     * - Owner/Admin: See all company's Zalo account conversations
+     * - Member: Only see conversations from accounts assigned to them (user_id = current user)
      */
     public function getConversations(Request $request): JsonResponse
     {
         try {
-            $userId = Auth::id();
+            $user = Auth::user();
+            $userId = $user->id;
 
             if (!$userId) {
                 return response()->json([
@@ -407,8 +468,19 @@ class ZaloController extends Controller
                 ], 401);
             }
 
-            // Get user's Zalo account IDs
-            $accountIds = \App\Models\ZaloAccount::where('user_id', $userId)->pluck('id');
+            // Get user's company and role
+            $company = $user->company;
+            $role = $user->company_role ?? 'member';
+            $isManager = in_array($role, ['owner', 'admin']);
+
+            // Build account query based on role
+            if ($isManager && $company) {
+                // Managers see all company's Zalo accounts
+                $accountIds = \App\Models\ZaloAccount::where('company_id', $company->id)->pluck('id');
+            } else {
+                // Members only see their assigned accounts
+                $accountIds = \App\Models\ZaloAccount::where('user_id', $userId)->pluck('id');
+            }
 
             if ($accountIds->isEmpty()) {
                 return response()->json([

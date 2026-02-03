@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../features/tasks/tasks.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -45,6 +46,11 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Việc làm',
           ),
           NavigationDestination(
+            icon: Icon(Icons.task_outlined),
+            selectedIcon: Icon(Icons.task),
+            label: 'Công việc',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.chat_outlined),
             selectedIcon: Icon(Icons.chat),
             label: 'Tin nhắn',
@@ -65,8 +71,10 @@ class _HomeScreenState extends State<HomeScreen> {
       case 1:
         return _buildJobsTab();
       case 2:
-        return _buildMessagesTab();
+        return const TaskDashboardScreen();
       case 3:
+        return _buildMessagesTab();
+      case 4:
         return _buildMenuTab();
       default:
         return _buildHomeTab();

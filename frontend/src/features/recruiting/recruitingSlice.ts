@@ -14,6 +14,10 @@ interface Job {
     benefits: string | null;
     salary_range: string | null;
     applications_count?: number;
+    target_count?: number;
+    hired_count?: number;
+    expires_at?: string;
+    cv_required?: boolean;
     created_at: string;
 }
 

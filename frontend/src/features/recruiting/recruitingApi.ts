@@ -97,6 +97,39 @@ export const recruitingApi = api.injectEndpoints({
             }),
             invalidatesTags: ['Application', 'Candidate'],
         }),
+
+        // Job Assignments
+        getJobAssignments: builder.query({
+            query: (jobId: number) => `/jobs/${jobId}/assignments`,
+            providesTags: (_result, _error, jobId) => [{ type: 'Assignment', id: jobId }],
+        }),
+        assignJob: builder.mutation({
+            query: ({ jobId, ...body }) => ({
+                url: `/jobs/${jobId}/assignments`,
+                method: 'POST',
+                body,
+            }),
+            invalidatesTags: (_result, _error, { jobId }) => [{ type: 'Assignment', id: jobId }, 'Job'],
+        }),
+        updateAssignmentProgress: builder.mutation({
+            query: ({ assignmentId, ...body }) => ({
+                url: `/assignments/${assignmentId}`,
+                method: 'PATCH',
+                body,
+            }),
+            invalidatesTags: ['Assignment', 'Job'],
+        }),
+        getMyAssignments: builder.query({
+            query: () => '/my-assignments',
+            providesTags: ['Assignment'],
+        }),
+        removeAssignment: builder.mutation({
+            query: (assignmentId: number) => ({
+                url: `/assignments/${assignmentId}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['Assignment', 'Job'],
+        }),
     }),
 });
 
@@ -115,4 +148,11 @@ export const {
     useCreateCandidateMutation,
     useUpdateCandidateMutation,
     useApplyToJobMutation,
+    // Job Assignments
+    useGetJobAssignmentsQuery,
+    useAssignJobMutation,
+    useUpdateAssignmentProgressMutation,
+    useGetMyAssignmentsQuery,
+    useRemoveAssignmentMutation,
 } = recruitingApi;
+

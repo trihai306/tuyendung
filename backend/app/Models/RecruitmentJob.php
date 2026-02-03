@@ -72,6 +72,34 @@ class RecruitmentJob extends Model
         return $this->hasMany(KnowledgeDocument::class, 'job_id');
     }
 
+    /**
+     * Nhân viên được giao việc
+     */
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(JobAssignment::class, 'job_id');
+    }
+
+    /**
+     * Cập nhật tổng số người đã tuyển từ các assignments
+     */
+    public function updateTotalHired(): void
+    {
+        $this->hired_count = $this->assignments()->sum('confirmed_count');
+        $this->save();
+    }
+
+    /**
+     * Get progress percentage
+     */
+    public function getProgressPercentAttribute(): float
+    {
+        if (!$this->target_count) {
+            return 0;
+        }
+        return min(100, ($this->hired_count / $this->target_count) * 100);
+    }
+
     public function scopeOpen($query)
     {
         return $query->where('status', 'open');

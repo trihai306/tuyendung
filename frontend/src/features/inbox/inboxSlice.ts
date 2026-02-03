@@ -15,7 +15,7 @@ interface Message {
 }
 
 interface Conversation {
-    id: number;
+    id: string; // thread_id for Zalo
     channel_id: number;
     participant_name: string | null;
     participant_avatar: string | null;
@@ -26,13 +26,16 @@ interface Conversation {
     last_message_at: string;
     last_message_preview: string | null;
     unread_count: number;
+    // Zalo specific fields
+    thread_type?: 'user' | 'group';
+    zalo_account_id?: number;
 }
 
 interface InboxState {
-    conversations: Record<number, Conversation>;
-    conversationIds: number[];
-    messages: Record<number, Message[]>;
-    activeConversationId: number | null;
+    conversations: Record<string, Conversation>;
+    conversationIds: string[];
+    messages: Record<string, Message[]>;
+    activeConversationId: string | null;
     filters: {
         status: string | null;
         channelId: number | null;
@@ -60,16 +63,32 @@ const inboxSlice = createSlice({
     name: 'inbox',
     initialState,
     reducers: {
-        setConversations: (state, action: PayloadAction<Conversation[]>) => {
-            state.conversationIds = action.payload.map((c) => c.id);
-            action.payload.forEach((conv) => {
+        setConversations: (state, action: PayloadAction<any[]>) => {
+            // Handle both regular conversations (id) and Zalo conversations (thread_id)
+            const conversations = action.payload.map((c) => ({
+                id: c.thread_id || c.id?.toString(),
+                channel_id: c.zalo_account_id || c.channel_id || 0,
+                participant_name: c.participant_name,
+                participant_avatar: c.participant_avatar,
+                status: c.status || 'open',
+                assigned_to: c.assigned_to || null,
+                priority: c.priority || 'normal',
+                tags: c.tags || [],
+                last_message_at: c.last_message_at,
+                last_message_preview: c.last_message || c.last_message_preview,
+                unread_count: c.unread_count || 0,
+                thread_type: c.thread_type,
+                zalo_account_id: c.zalo_account_id,
+            }));
+            state.conversationIds = conversations.map((c: Conversation) => c.id);
+            conversations.forEach((conv: Conversation) => {
                 state.conversations[conv.id] = conv;
             });
         },
-        setActiveConversation: (state, action: PayloadAction<number | null>) => {
+        setActiveConversation: (state, action: PayloadAction<string | null>) => {
             state.activeConversationId = action.payload;
         },
-        setMessages: (state, action: PayloadAction<{ conversationId: number; messages: Message[] }>) => {
+        setMessages: (state, action: PayloadAction<{ conversationId: string; messages: Message[] }>) => {
             state.messages[action.payload.conversationId] = action.payload.messages;
         },
         addMessage: (state, action: PayloadAction<Message>) => {
@@ -82,7 +101,7 @@ const inboxSlice = createSlice({
                 state.messages[conversationId].push(action.payload);
             }
         },
-        updateConversation: (state, action: PayloadAction<Partial<Conversation> & { id: number }>) => {
+        updateConversation: (state, action: PayloadAction<Partial<Conversation> & { id: string }>) => {
             const { id, ...updates } = action.payload;
             if (state.conversations[id]) {
                 state.conversations[id] = { ...state.conversations[id], ...updates };

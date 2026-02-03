@@ -396,6 +396,18 @@ class ZaloService
     }
 
     /**
+     * Leave group
+     */
+    public function leaveGroup(string $ownId, string $groupId, bool $silent = false): array
+    {
+        return $this->executeWithCredentials('leave-group', $ownId, [
+            'group' => $groupId,
+            'silent' => $silent,
+        ]);
+    }
+
+
+    /**
      * Remove member from group
      */
     public function removeMemberFromGroup(string $ownId, string $groupId, string $userId): array

@@ -4,7 +4,10 @@ import { ShiftPicker } from './ShiftPicker';
 import { InterviewScheduler } from './InterviewScheduler';
 import { BenefitsPicker } from './BenefitsPicker';
 import type { Benefit } from './BenefitsPicker';
-import { BriefcaseIcon, CalendarIcon } from '../../../components/ui/icons';
+import {
+    BriefcaseIcon, CalendarIcon, ClockIcon, DocumentTextIcon,
+    PencilIcon, ClipboardDocumentListIcon, DocumentIcon, RocketLaunchIcon
+} from '../../../components/ui/icons';
 
 interface Shift {
     id: string;
@@ -31,6 +34,7 @@ interface JobFormData {
     category: string;
     location: string;
     headcount: number;
+    cvRequired: boolean;
     salaryType: 'per_shift' | 'per_hour';
     salaryAmount: string;
     description: string;
@@ -88,6 +92,7 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
         description: job?.description || '',
         requirements: job?.requirements || '',
         benefits: job?.benefits || [],
+        cvRequired: job?.cvRequired ?? false,
         workDays: job?.workDays || ['mon', 'tue', 'wed', 'thu', 'fri'],
         shifts: job?.shifts || [],
         startDate: job?.startDate || '',
@@ -139,8 +144,9 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
             `}>
                 {/* Header */}
                 <div className={`px-6 py-4 border-b ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
-                    <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                        {job ? '✏️ Chỉnh sửa tin tuyển dụng' : '📋 Tạo tin tuyển dụng thời vụ'}
+                    <h2 className={`text-lg font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        {job ? <PencilIcon className="w-5 h-5 text-emerald-500" /> : <ClipboardDocumentListIcon className="w-5 h-5 text-emerald-500" />}
+                        {job ? 'Chỉnh sửa tin tuyển dụng' : 'Tạo tin tuyển dụng'}
                     </h2>
                 </div>
 
@@ -258,6 +264,37 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
                                 </div>
                             </div>
 
+                            {/* Yêu cầu CV */}
+                            <div className={`p-4 rounded-lg border ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+                                <label className="flex items-center justify-between cursor-pointer">
+                                    <div>
+                                        <span className={`font-medium flex items-center gap-1.5 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                                            <DocumentIcon className="w-4 h-4 text-emerald-500" />
+                                            Yêu cầu CV/Hồ sơ
+                                        </span>
+                                        <p className={`text-sm mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                            Ứng viên cần gửi CV/hồ sơ khi ứng tuyển
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => updateField('cvRequired', !formData.cvRequired)}
+                                        className={`
+                                            relative w-12 h-6 rounded-full transition-colors
+                                            ${formData.cvRequired
+                                                ? 'bg-emerald-500'
+                                                : isDark ? 'bg-slate-600' : 'bg-slate-300'
+                                            }
+                                        `}
+                                    >
+                                        <span className={`
+                                            absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform
+                                            ${formData.cvRequired ? 'translate-x-7' : 'translate-x-1'}
+                                        `} />
+                                    </button>
+                                </label>
+                            </div>
+
                             {/* Mô tả công việc */}
                             <div>
                                 <label className={labelClass}>Mô tả công việc</label>
@@ -292,9 +329,11 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
 
                     {activeTab === 'schedule' && (
                         <>
-                            {/* Ngày làm việc */}
                             <div>
-                                <label className={labelClass}>📅 Ngày làm việc trong tuần</label>
+                                <label className={`${labelClass} flex items-center gap-1.5`}>
+                                    <CalendarIcon className="w-4 h-4 text-emerald-500" />
+                                    Ngày làm việc trong tuần
+                                </label>
                                 <div className="flex flex-wrap gap-2 mt-2">
                                     {weekDays.map(day => (
                                         <button
@@ -328,7 +367,10 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
                             {/* Thời gian tuyển */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className={labelClass}>📆 Ngày bắt đầu</label>
+                                    <label className={`${labelClass} flex items-center gap-1.5`}>
+                                        <ClockIcon className="w-4 h-4 text-emerald-500" />
+                                        Ngày bắt đầu
+                                    </label>
                                     <input
                                         type="date"
                                         value={formData.startDate}
@@ -337,7 +379,10 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
                                     />
                                 </div>
                                 <div>
-                                    <label className={labelClass}>📆 Ngày kết thúc</label>
+                                    <label className={`${labelClass} flex items-center gap-1.5`}>
+                                        <ClockIcon className="w-4 h-4 text-emerald-500" />
+                                        Ngày kết thúc
+                                    </label>
                                     <input
                                         type="date"
                                         value={formData.endDate}
@@ -349,8 +394,9 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
 
                             {/* Lịch phỏng vấn */}
                             <div className={`pt-4 border-t ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-                                <h3 className={`text-sm font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                                    📋 Thiết lập lịch phỏng vấn
+                                <h3 className={`text-sm font-semibold mb-4 flex items-center gap-1.5 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                                    <DocumentTextIcon className="w-4 h-4 text-emerald-500" />
+                                    Thiết lập lịch phỏng vấn
                                 </h3>
                                 <InterviewScheduler
                                     schedule={formData.interviewSchedule}
@@ -398,7 +444,12 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
                             disabled={isLoading}
                             className="px-5 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600 transition-colors disabled:opacity-50"
                         >
-                            {isLoading ? 'Đang lưu...' : job ? 'Cập nhật' : '🚀 Đăng tin'}
+                            {isLoading ? 'Đang lưu...' : job ? 'Cập nhật' : (
+                                <span className="flex items-center gap-1.5">
+                                    <RocketLaunchIcon className="w-4 h-4" />
+                                    Đăng tin
+                                </span>
+                            )}
                         </button>
                     </div>
                 </div>

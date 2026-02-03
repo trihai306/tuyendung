@@ -13,7 +13,9 @@ use App\Http\Controllers\Api\SeatController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\WebhookController;
 use App\Http\Controllers\Api\ZaloController;
+use App\Http\Controllers\Api\JobAssignmentController;
 use App\Http\Controllers\Api\ZaloWebhookController;
+use App\Http\Controllers\Api\JobAlertController;
 
 // Public routes
 Route::prefix('auth')->name('auth.')->group(function () {
@@ -80,11 +82,32 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/conversations/{conversation}/candidate', [ConversationController::class, 'createCandidate'])->name('conversations.candidate');
     });
 
+    // Notifications
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\NotificationController::class, 'index'])->name('index');
+        Route::get('/recent', [\App\Http\Controllers\Api\NotificationController::class, 'recent'])->name('recent');
+        Route::get('/unread-count', [\App\Http\Controllers\Api\NotificationController::class, 'unreadCount'])->name('unread-count');
+        Route::post('/{id}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markAsRead'])->name('read');
+        Route::post('/read-all', [\App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead'])->name('read-all');
+        Route::delete('/{id}', [\App\Http\Controllers\Api\NotificationController::class, 'destroy'])->name('destroy');
+    });
+
     // Jobs
     Route::apiResource('jobs', JobController::class);
     Route::post('/jobs/{job}/publish', [JobController::class, 'publish'])->name('jobs.publish');
     Route::post('/jobs/{job}/close', [JobController::class, 'close'])->name('jobs.close');
     Route::get('/jobs/{job}/pipeline', [JobController::class, 'pipeline'])->name('jobs.pipeline');
+
+    // Job Alerts
+    Route::get('/jobs/alerts', [JobAlertController::class, 'index'])->name('jobs.alerts');
+    Route::get('/jobs/alerts/summary', [JobAlertController::class, 'summary'])->name('jobs.alerts.summary');
+
+    // Job Assignments
+    Route::get('/jobs/{job}/assignments', [JobAssignmentController::class, 'index'])->name('jobs.assignments.index');
+    Route::post('/jobs/{job}/assignments', [JobAssignmentController::class, 'assign'])->name('jobs.assignments.assign');
+    Route::get('/my-assignments', [JobAssignmentController::class, 'myAssignments'])->name('assignments.mine');
+    Route::patch('/assignments/{assignment}', [JobAssignmentController::class, 'updateProgress'])->name('assignments.update');
+    Route::delete('/assignments/{assignment}', [JobAssignmentController::class, 'destroy'])->name('assignments.destroy');
 
     // Applications
     Route::patch('/applications/{application}/move-stage', [JobController::class, 'moveStage'])->name('applications.move');
@@ -92,6 +115,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Candidates
     Route::apiResource('candidates', CandidateController::class);
     Route::post('/candidates/{candidate}/apply', [CandidateController::class, 'applyToJob'])->name('candidates.apply');
+    Route::post('/candidates/{candidate}/assign', [CandidateController::class, 'assign'])->name('candidates.assign');
+    Route::post('/candidates/bulk-assign', [CandidateController::class, 'bulkAssign'])->name('candidates.bulk-assign');
 
     // Company Management
     Route::prefix('company')->name('company.')->group(function () {
@@ -111,6 +136,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/my-stats', [DashboardController::class, 'myStats'])->name('my-stats');
         Route::get('/tasks', [DashboardController::class, 'tasks'])->name('tasks');
         Route::get('/interviews', [DashboardController::class, 'interviews'])->name('interviews');
+    });
+
+    // Task Management
+    Route::prefix('tasks')->name('tasks.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\TaskController::class, 'index'])->name('index');
+        Route::get('/stats', [\App\Http\Controllers\Api\TaskController::class, 'stats'])->name('stats');
+        Route::get('/employees', [\App\Http\Controllers\Api\TaskController::class, 'employees'])->name('employees');
+        Route::post('/', [\App\Http\Controllers\Api\TaskController::class, 'store'])->name('store');
+        Route::get('/{task}', [\App\Http\Controllers\Api\TaskController::class, 'show'])->name('show');
+        Route::put('/{task}', [\App\Http\Controllers\Api\TaskController::class, 'update'])->name('update');
+        Route::patch('/{task}/progress', [\App\Http\Controllers\Api\TaskController::class, 'updateProgress'])->name('progress');
+        Route::post('/{task}/comments', [\App\Http\Controllers\Api\TaskController::class, 'addComment'])->name('comments');
+        Route::delete('/{task}', [\App\Http\Controllers\Api\TaskController::class, 'destroy'])->name('destroy');
     });
 
     // Subscription
@@ -155,6 +193,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{zaloAccount}/groups/create', [ZaloController::class, 'createGroup'])->name('groups.create');
         Route::post('/{zaloAccount}/groups/{groupId}/add', [ZaloController::class, 'addMemberToGroup'])->name('groups.add-member');
         Route::post('/{zaloAccount}/groups/{groupId}/remove', [ZaloController::class, 'removeMemberFromGroup'])->name('groups.remove-member');
+        Route::post('/{zaloAccount}/groups/leave', [ZaloController::class, 'leaveGroup'])->name('groups.leave');
         Route::post('/{zaloAccount}/users/{userId}/block', [ZaloController::class, 'blockUser'])->name('users.block');
         Route::post('/{zaloAccount}/users/{userId}/unblock', [ZaloController::class, 'unblockUser'])->name('users.unblock');
         Route::post('/{zaloAccount}/react', [ZaloController::class, 'reactToMessage'])->name('react');

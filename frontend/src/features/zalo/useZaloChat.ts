@@ -33,35 +33,89 @@ export function useZaloAccounts() {
 }
 
 // ===================
-// useZaloQRLogin - Handle QR login flow
+// useZaloQRLogin - Handle QR login flow via Soketi
 // ===================
 
 export function useZaloQRLogin() {
     const [qrCode, setQrCode] = useState<string | null>(null);
+    const [sessionId, setSessionId] = useState<string | null>(null);
     const [status, setStatus] = useState<'idle' | 'loading' | 'waiting' | 'success' | 'error'>('idle');
     const [error, setError] = useState<string | null>(null);
+
+    // Subscribe to Soketi channel when sessionId is available
+    useEffect(() => {
+        if (!sessionId) return;
+
+        const echo = getEcho();
+        const channelName = `zalo-login.${sessionId}`;
+        const channel = echo.channel(channelName);
+
+        console.log('[useZaloQRLogin] Subscribing to channel:', channelName);
+
+        channel.listen('.login.progress', (event: {
+            stage: string;
+            qr_code?: string;
+            message?: string;
+            error?: string;
+        }) => {
+            console.log('[useZaloQRLogin] Received event:', event);
+
+            switch (event.stage) {
+                case 'starting':
+                    setStatus('loading');
+                    break;
+
+                case 'qr_generated':
+                    if (event.qr_code) {
+                        setQrCode(event.qr_code);
+                        setStatus('waiting');
+                    }
+                    break;
+
+                case 'login_success':
+                    setStatus('success');
+                    break;
+
+                case 'login_failed':
+                    setError(event.error || event.message || 'Login failed');
+                    setStatus('error');
+                    break;
+            }
+        });
+
+        return () => {
+            console.log('[useZaloQRLogin] Leaving channel:', channelName);
+            echo.leaveChannel(channelName);
+        };
+    }, [sessionId]);
 
     const initiateLogin = useCallback(async () => {
         try {
             setStatus('loading');
             setError(null);
+            setQrCode(null);
 
+            // Call API to start login process - returns sessionId
             const result = await zaloApi.initiateQRLogin();
-            setQrCode(result.qrCode);
-            setStatus('waiting');
+            console.log('[useZaloQRLogin] Initiated login, sessionId:', result.sessionId);
+
+            // Set sessionId to trigger Soketi subscription
+            setSessionId(result.sessionId);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to get QR code');
+            console.error('[useZaloQRLogin] Failed to initiate login:', err);
+            setError(err instanceof Error ? err.message : 'Failed to initiate login');
             setStatus('error');
         }
     }, []);
 
     const reset = useCallback(() => {
         setQrCode(null);
+        setSessionId(null);
         setStatus('idle');
         setError(null);
     }, []);
 
-    return { qrCode, status, error, initiateLogin, reset };
+    return { qrCode, status, error, initiateLogin, reset, sessionId };
 }
 
 // ===================

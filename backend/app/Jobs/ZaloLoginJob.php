@@ -134,6 +134,17 @@ class ZaloLoginJob implements ShouldQueue
                     ]
                 );
 
+                // Also save credentials to file for daemon to use
+                if (!empty($accountData['credentials']) && !empty($accountData['ownId'])) {
+                    $cookiesDir = base_path('../zalo-service/data/cookies');
+                    if (!file_exists($cookiesDir)) {
+                        mkdir($cookiesDir, 0755, true);
+                    }
+                    $credFile = $cookiesDir . '/cred_' . $accountData['ownId'] . '.json';
+                    file_put_contents($credFile, json_encode($accountData['credentials'], JSON_PRETTY_PRINT));
+                    Log::info('ZaloLoginJob: Credentials saved to file', ['file' => $credFile]);
+                }
+
                 broadcast(new ZaloLoginProgress(
                     sessionId: $this->sessionId,
                     stage: 'login_success',

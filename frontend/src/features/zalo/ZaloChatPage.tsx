@@ -153,9 +153,9 @@ function AccountList({
     return (
         <div className={`w-20 flex-shrink-0 border-r ${isDark ? 'border-slate-800 bg-slate-900' : 'border-slate-100 bg-white'}`}>
             <div className="h-full flex flex-col items-center py-4 gap-3">
-                {accounts.map((account) => (
+                {accounts.map((account, index) => (
                     <button
-                        key={account.ownId}
+                        key={`account-${account.ownId}-${index}`}
                         onClick={() => onSelect(account.ownId)}
                         className={`relative group w-12 h-12 rounded-xl transition-all ${selectedId === account.ownId
                             ? 'ring-2 ring-blue-500 ring-offset-2 ' + (isDark ? 'ring-offset-slate-900' : 'ring-offset-white')

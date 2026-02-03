@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as provider_pkg;
+import 'features/tasks/tasks.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +21,7 @@ void main() {
     ),
   );
   
-  runApp(const TuyenDungApp());
+  runApp(const ProviderScope(child: TuyenDungApp()));
 }
 
 class TuyenDungApp extends StatelessWidget {
@@ -27,10 +29,10 @@ class TuyenDungApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
+    return provider_pkg.MultiProvider(
       providers: [
-        Provider<ApiService>(create: (_) => ApiService()),
-        ChangeNotifierProvider<AuthService>(
+        provider_pkg.Provider<ApiService>(create: (_) => ApiService()),
+        provider_pkg.ChangeNotifierProvider<AuthService>(
           create: (context) => AuthService(context.read<ApiService>()),
         ),
       ],
@@ -44,6 +46,8 @@ class TuyenDungApp extends StatelessWidget {
         routes: {
           '/login': (context) => const LoginScreen(),
           '/home': (context) => const HomeScreen(),
+          '/tasks': (context) => const TaskDashboardScreen(),
+          '/tasks/manager': (context) => const ManagerDashboardScreen(),
         },
       ),
     );

@@ -7,6 +7,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./backend:/var/www/html
+      - ./zalo-service:/var/www/zalo-service
     depends_on:
       - mysql
       - redis
@@ -19,6 +20,7 @@ services:
       - BROADCAST_CONNECTION=pusher
       - PUSHER_HOST=soketi
       - PUSHER_PORT=6001
+      - ZALO_CLI_PATH=/var/www/zalo-service/cli/index.js
 
   nginx:
     image: nginx:alpine
