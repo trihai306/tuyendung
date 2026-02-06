@@ -47,7 +47,7 @@ export function CandidatesPage() {
         page: 1,
     });
     const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
-    
+
     // Modal states
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
@@ -163,6 +163,22 @@ export function CandidatesPage() {
         return new Date(date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
     };
 
+    // Helper to safely parse tags (can be string or array from backend)
+    const parseTags = (tags: string[] | string | null | undefined): string[] => {
+        if (!tags) return [];
+        if (Array.isArray(tags)) return tags;
+        if (typeof tags === 'string') {
+            try {
+                const parsed = JSON.parse(tags);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch {
+                // If not valid JSON, treat as comma-separated or single tag
+                return tags.includes(',') ? tags.split(',').map(t => t.trim()) : [tags];
+            }
+        }
+        return [];
+    };
+
     return (
         <div className={`min-h-screen ${isDark ? 'bg-slate-950' : 'bg-slate-50'}`}>
             <div className="flex h-screen overflow-hidden">
@@ -182,7 +198,7 @@ export function CandidatesPage() {
                                     }
                                 </p>
                             </div>
-                            <button 
+                            <button
                                 onClick={handleAddClick}
                                 className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
                             >
@@ -354,14 +370,14 @@ export function CandidatesPage() {
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <div className="flex flex-wrap gap-1">
-                                                        {candidate.tags?.slice(0, 2).map((tag, i) => (
+                                                        {parseTags(candidate.tags).slice(0, 2).map((tag, i) => (
                                                             <span key={i} className={`px-2 py-0.5 text-xs rounded-full ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
                                                                 {tag}
                                                             </span>
                                                         ))}
-                                                        {candidate.tags && candidate.tags.length > 2 && (
+                                                        {parseTags(candidate.tags).length > 2 && (
                                                             <span className={`px-2 py-0.5 text-xs rounded-full ${isDark ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
-                                                                +{candidate.tags.length - 2}
+                                                                +{parseTags(candidate.tags).length - 2}
                                                             </span>
                                                         )}
                                                     </div>
@@ -392,14 +408,14 @@ export function CandidatesPage() {
                                                 </td>
                                                 <td className="px-4 py-3 text-right">
                                                     <div className="flex items-center justify-end gap-1">
-                                                        <button 
+                                                        <button
                                                             onClick={(e) => { e.stopPropagation(); handleEditClick(candidate); }}
                                                             className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-slate-700 text-slate-400 hover:text-emerald-400' : 'hover:bg-slate-100 text-slate-500 hover:text-emerald-600'}`}
                                                             title="Sửa"
                                                         >
                                                             <PencilIcon className="w-4 h-4" />
                                                         </button>
-                                                        <button 
+                                                        <button
                                                             onClick={(e) => { e.stopPropagation(); handleDeleteClick(candidate); }}
                                                             className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-red-900/30 text-slate-400 hover:text-red-400' : 'hover:bg-red-50 text-slate-500 hover:text-red-600'}`}
                                                             title="Xoá"
@@ -499,13 +515,13 @@ export function CandidatesPage() {
                             </div>
 
                             {/* Tags */}
-                            {selectedCandidate.tags && selectedCandidate.tags.length > 0 && (
+                            {parseTags(selectedCandidate.tags).length > 0 && (
                                 <div>
                                     <h5 className={`text-xs font-semibold uppercase tracking-wider mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                                         Tags
                                     </h5>
                                     <div className="flex flex-wrap gap-2">
-                                        {selectedCandidate.tags.map((tag, i) => (
+                                        {parseTags(selectedCandidate.tags).map((tag, i) => (
                                             <span key={i} className={`px-3 py-1 text-sm rounded-full ${isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700'}`}>
                                                 {tag}
                                             </span>

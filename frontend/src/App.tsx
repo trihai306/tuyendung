@@ -4,6 +4,8 @@ import { store } from './app/store';
 import { useAppSelector } from './app/hooks';
 import { LoginPage } from './features/auth/LoginPage';
 import { RegisterPage } from './features/auth/RegisterPage';
+import { RegisterChoicePage } from './features/auth/RegisterChoicePage';
+import { CandidateRegisterPage } from './features/auth/CandidateRegisterPage';
 import { ForgotPasswordPage } from './features/auth/ForgotPasswordPage';
 import { ZaloChatPage } from './features/zalo/ZaloChatPage';
 import { RecruitingPage } from './features/recruiting/RecruitingPage';
@@ -20,8 +22,10 @@ import CalendarPage from './features/calendar/CalendarPage';
 import { CandidatesPage } from './features/candidates';
 import { PublicJobsPage } from './features/jobs/PublicJobsPage';
 import { PublicJobDetailPage } from './features/jobs/PublicJobDetailPage';
+import { CandidateDashboard, MyApplicationsPage, SavedJobsPage, CandidateProfilePage } from './features/candidate';
 import { WebSocketTest as WebSocketTestPage } from './components/debug/WebSocketTest';
 import { DashboardLayout } from './components/layout/DashboardLayout';
+import { CandidateLayout } from './components/layout/CandidateLayout';
 import { ToastProvider } from './components/ui';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { initEcho } from './services/echo';
@@ -48,7 +52,7 @@ function GuestRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   if (isAuthenticated) {
-    return <Navigate to="/inbox" replace />;
+    return <Navigate to="/candidate/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -57,24 +61,73 @@ function GuestRoute({ children }: { children: React.ReactNode }) {
 function AppRoutes() {
   return (
     <Routes>
-      {/* Public Routes */}
+      {/* ============================================== */}
+      {/* PUBLIC ROUTES - No authentication required */}
+      {/* ============================================== */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/landing" element={<LandingPage />} />
       <Route path="/pricing" element={<PricingPage />} />
 
-      {/* Public Jobs Routes */}
-      <Route path="/jobs" element={<PublicJobsPage />} />
-      <Route path="/jobs/:slug" element={<PublicJobDetailPage />} />
+      {/* Public Jobs Routes - With CandidateLayout */}
+      <Route path="/jobs" element={<CandidateLayout><PublicJobsPage /></CandidateLayout>} />
+      <Route path="/jobs/:slug" element={<CandidateLayout><PublicJobDetailPage /></CandidateLayout>} />
 
-
-      {/* Guest Routes - Redirect authenticated users to /inbox */}
+      {/* Guest Routes - Redirect authenticated users */}
       <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
-      <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
+      <Route path="/register" element={<GuestRoute><RegisterChoicePage /></GuestRoute>} />
+      <Route path="/register/employer" element={<GuestRoute><RegisterPage /></GuestRoute>} />
+      <Route path="/register/candidate" element={<GuestRoute><CandidateRegisterPage /></GuestRoute>} />
       <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
 
-      {/* Protected Routes with Dashboard Layout */}
+      {/* ============================================== */}
+      {/* CANDIDATE PORTAL - For job seekers */}
+      {/* ============================================== */}
       <Route
-        path="/dashboard"
+        path="/candidate/dashboard"
+        element={
+          <ProtectedRoute>
+            <CandidateLayout>
+              <CandidateDashboard />
+            </CandidateLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/candidate/applications"
+        element={
+          <ProtectedRoute>
+            <CandidateLayout>
+              <MyApplicationsPage />
+            </CandidateLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/candidate/saved-jobs"
+        element={
+          <ProtectedRoute>
+            <CandidateLayout>
+              <SavedJobsPage />
+            </CandidateLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/candidate/profile"
+        element={
+          <ProtectedRoute>
+            <CandidateLayout>
+              <CandidateProfilePage />
+            </CandidateLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ============================================== */}
+      {/* EMPLOYER PORTAL - For recruiters/managers */}
+      {/* ============================================== */}
+      <Route
+        path="/employer/dashboard"
         element={
           <ProtectedRoute>
             <DashboardLayout>
@@ -84,7 +137,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/inbox"
+        path="/employer/inbox"
         element={
           <ProtectedRoute>
             <DashboardLayout>
@@ -94,7 +147,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/recruiting"
+        path="/employer/jobs"
         element={
           <ProtectedRoute>
             <DashboardLayout>
@@ -104,7 +157,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/recruiting/:jobId"
+        path="/employer/jobs/:jobId"
         element={
           <ProtectedRoute>
             <DashboardLayout>
@@ -114,7 +167,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/calendar"
+        path="/employer/calendar"
         element={
           <ProtectedRoute>
             <DashboardLayout>
@@ -124,7 +177,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/candidates"
+        path="/employer/candidates"
         element={
           <ProtectedRoute>
             <DashboardLayout>
@@ -134,27 +187,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/reports"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <div className="text-slate-600">Trang Báo cáo đang phát triển...</div>
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <SettingsPage />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/company"
+        path="/employer/company"
         element={
           <ProtectedRoute>
             <DashboardLayout>
@@ -164,7 +197,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/permissions"
+        path="/employer/permissions"
         element={
           <ProtectedRoute>
             <DashboardLayout>
@@ -174,7 +207,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/zalo"
+        path="/employer/zalo"
         element={
           <ProtectedRoute>
             <DashboardLayout>
@@ -184,27 +217,17 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/zalo-chat"
+        path="/employer/settings"
         element={
           <ProtectedRoute>
             <DashboardLayout>
-              <ZaloChatPage />
+              <SettingsPage />
             </DashboardLayout>
           </ProtectedRoute>
         }
       />
       <Route
-        path="/help"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <div className="text-slate-600">Trung tâm Trợ giúp đang phát triển...</div>
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/notifications"
+        path="/employer/notifications"
         element={
           <ProtectedRoute>
             <DashboardLayout>
@@ -213,6 +236,20 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* Legacy route redirects */}
+      <Route path="/dashboard" element={<Navigate to="/employer/dashboard" replace />} />
+      <Route path="/inbox" element={<Navigate to="/employer/inbox" replace />} />
+      <Route path="/recruiting" element={<Navigate to="/employer/jobs" replace />} />
+      <Route path="/recruiting/:jobId" element={<Navigate to="/employer/jobs/:jobId" replace />} />
+      <Route path="/calendar" element={<Navigate to="/employer/calendar" replace />} />
+      <Route path="/candidates" element={<Navigate to="/employer/candidates" replace />} />
+      <Route path="/company" element={<Navigate to="/employer/company" replace />} />
+      <Route path="/permissions" element={<Navigate to="/employer/permissions" replace />} />
+      <Route path="/zalo" element={<Navigate to="/employer/zalo" replace />} />
+      <Route path="/zalo-chat" element={<Navigate to="/employer/inbox" replace />} />
+      <Route path="/settings" element={<Navigate to="/employer/settings" replace />} />
+      <Route path="/notifications" element={<Navigate to="/employer/notifications" replace />} />
 
       {/* Debug Routes */}
       <Route path="/debug/websocket" element={<WebSocketTestPage />} />
@@ -238,3 +275,4 @@ function App() {
 }
 
 export default App;
+

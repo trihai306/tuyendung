@@ -118,7 +118,7 @@ const PricingPage = () => {
                         <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center">
                             <span className="text-white font-bold text-sm">R</span>
                         </div>
-                        <span className="font-semibold text-gray-900">TDTV</span>
+                        <span className="font-semibold text-gray-900">Viecly</span>
                     </Link>
                     <div className="flex items-center gap-4">
                         {isAuthenticated ? (
@@ -198,8 +198,8 @@ const PricingPage = () => {
                                             key={seats}
                                             onClick={() => handleSeatSelect(seats)}
                                             className={`px-4 py-2 rounded-lg font-medium transition-colors ${!isCustom && selectedSeats === seats
-                                                    ? 'bg-emerald-600 text-white'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                ? 'bg-emerald-600 text-white'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                 }`}
                                         >
                                             {seats}
@@ -208,8 +208,8 @@ const PricingPage = () => {
                                     <button
                                         onClick={handleCustomClick}
                                         className={`px-4 py-2 rounded-lg font-medium transition-colors ${isCustom
-                                                ? 'bg-emerald-600 text-white'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            ? 'bg-emerald-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                             }`}
                                     >
                                         Tùy chọn
@@ -254,8 +254,8 @@ const PricingPage = () => {
                             {/* Message */}
                             {message && (
                                 <div className={`p-4 rounded-xl mb-6 ${message.type === 'success'
-                                        ? 'bg-emerald-100 text-emerald-800'
-                                        : 'bg-red-100 text-red-800'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : 'bg-red-100 text-red-800'
                                     }`}>
                                     {message.text}
                                 </div>
@@ -294,7 +294,7 @@ const PricingPage = () => {
             <section className="py-16 px-8 bg-white">
                 <div className="max-w-5xl mx-auto">
                     <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-                        Tại sao chọn TDTV?
+                        Tại sao chọn Viecly?
                     </h2>
                     <div className="grid md:grid-cols-3 gap-8">
                         <div className="text-center">
@@ -365,10 +365,10 @@ const PricingPage = () => {
                         <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center">
                             <span className="text-white font-bold text-sm">R</span>
                         </div>
-                        <span className="font-semibold">TDTV</span>
+                        <span className="font-semibold">Viecly</span>
                     </div>
                     <p className="text-gray-400">
-                        © 2026 TDTV. Giải pháp tuyển dụng thông minh cho doanh nghiệp Việt Nam.
+                        © 2026 Viecly. Giải pháp tuyển dụng thông minh cho doanh nghiệp Việt Nam.
                     </p>
                 </div>
             </footer>

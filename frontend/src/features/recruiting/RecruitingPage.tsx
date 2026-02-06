@@ -114,6 +114,20 @@ export function RecruitingPage() {
         refetch();
     };
 
+    // Repost closed job - open form with pre-filled data
+    const handleRepostJob = (job: any) => {
+        // Create a new job object with data from the old job but reset status
+        const repostData = {
+            ...job,
+            id: undefined,  // Remove ID to create new
+            status: 'draft',
+            created_at: undefined,
+            applications_count: 0,
+        };
+        setEditingJob(repostData);
+        setShowJobForm(true);
+    };
+
     if (roleLoading) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -311,6 +325,7 @@ export function RecruitingPage() {
                                 onEdit={handleEditJob}
                                 onDelete={handleDeleteJob}
                                 onToggleStatus={handleToggleJobStatus}
+                                onRepost={handleRepostJob}
                             />
                         ))}
                     </div>

@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\JobAlertController;
 // Public routes
 Route::prefix('auth')->name('auth.')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('register');
+    Route::post('/register/candidate', [AuthController::class, 'registerCandidate'])->name('register.candidate');
     Route::post('/login', [AuthController::class, 'login'])->name('login');
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password');
 });

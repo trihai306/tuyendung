@@ -23,16 +23,36 @@ export function LandingPage() {
 function LandingHeader() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+    // Check auth state from localStorage
+    const token = localStorage.getItem('token');
+    const isAuthenticated = !!token;
+
+    // Try to get user from persist:auth (Redux persist) 
+    let userName = 'User';
+    try {
+        const persistAuth = localStorage.getItem('persist:auth');
+        if (persistAuth) {
+            const parsed = JSON.parse(persistAuth);
+            if (parsed.user && parsed.user !== 'null') {
+                const user = JSON.parse(parsed.user);
+                userName = user?.name || 'User';
+            }
+        }
+    } catch {
+        // Ignore parsing errors
+    }
+
+
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
-                    <a href="/" className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">TD</span>
+                    <a href="/" className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                            <span className="text-white font-bold text-sm">VL</span>
                         </div>
-                        <span className="font-bold text-slate-800 text-lg hidden sm:block">Tuyển dụng thời vụ</span>
+                        <span className="font-bold text-slate-800 text-xl hidden sm:block">Viecly</span>
                     </a>
 
                     {/* Desktop Nav */}
@@ -43,12 +63,30 @@ function LandingHeader() {
                         <a href="#testimonials" className="text-slate-600 hover:text-emerald-600 text-sm font-medium transition-colors">Khách hàng</a>
                     </nav>
 
-                    {/* CTA Buttons */}
+                    {/* CTA Buttons / User Menu */}
                     <div className="hidden md:flex items-center gap-3">
-                        <Link to="/login" className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">Đăng nhập</Link>
-                        <Link to="/register" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm shadow-emerald-500/20">
-                            Dùng thử miễn phí
-                        </Link>
+                        {isAuthenticated ? (
+                            <>
+                                <Link to="/employer/dashboard" className="text-slate-600 hover:text-emerald-600 text-sm font-medium transition-colors">
+                                    Dashboard
+                                </Link>
+                                <Link to="/employer/dashboard" className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors">
+                                    <div className="w-7 h-7 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
+                                        <span className="text-white text-xs font-semibold">
+                                            {userName.charAt(0).toUpperCase()}
+                                        </span>
+                                    </div>
+                                    <span className="text-sm font-medium text-slate-700">{userName}</span>
+                                </Link>
+                            </>
+                        ) : (
+                            <>
+                                <Link to="/login" className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">Đăng nhập</Link>
+                                <Link to="/register" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm shadow-emerald-500/20">
+                                    Dùng thử miễn phí
+                                </Link>
+                            </>
+                        )}
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -76,10 +114,18 @@ function LandingHeader() {
                             <a href="#pricing" className="text-slate-600 hover:text-emerald-600 text-sm font-medium">Bảng giá</a>
                             <a href="#testimonials" className="text-slate-600 hover:text-emerald-600 text-sm font-medium">Khách hàng</a>
                             <hr className="border-slate-100" />
-                            <Link to="/login" className="text-slate-600 text-sm font-medium">Đăng nhập</Link>
-                            <Link to="/register" className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg text-center">
-                                Dùng thử miễn phí
-                            </Link>
+                            {isAuthenticated ? (
+                                <Link to="/employer/dashboard" className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg text-center">
+                                    Vào Dashboard
+                                </Link>
+                            ) : (
+                                <>
+                                    <Link to="/login" className="text-slate-600 text-sm font-medium">Đăng nhập</Link>
+                                    <Link to="/register" className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg text-center">
+                                        Dùng thử miễn phí
+                                    </Link>
+                                </>
+                            )}
                         </nav>
                     </div>
                 )}
@@ -87,6 +133,7 @@ function LandingHeader() {
         </header>
     );
 }
+
 
 // ==================== HERO SECTION ====================
 function HeroSection() {
@@ -105,8 +152,8 @@ function HeroSection() {
 
                     {/* Headline */}
                     <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6">
-                        Tuyển dụng thời vụ
-                        <span className="block text-emerald-600">Tìm nhân tài, nhanh hơn 10x</span>
+                        Tuyển dụng thông minh
+                        <span className="block text-emerald-600">Kết nối nhân tài, nhanh hơn 10x</span>
                     </h1>
 
                     {/* Subheadline */}
@@ -518,7 +565,7 @@ function CTASection() {
                     Sẵn sàng nâng cấp quy trình tuyển dụng?
                 </h2>
                 <p className="text-lg text-emerald-100 mb-8 max-w-2xl mx-auto">
-                    Tham gia cùng hàng trăm doanh nghiệp đang sử dụng Tuyển dụng thời vụ. Bắt đầu miễn phí ngay hôm nay.
+                    Tham gia cùng hàng trăm doanh nghiệp đang sử dụng Viecly. Bắt đầu miễn phí ngay hôm nay.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
@@ -552,11 +599,11 @@ function LandingFooter() {
                 <div className="grid md:grid-cols-4 gap-12 mb-12">
                     {/* Brand */}
                     <div className="md:col-span-1">
-                        <div className="flex items-center gap-2 mb-4">
-                            <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
-                                <span className="text-white font-bold text-sm">TD</span>
+                        <div className="flex items-center gap-2.5 mb-4">
+                            <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
+                                <span className="text-white font-bold text-sm">VL</span>
                             </div>
-                            <span className="font-bold text-white text-lg">Tuyển dụng thời vụ</span>
+                            <span className="font-bold text-white text-xl">Viecly</span>
                         </div>
                         <p className="text-slate-400 text-sm mb-4">
                             Nền tảng quản lý tuyển dụng toàn diện với AI. Giúp doanh nghiệp tìm nhân tài nhanh hơn.
@@ -597,7 +644,7 @@ function LandingFooter() {
                         <ul className="space-y-3 text-sm text-slate-400">
                             <li className="flex items-center gap-2">
                                 <MailIcon className="w-4 h-4" />
-                                support@tuyendung.ai
+                                support@viecly.vn
                             </li>
                             <li className="flex items-center gap-2">
                                 <PhoneIcon className="w-4 h-4" />
@@ -614,7 +661,7 @@ function LandingFooter() {
                 {/* Bottom */}
                 <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p className="text-slate-500 text-sm">
-                        © 2026 Tuyển dụng thời vụ. All rights reserved.
+                        © 2026 Viecly. All rights reserved.
                     </p>
                     <div className="flex gap-6 text-sm">
                         <a href="#" className="text-slate-500 hover:text-white transition-colors">Điều khoản</a>

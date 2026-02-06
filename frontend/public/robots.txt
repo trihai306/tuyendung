@@ -1,0 +1,26 @@
+# Robots.txt for Viecly
+# https://viecly.vn
+
+User-agent: *
+Allow: /
+Allow: /jobs
+Allow: /jobs/*
+
+# Disallow protected routes
+Disallow: /employer/
+Disallow: /candidate/
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /debug/
+
+# Allow specific assets
+Allow: /logo.png
+Allow: *.css
+Allow: *.js
+
+# Crawl rate
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://viecly.vn/sitemap.xml

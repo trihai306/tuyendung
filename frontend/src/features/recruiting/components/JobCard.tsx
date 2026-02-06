@@ -11,6 +11,7 @@ import {
     EyeIcon,
     PauseIcon,
     PlayIcon,
+    ArrowPathIcon,
 } from '../../../components/ui/icons';
 import { useState } from 'react';
 import { JobProgressCard } from './JobProgressCard';
@@ -35,9 +36,10 @@ interface JobCardProps {
     onDelete?: (job: Job) => void;
     onToggleStatus?: (job: Job) => void;
     onAssign?: (job: Job) => void;
+    onRepost?: (job: Job) => void;
 }
 
-export function JobCard({ job, onEdit, onDelete, onToggleStatus, onAssign }: JobCardProps) {
+export function JobCard({ job, onEdit, onDelete, onToggleStatus, onAssign, onRepost }: JobCardProps) {
     const { resolvedTheme } = useTheme();
     const isDark = resolvedTheme === 'dark';
     const { isOwner, isAdmin } = useCompanyRole();
@@ -219,6 +221,11 @@ export function JobCard({ job, onEdit, onDelete, onToggleStatus, onAssign }: Job
                                                 <PauseIcon className="w-4 h-4" />
                                                 Tạm dừng
                                             </>
+                                        ) : job.status === 'closed' ? (
+                                            <>
+                                                <ArrowPathIcon className="w-4 h-4" />
+                                                Đăng lại
+                                            </>
                                         ) : (
                                             <>
                                                 <PlayIcon className="w-4 h-4" />
@@ -226,6 +233,19 @@ export function JobCard({ job, onEdit, onDelete, onToggleStatus, onAssign }: Job
                                             </>
                                         )}
                                     </button>
+                                    {/* Repost button - only for closed jobs */}
+                                    {job.status === 'closed' && onRepost && (
+                                        <button
+                                            onClick={() => { onRepost(job); setShowMenu(false); }}
+                                            className={`
+                                                w-full px-3 py-2 text-sm text-left flex items-center gap-2
+                                                ${isDark ? 'text-emerald-400 hover:bg-slate-700' : 'text-emerald-600 hover:bg-emerald-50'}
+                                            `}
+                                        >
+                                            <ArrowPathIcon className="w-4 h-4" />
+                                            Tạo tin mới từ tin này
+                                        </button>
+                                    )}
                                     <button
                                         onClick={() => { onDelete?.(job); setShowMenu(false); }}
                                         className={`

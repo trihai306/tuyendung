@@ -50,7 +50,34 @@ export function useAuth() {
                 company_phone: companyPhone
             });
             dispatch(setCredentials(data));
-            navigate('/inbox');
+            navigate('/employer/dashboard');
+            return { success: true };
+        } catch (e: any) {
+            setError(e.message);
+            return { success: false, message: e.message };
+        } finally {
+            setIsLoading(false);
+        }
+    }, [dispatch, navigate]);
+
+    const registerCandidate = useCallback(async (
+        name: string,
+        email: string,
+        password: string,
+        passwordConfirmation: string
+    ) => {
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const data = await authApi.registerCandidate({
+                name,
+                email,
+                password,
+                password_confirmation: passwordConfirmation
+            });
+            dispatch(setCredentials(data));
+            navigate('/jobs');
             return { success: true };
         } catch (e: any) {
             setError(e.message);
@@ -95,6 +122,7 @@ export function useAuth() {
     return {
         login,
         register,
+        registerCandidate,
         forgotPassword,
         logout,
         isLoading,

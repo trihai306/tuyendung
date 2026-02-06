@@ -30,6 +30,13 @@ export interface RegisterPayload {
     company_phone?: string;
 }
 
+export interface CandidateRegisterPayload {
+    name: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+}
+
 export interface ForgotPasswordPayload {
     email: string;
 }
@@ -61,9 +68,15 @@ const authApi = {
         return response.data.data;
     },
 
-    // Register
+    // Register (Employer)
     register: async (payload: RegisterPayload): Promise<AuthResponse> => {
         const response = await apiClient.post<ApiResponse<AuthResponse>>('/auth/register', payload);
+        return response.data.data;
+    },
+
+    // Register (Candidate)
+    registerCandidate: async (payload: CandidateRegisterPayload): Promise<AuthResponse> => {
+        const response = await apiClient.post<ApiResponse<AuthResponse>>('/auth/register/candidate', payload);
         return response.data.data;
     },
 

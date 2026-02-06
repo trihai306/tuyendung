@@ -15,6 +15,9 @@ export interface PublicJob {
     benefits: string | null;
     published_at: string;
     expires_at?: string | null;
+    company_name?: string | null;
+    company_logo?: string | null;
+    experience_required?: string | null;
     user: {
         id: number;
         name: string;
@@ -25,6 +28,9 @@ export interface PublicJobsParams {
     search?: string;
     job_type?: string;
     location?: string;
+    category?: string;
+    experience?: string;
+    level?: string;
     min_salary?: number;
     max_salary?: number;
     page?: number;

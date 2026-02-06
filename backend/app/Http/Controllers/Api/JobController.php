@@ -123,23 +123,7 @@ class JobController extends Controller
     {
         $query = RecruitmentJob::where('status', 'open')
             ->whereNotNull('published_at')
-            ->with('user:id,name')
-            ->select([
-                'id',
-                'title',
-                'slug',
-                'department',
-                'location',
-                'job_type',
-                'salary_min',
-                'salary_max',
-                'salary_currency',
-                'description',
-                'requirements',
-                'benefits',
-                'published_at',
-                'user_id'
-            ])
+            ->with(['user:id,name', 'user.company:id,user_id,name,logo'])
             ->orderByDesc('published_at');
 
         // Search
@@ -169,7 +153,37 @@ class JobController extends Controller
             $query->where('salary_max', '<=', $maxSalary);
         }
 
+        // Filter by category (department)
+        if ($category = $request->input('category')) {
+            $query->where('department', 'like', "%{$category}%");
+        }
+
         $jobs = $query->paginate(12);
+
+        // Transform response to include company_name
+        $jobs->getCollection()->transform(function ($job) {
+            return [
+                'id' => $job->id,
+                'title' => $job->title,
+                'slug' => $job->slug,
+                'department' => $job->department,
+                'location' => $job->location,
+                'job_type' => $job->job_type,
+                'salary_min' => $job->salary_min,
+                'salary_max' => $job->salary_max,
+                'salary_currency' => $job->salary_currency,
+                'description' => $job->description,
+                'requirements' => $job->requirements,
+                'benefits' => $job->benefits,
+                'published_at' => $job->published_at,
+                'company_name' => $job->user?->company?->name ?? null,
+                'company_logo' => $job->user?->company?->logo ?? null,
+                'user' => [
+                    'id' => $job->user?->id,
+                    'name' => $job->user?->name,
+                ],
+            ];
+        });
 
         return response()->json($jobs);
     }

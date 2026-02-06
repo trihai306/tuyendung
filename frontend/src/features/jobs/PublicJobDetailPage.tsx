@@ -2,6 +2,14 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { publicJobsApi } from './services/publicJobsApi';
 import type { PublicJob } from './services/publicJobsApi';
+import {
+    updateSEO,
+    addStructuredData,
+    removeStructuredData,
+    generateJobPostingSchema,
+    generateBreadcrumbSchema,
+    SITE_CONFIG
+} from '../../utils/seo';
 
 export function PublicJobDetailPage() {
     const { slug } = useParams<{ slug: string }>();
@@ -29,6 +37,46 @@ export function PublicJobDetailPage() {
             setLoading(false);
         }
     };
+
+    // Update SEO when job data is loaded
+    useEffect(() => {
+        if (job) {
+            // Update meta tags
+            updateSEO({
+                title: job.title,
+                description: job.description?.replace(/<[^>]*>/g, '').slice(0, 160) || `Tuyển dụng ${job.title} tại ${job.location || 'Việt Nam'}`,
+                keywords: `${job.title}, việc làm, tuyển dụng, ${job.location || ''}, ${job.department || ''}`,
+                url: `${SITE_CONFIG.url}/jobs/${slug}`,
+                type: 'job',
+            });
+
+            // Add JobPosting schema
+            const jobSchema = generateJobPostingSchema({
+                title: job.title,
+                description: job.description || '',
+                company: job.company_name || 'Công ty tuyển dụng',
+                location: job.location || 'Việt Nam',
+                salary: job.salary_min ? { min: job.salary_min, max: job.salary_max ?? undefined, currency: job.salary_currency || 'VND' } : undefined,
+                jobType: job.job_type,
+                datePosted: undefined, // API doesn't provide created_at
+                slug: slug || '',
+            });
+            addStructuredData(jobSchema, 'job-posting-schema');
+
+            // Add breadcrumb schema
+            const breadcrumbSchema = generateBreadcrumbSchema([
+                { name: 'Trang chủ', url: SITE_CONFIG.url },
+                { name: 'Việc làm', url: `${SITE_CONFIG.url}/jobs` },
+                { name: job.title, url: `${SITE_CONFIG.url}/jobs/${slug}` },
+            ]);
+            addStructuredData(breadcrumbSchema, 'breadcrumb-schema');
+        }
+
+        return () => {
+            removeStructuredData('job-posting-schema');
+            removeStructuredData('breadcrumb-schema');
+        };
+    }, [job, slug]);
 
     const formatSalary = () => {
         if (!job) return '';
@@ -75,9 +123,8 @@ export function PublicJobDetailPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-                <Header />
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="bg-gradient-to-b from-slate-50 to-white py-12">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="animate-pulse">
                         <div className="h-8 bg-slate-200 rounded w-3/4 mb-4"></div>
                         <div className="h-6 bg-slate-200 rounded w-1/2 mb-8"></div>
@@ -94,9 +141,8 @@ export function PublicJobDetailPage() {
 
     if (error || !job) {
         return (
-            <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-                <Header />
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="bg-gradient-to-b from-slate-50 to-white py-12">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -118,10 +164,8 @@ export function PublicJobDetailPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-            <Header />
-
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-gradient-to-b from-slate-50 to-white py-8">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Back Button */}
                 <Link
                     to="/jobs"
@@ -238,39 +282,5 @@ export function PublicJobDetailPage() {
                 </div>
             </div>
         </div>
-    );
-}
-
-function Header() {
-    return (
-        <header className="bg-white border-b border-slate-200 sticky top-0 z-50 backdrop-blur-sm bg-white/95">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16">
-                    <Link to="/" className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">TD</span>
-                        </div>
-                        <span className="font-bold text-slate-800 text-lg hidden sm:block">
-                            Tuyển dụng thời vụ
-                        </span>
-                    </Link>
-
-                    <div className="flex items-center gap-3">
-                        <Link
-                            to="/login"
-                            className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors"
-                        >
-                            Đăng nhập
-                        </Link>
-                        <Link
-                            to="/register"
-                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm shadow-emerald-500/20"
-                        >
-                            Đăng tuyển
-                        </Link>
-                    </div>
-                </div>
-            </div>
-        </header>
     );
 }

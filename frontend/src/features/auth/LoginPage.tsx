@@ -50,7 +50,7 @@ export function LoginPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                         </div>
-                        <span className="text-2xl font-bold text-white tracking-tight">TDTV</span>
+                        <span className="text-2xl font-bold text-white tracking-tight">Viecly</span>
                     </div>
 
                     {/* Center content */}
@@ -94,16 +94,15 @@ export function LoginPage() {
                         </div>
 
                         <h1 className="text-4xl font-bold text-white mb-4 text-center">
-                            Tuyển dụng thời vụ
+                            Tuyển dụng thông minh
                         </h1>
                         <p className="text-lg text-white/70 text-center max-w-md mx-auto">
                             Nền tảng AI giúp doanh nghiệp tìm nhân tài xuất sắc nhanh chóng và hiệu quả.
                         </p>
                     </div>
 
-                    {/* Footer */}
                     <div className="text-white/50 text-sm">
-                        © 2026 TDTV. All rights reserved.
+                        © 2026 Viecly. All rights reserved.
                     </div>
                 </div>
             </div>
@@ -123,7 +122,7 @@ export function LoginPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                         </div>
-                        <span className="text-xl font-bold text-slate-800 dark:text-white">TDTV</span>
+                        <span className="text-xl font-bold text-slate-800 dark:text-white">Viecly</span>
                     </div>
 
                     {/* Glass card */}

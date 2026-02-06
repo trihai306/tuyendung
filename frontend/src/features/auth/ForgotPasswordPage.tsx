@@ -154,7 +154,7 @@ export function ForgotPasswordPage() {
 
                 {/* Footer */}
                 <p className="mt-8 text-center text-slate-400 text-xs">
-                    © 2026 TDTV · Hỗ trợ: support@recruitai.vn
+                    © 2026 Viecly · Hỗ trợ: support@recruitai.vn
                 </p>
             </div>
         </div>

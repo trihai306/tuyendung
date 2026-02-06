@@ -58,6 +58,32 @@ class AuthService
     }
 
     /**
+     * Register candidate (job seeker) without company.
+     */
+    public function registerCandidate(array $data): array
+    {
+        return DB::transaction(function () use ($data) {
+            // Create user without company
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => Hash::make($data['password']),
+                'company_id' => null,
+                'company_role' => null,
+            ]);
+
+            $token = $user->createToken('auth-token')->plainTextToken;
+
+            return [
+                'user' => $user,
+                'token' => $token,
+                'message' => 'Đăng ký thành công! Bạn có thể bắt đầu tìm việc ngay.',
+            ];
+        });
+    }
+
+
+    /**
      * Login user.
      */
     public function login(string $email, string $password, ?string $deviceName = 'default'): array
