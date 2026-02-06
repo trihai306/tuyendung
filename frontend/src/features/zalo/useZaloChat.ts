@@ -158,6 +158,24 @@ export function useZaloConversations(accountId: string | null) {
         fetchConversations();
     }, [fetchConversations]);
 
+    // 🔌 Real-time: Listen for new messages to update conversation list
+    useEffect(() => {
+        if (!accountId) return;
+
+        const echo = getEcho();
+        const channel = echo.channel(`zalo.messages.${accountId}`);
+
+        channel.listen('.message.received', (data: { threadId: string; senderName: string; content: string }) => {
+            console.log('📬 New message received, refreshing conversations:', data);
+            // Refetch conversation list to update last message & order
+            fetchConversations();
+        });
+
+        return () => {
+            echo.leaveChannel(`zalo.messages.${accountId}`);
+        };
+    }, [accountId, fetchConversations]);
+
     return { conversations, loading, refetch: fetchConversations };
 }
 

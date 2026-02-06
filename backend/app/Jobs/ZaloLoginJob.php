@@ -32,7 +32,7 @@ class ZaloLoginJob implements ShouldQueue
         public int $companyId,
         public ?int $userId = null
     ) {
-        $this->onQueue('zalo');
+        // Use default queue (no custom queue - 'zalo' queue not configured)
     }
 
     public function handle(): void

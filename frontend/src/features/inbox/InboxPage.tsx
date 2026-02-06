@@ -79,7 +79,7 @@ export function InboxPage() {
         return tabs;
     }, [conversations, conversationIds]);
 
-    const handleSelectConversation = (id: number) => {
+    const handleSelectConversation = (id: string) => {
         dispatch(setActiveConversation(id));
     };
 
@@ -97,7 +97,7 @@ export function InboxPage() {
     };
 
     return (
-        <div className={`flex h-[calc(100vh-3.5rem)] rounded-xl overflow-hidden border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+        <div className={`flex flex-1 min-h-0 rounded-xl overflow-hidden border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
             {/* Sidebar - Conversation List */}
             <div className={`${showSidebar ? 'w-96' : 'w-0'} flex-shrink-0 transition-all overflow-hidden border-r ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
                 <div className="h-full flex flex-col">

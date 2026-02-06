@@ -18,7 +18,7 @@ class CandidateService
      */
     public function getCandidates(User $user, Company $company, array $filters = []): array
     {
-        $role = $company->pivot->role;
+        $role = $user->company_role;
         $isManager = in_array($role, ['owner', 'admin']);
 
         // Base query - always filter by company
@@ -210,7 +210,7 @@ class CandidateService
     {
         // Verify target user is in same company
         $targetUser = User::find($userId);
-        if (!$targetUser || !$targetUser->companies()->where('company_id', $company->id)->exists()) {
+        if (!$targetUser || $targetUser->company_id !== $company->id) {
             throw new \InvalidArgumentException('Người dùng không thuộc doanh nghiệp này');
         }
 
@@ -227,7 +227,7 @@ class CandidateService
     {
         // Verify target user is in same company
         $targetUser = User::find($userId);
-        if (!$targetUser || !$targetUser->companies()->where('company_id', $company->id)->exists()) {
+        if (!$targetUser || $targetUser->company_id !== $company->id) {
             throw new \InvalidArgumentException('Người dùng không thuộc doanh nghiệp này');
         }
 
@@ -247,8 +247,8 @@ class CandidateService
     /**
      * Check if user is manager in company.
      */
-    public function isManager(Company $company): bool
+    public function isManager(User $user): bool
     {
-        return in_array($company->pivot->role, ['owner', 'admin']);
+        return in_array($user->company_role, ['owner', 'admin']);
     }
 }

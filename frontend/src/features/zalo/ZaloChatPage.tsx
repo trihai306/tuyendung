@@ -7,7 +7,8 @@ import {
     useZaloChat,
     useZaloAccountStatus,
 } from './useZaloChat';
-import type { ZaloAccount, ZaloConversation, ZaloMessage } from './zaloApi';
+import type { ZaloAccount, ZaloConversation, ZaloMessage, ZaloFoundUser } from './zaloApi';
+import { findUserByPhone, sendFriendRequest } from './zaloApi';
 
 // ===================
 // Message Bubble Component
@@ -16,7 +17,24 @@ function MessageBubble({ message, isDark }: { message: ZaloMessage; isDark: bool
     const isOutbound = message.direction === 'outbound';
 
     return (
-        <div className={`flex ${isOutbound ? 'justify-end' : 'justify-start'}`}>
+        <div className={`flex gap-2 ${isOutbound ? 'justify-end' : 'justify-start'}`}>
+            {/* Avatar for inbound messages */}
+            {!isOutbound && (
+                <div className="flex-shrink-0 w-8 h-8 mt-1">
+                    {message.senderAvatar ? (
+                        <img
+                            src={message.senderAvatar}
+                            alt={message.senderName || 'Avatar'}
+                            className="w-8 h-8 rounded-full object-cover"
+                        />
+                    ) : (
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-200 text-slate-600'
+                            }`}>
+                            {(message.senderName || 'U').charAt(0).toUpperCase()}
+                        </div>
+                    )}
+                </div>
+            )}
             <div
                 className={`max-w-[70%] px-3.5 py-2 rounded-2xl text-sm ${isOutbound
                     ? 'bg-blue-500 text-white rounded-br-md'
@@ -30,7 +48,7 @@ function MessageBubble({ message, isDark }: { message: ZaloMessage; isDark: bool
                         {message.senderName}
                     </p>
                 )}
-                <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                <p className="whitespace-pre-wrap break-words">{typeof message.content === 'string' ? message.content : '[Attachment]'}</p>
                 <div
                     className={`text-[10px] mt-1 flex items-center gap-1 ${isOutbound ? 'text-blue-200 justify-end' : isDark ? 'text-slate-500' : 'text-slate-400'
                         }`}
@@ -203,12 +221,14 @@ function ConversationListPanel({
     conversations,
     selectedId,
     onSelect,
+    onSearchPhone,
     loading,
     isDark,
 }: {
     conversations: ZaloConversation[];
     selectedId: string | null;
     onSelect: (id: string, type: 'user' | 'group') => void;
+    onSearchPhone: () => void;
     loading: boolean;
     isDark: boolean;
 }) {
@@ -233,6 +253,19 @@ function ConversationListPanel({
                             }`}
                     />
                 </div>
+                {/* Phone Search Button */}
+                <button
+                    onClick={onSearchPhone}
+                    className={`mt-2 w-full py-2 px-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors ${isDark
+                        ? 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30'
+                        : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                        }`}
+                >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                    </svg>
+                    Tìm theo SĐT
+                </button>
             </div>
 
             {/* Conversations */}
@@ -338,6 +371,194 @@ function ConversationListPanel({
 }
 
 // ===================
+// User Search Modal
+// ===================
+function UserSearchModal({
+    isOpen,
+    onClose,
+    accountId,
+    onStartChat,
+    isDark,
+}: {
+    isOpen: boolean;
+    onClose: () => void;
+    accountId: number;
+    onStartChat: (userId: string, userName: string) => void;
+    isDark: boolean;
+}) {
+    const [phone, setPhone] = useState('');
+    const [searching, setSearching] = useState(false);
+    const [foundUser, setFoundUser] = useState<ZaloFoundUser | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [addingFriend, setAddingFriend] = useState(false);
+    const [friendRequestSent, setFriendRequestSent] = useState(false);
+
+    const handleSearch = async () => {
+        if (!phone.trim() || searching) return;
+
+        setSearching(true);
+        setError(null);
+        setFoundUser(null);
+
+        const result = await findUserByPhone(accountId, phone.trim());
+
+        if (result.success && result.data) {
+            setFoundUser(result.data);
+        } else {
+            setError(result.error || 'Không tìm thấy người dùng');
+        }
+
+        setSearching(false);
+        setFriendRequestSent(false);
+    };
+
+    const handleAddFriend = async () => {
+        if (!foundUser || addingFriend) return;
+        setAddingFriend(true);
+        const result = await sendFriendRequest(accountId, foundUser.uid);
+        if (result.success) {
+            setFriendRequestSent(true);
+        } else {
+            setError('Gửi lời mời kết bạn thất bại');
+        }
+        setAddingFriend(false);
+    };
+
+    const handleStartChat = () => {
+        if (foundUser) {
+            onStartChat(foundUser.uid, foundUser.displayName || foundUser.zaloName);
+            onClose();
+            setPhone('');
+            setFoundUser(null);
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className={`w-full max-w-md mx-4 rounded-2xl shadow-2xl ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
+                {/* Header */}
+                <div className={`flex items-center justify-between p-4 border-b ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
+                    <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        Tìm kiếm người dùng
+                    </h3>
+                    <button
+                        onClick={onClose}
+                        className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}
+                    >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Search Input */}
+                <div className="p-4">
+                    <div className="flex gap-2">
+                        <input
+                            type="tel"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                            placeholder="Nhập số điện thoại..."
+                            className={`flex-1 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-slate-800 text-white placeholder:text-slate-500' : 'bg-slate-100 text-slate-900 placeholder:text-slate-400'
+                                }`}
+                        />
+                        <button
+                            onClick={handleSearch}
+                            disabled={!phone.trim() || searching}
+                            className="px-4 py-2.5 bg-blue-500 text-white rounded-xl font-medium text-sm hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            {searching ? (
+                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                                'Tìm'
+                            )}
+                        </button>
+                    </div>
+
+                    {/* Error */}
+                    {error && (
+                        <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm">
+                            {error}
+                        </div>
+                    )}
+
+                    {/* Found User */}
+                    {foundUser && (
+                        <div className={`mt-4 p-4 rounded-xl border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+                            <div className="flex items-center gap-4">
+                                {foundUser.avatar ? (
+                                    <img src={foundUser.avatar} alt="" className="w-14 h-14 rounded-full object-cover" />
+                                ) : (
+                                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
+                                        {(foundUser.displayName || foundUser.zaloName)?.[0]?.toUpperCase() || '?'}
+                                    </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <p className={`font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                        {foundUser.displayName || foundUser.zaloName}
+                                    </p>
+                                    {foundUser.zaloName && foundUser.displayName !== foundUser.zaloName && (
+                                        <p className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                            @{foundUser.zaloName}
+                                        </p>
+                                    )}
+                                    <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                                        ID: {foundUser.uid}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex gap-2 mt-4">
+                                {/* Add Friend Button */}
+                                <button
+                                    onClick={handleAddFriend}
+                                    disabled={addingFriend || friendRequestSent}
+                                    className={`flex-1 py-2.5 rounded-xl font-medium text-sm transition-colors flex items-center justify-center gap-2 ${friendRequestSent
+                                        ? 'bg-green-500/20 text-green-500 cursor-default'
+                                        : 'bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50'
+                                        }`}
+                                >
+                                    {addingFriend ? (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    ) : friendRequestSent ? (
+                                        <>
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Đã gửi
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                            </svg>
+                                            Kết bạn
+                                        </>
+                                    )}
+                                </button>
+
+                                {/* Message Button */}
+                                <button
+                                    onClick={handleStartChat}
+                                    className="flex-1 py-2.5 bg-blue-500 text-white rounded-xl font-medium text-sm hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                    </svg>
+                                    Nhắn tin
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ===================
 // Chat Window
 // ===================
 function ChatWindowPanel({
@@ -395,7 +616,7 @@ function ChatWindowPanel({
     }
 
     return (
-        <div className={`flex-1 flex flex-col ${isDark ? 'bg-slate-950' : 'bg-slate-50'}`}>
+        <div className={`flex-1 flex flex-col min-h-0 overflow-hidden ${isDark ? 'bg-slate-950' : 'bg-slate-50'}`}>
             {/* Header */}
             <div className={`p-3 border-b ${isDark ? 'border-slate-800 bg-slate-900' : 'border-slate-100 bg-white'}`}>
                 <div className="flex items-center gap-3">
@@ -536,6 +757,7 @@ export function ZaloChatPage() {
     const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
     const [selectedThreadType, setSelectedThreadType] = useState<'user' | 'group'>('user');
     const [showQRModal, setShowQRModal] = useState(false);
+    const [showSearchModal, setShowSearchModal] = useState(false);
 
     const { conversations, loading: loadingConversations, refetch: refetchConversations } = useZaloConversations(selectedAccountId);
 
@@ -575,6 +797,17 @@ export function ZaloChatPage() {
         }
     };
 
+    // Get selected account ID for search
+    const selectedAccount = accounts.find(a => a.ownId === selectedAccountId);
+    const selectedAccountNumericId = selectedAccount?.id ? parseInt(selectedAccount.id, 10) : 0;
+
+    const handleStartChatFromSearch = (userId: string, _userName: string) => {
+        // Set the thread to start chatting
+        setSelectedThreadId(userId);
+        setSelectedThreadType('user');
+        setShowSearchModal(false);
+    };
+
     return (
         <div className={`flex h-[calc(100vh-3.5rem)] rounded-xl overflow-hidden border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
             {/* Account sidebar */}
@@ -591,6 +824,7 @@ export function ZaloChatPage() {
                 conversations={conversations}
                 selectedId={selectedThreadId}
                 onSelect={handleSelectConversation}
+                onSearchPhone={() => setShowSearchModal(true)}
                 loading={loadingConversations}
                 isDark={isDark}
             />
@@ -606,6 +840,15 @@ export function ZaloChatPage() {
 
             {/* QR Login Modal */}
             <QRLoginModal isOpen={showQRModal} onClose={handleCloseQRModal} isDark={isDark} />
+
+            {/* User Search Modal */}
+            <UserSearchModal
+                isOpen={showSearchModal}
+                onClose={() => setShowSearchModal(false)}
+                accountId={selectedAccountNumericId}
+                onStartChat={handleStartChatFromSearch}
+                isDark={isDark}
+            />
         </div>
     );
 }

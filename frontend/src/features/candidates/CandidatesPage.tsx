@@ -1,20 +1,24 @@
 import { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useGetCandidatesQuery, useUpdateCandidateMutation } from './candidatesApi';
-import type { Candidate, CandidateFilters } from './candidatesApi';
+import { useGetCandidatesQuery, useUpdateCandidateMutation, useCreateCandidateMutation, useDeleteCandidateMutation } from './candidatesApi';
+import type { Candidate, CandidateFilters, CreateCandidateData, UpdateCandidateData } from './candidatesApi';
 import {
     MagnifyingGlassIcon,
     UsersIcon,
     UserPlusIcon,
     StarIcon,
-    EllipsisVerticalIcon,
     XMarkIcon,
     PhoneIcon,
     EnvelopeIcon,
     DocumentTextIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
+    PencilIcon,
+    TrashIcon,
 } from '../../components/ui/icons';
+import { CandidateModal } from './CandidateModal';
+import { ConfirmDialog } from './ConfirmDialog';
+
 
 const SOURCE_OPTIONS = [
     { value: '', label: 'Tất cả nguồn' },
@@ -43,9 +47,18 @@ export function CandidatesPage() {
         page: 1,
     });
     const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+    
+    // Modal states
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
+    const [deleteCandidate, setDeleteCandidate] = useState<Candidate | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const { data, isLoading, isFetching } = useGetCandidatesQuery(filters);
     const [updateCandidate] = useUpdateCandidateMutation();
+    const [createCandidate] = useCreateCandidateMutation();
+    const [deleteCandidateMutation] = useDeleteCandidateMutation();
 
     const candidates = data?.data ?? [];
     const meta = data?.meta;
@@ -58,6 +71,54 @@ export function CandidatesPage() {
 
     const handleRatingChange = async (candidate: Candidate, rating: number) => {
         await updateCandidate({ id: candidate.id, data: { rating } });
+    };
+
+    // Handle add new candidate
+    const handleAddClick = () => {
+        setEditingCandidate(null);
+        setIsModalOpen(true);
+    };
+
+    // Handle edit candidate
+    const handleEditClick = (candidate: Candidate) => {
+        setEditingCandidate(candidate);
+        setIsModalOpen(true);
+    };
+
+    // Handle delete click
+    const handleDeleteClick = (candidate: Candidate) => {
+        setDeleteCandidate(candidate);
+    };
+
+    // Handle save (create or update)
+    const handleSave = async (data: CreateCandidateData | UpdateCandidateData) => {
+        setIsSaving(true);
+        try {
+            if (editingCandidate) {
+                await updateCandidate({ id: editingCandidate.id, data }).unwrap();
+            } else {
+                await createCandidate(data as CreateCandidateData).unwrap();
+            }
+            setIsModalOpen(false);
+            setEditingCandidate(null);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // Handle confirm delete
+    const handleConfirmDelete = async () => {
+        if (!deleteCandidate) return;
+        setIsDeleting(true);
+        try {
+            await deleteCandidateMutation(deleteCandidate.id).unwrap();
+            setDeleteCandidate(null);
+            if (selectedCandidate?.id === deleteCandidate.id) {
+                setSelectedCandidate(null);
+            }
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     const getSourceBadge = (source: string) => {
@@ -121,7 +182,10 @@ export function CandidatesPage() {
                                     }
                                 </p>
                             </div>
-                            <button className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium">
+                            <button 
+                                onClick={handleAddClick}
+                                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+                            >
                                 <UserPlusIcon className="w-5 h-5" />
                                 Thêm ứng viên
                             </button>
@@ -327,9 +391,22 @@ export function CandidatesPage() {
                                                     {formatDate(candidate.updated_at)}
                                                 </td>
                                                 <td className="px-4 py-3 text-right">
-                                                    <button className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-100'}`}>
-                                                        <EllipsisVerticalIcon className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-                                                    </button>
+                                                    <div className="flex items-center justify-end gap-1">
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); handleEditClick(candidate); }}
+                                                            className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-slate-700 text-slate-400 hover:text-emerald-400' : 'hover:bg-slate-100 text-slate-500 hover:text-emerald-600'}`}
+                                                            title="Sửa"
+                                                        >
+                                                            <PencilIcon className="w-4 h-4" />
+                                                        </button>
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); handleDeleteClick(candidate); }}
+                                                            className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-red-900/30 text-slate-400 hover:text-red-400' : 'hover:bg-red-50 text-slate-500 hover:text-red-600'}`}
+                                                            title="Xoá"
+                                                        >
+                                                            <TrashIcon className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -473,6 +550,27 @@ export function CandidatesPage() {
                     </div>
                 )}
             </div>
+
+            {/* Add/Edit Modal */}
+            <CandidateModal
+                isOpen={isModalOpen}
+                onClose={() => { setIsModalOpen(false); setEditingCandidate(null); }}
+                candidate={editingCandidate}
+                onSave={handleSave}
+                isLoading={isSaving}
+            />
+
+            {/* Delete Confirm Dialog */}
+            <ConfirmDialog
+                isOpen={!!deleteCandidate}
+                onClose={() => setDeleteCandidate(null)}
+                onConfirm={handleConfirmDelete}
+                title="Xoá ứng viên"
+                message={`Bạn có chắc chắn muốn xoá ứng viên "${deleteCandidate?.full_name}"? Hành động này không thể hoàn tác.`}
+                confirmText="Xoá"
+                isLoading={isDeleting}
+                variant="danger"
+            />
         </div>
     );
 }

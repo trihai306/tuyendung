@@ -21,19 +21,24 @@ export function findUserCommand(program) {
                 const api = await getZaloApi(options.account, options.credentials);
                 const user = await api.findUser(options.phone);
 
+                // zca-js User interface fields may be snake_case or camelCase
+                // Check both formats for compatibility
                 output({
                     data: {
-                        uid: user.uid,
-                        displayName: user.display_name,
-                        zaloName: user.zalo_name,
+                        uid: user.uid || user.userId,
+                        displayName: user.displayName || user.display_name,
+                        zaloName: user.zaloName || user.zalo_name,
                         avatar: user.avatar,
                         cover: user.cover,
                         gender: user.gender,
                         dob: user.dob,
                         status: user.status,
-                        globalId: user.globalId
+                        globalId: user.globalId || user.global_id,
+                        // Include raw user for debugging
+                        _raw: user
                     }
                 });
+
 
                 process.exit(0);
             } catch (err) {

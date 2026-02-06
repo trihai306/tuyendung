@@ -3,32 +3,27 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Notification;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
+    public function __construct(
+        private NotificationService $notificationService
+    ) {
+    }
+
     /**
      * Get paginated list of notifications for current user
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Notification::forUser(Auth::id())
-            ->orderByDesc('created_at');
-
-        // Filter by category
-        if ($request->filled('category')) {
-            $query->ofCategory($request->input('category'));
-        }
-
-        // Filter by read status
-        if ($request->filled('is_read')) {
-            $query->where('is_read', $request->boolean('is_read'));
-        }
-
-        $notifications = $query->paginate($request->integer('per_page', 20));
+        $notifications = $this->notificationService->getNotifications(
+            Auth::id(),
+            $request->only(['category', 'is_read', 'per_page'])
+        );
 
         return response()->json([
             'success' => true,
@@ -47,10 +42,7 @@ class NotificationController extends Controller
      */
     public function recent(): JsonResponse
     {
-        $notifications = Notification::forUser(Auth::id())
-            ->orderByDesc('created_at')
-            ->limit(5)
-            ->get();
+        $notifications = $this->notificationService->getRecentNotifications(Auth::id());
 
         return response()->json([
             'success' => true,
@@ -63,15 +55,11 @@ class NotificationController extends Controller
      */
     public function unreadCount(): JsonResponse
     {
-        $count = Notification::forUser(Auth::id())
-            ->unread()
-            ->count();
+        $count = $this->notificationService->getUnreadCount(Auth::id());
 
         return response()->json([
             'success' => true,
-            'data' => [
-                'count' => $count,
-            ],
+            'data' => ['count' => $count],
         ]);
     }
 
@@ -80,10 +68,7 @@ class NotificationController extends Controller
      */
     public function markAsRead(int $id): JsonResponse
     {
-        $notification = Notification::forUser(Auth::id())
-            ->findOrFail($id);
-
-        $notification->markAsRead();
+        $this->notificationService->markAsRead($id, Auth::id());
 
         return response()->json([
             'success' => true,
@@ -96,12 +81,7 @@ class NotificationController extends Controller
      */
     public function markAllAsRead(): JsonResponse
     {
-        Notification::forUser(Auth::id())
-            ->unread()
-            ->update([
-                'is_read' => true,
-                'read_at' => now(),
-            ]);
+        $this->notificationService->markAllAsRead(Auth::id());
 
         return response()->json([
             'success' => true,
@@ -114,10 +94,7 @@ class NotificationController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
-        $notification = Notification::forUser(Auth::id())
-            ->findOrFail($id);
-
-        $notification->delete();
+        $this->notificationService->deleteNotification($id, Auth::id());
 
         return response()->json([
             'success' => true,

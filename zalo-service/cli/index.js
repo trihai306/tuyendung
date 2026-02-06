@@ -68,6 +68,13 @@ import { lockPollCommand } from './commands/lock-poll.js';
 import { createNoteCommand } from './commands/create-note.js';
 import { editNoteCommand } from './commands/edit-note.js';
 
+// Newly added commands (complete zca-js coverage)
+import { changeGroupAvatarCommand } from './commands/change-group-avatar.js';
+import { stickersDetailCommand } from './commands/stickers-detail.js';
+import { sendReportCommand } from './commands/send-report.js';
+import { undoCommand } from './commands/undo.js';
+
+
 const program = new Command();
 
 program
@@ -127,5 +134,12 @@ lockPollCommand(program);
 createNoteCommand(program);
 editNoteCommand(program);
 
+// Register newly added commands (complete zca-js coverage)
+changeGroupAvatarCommand(program);
+stickersDetailCommand(program);
+sendReportCommand(program);
+undoCommand(program);
+
 // Parse arguments
 program.parse();
+

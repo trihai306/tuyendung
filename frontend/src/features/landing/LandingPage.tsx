@@ -37,6 +37,7 @@ function LandingHeader() {
 
                     {/* Desktop Nav */}
                     <nav className="hidden md:flex items-center gap-8">
+                        <Link to="/jobs" className="text-slate-600 hover:text-emerald-600 text-sm font-medium transition-colors">Tìm việc</Link>
                         <a href="#features" className="text-slate-600 hover:text-emerald-600 text-sm font-medium transition-colors">Tính năng</a>
                         <a href="#pricing" className="text-slate-600 hover:text-emerald-600 text-sm font-medium transition-colors">Bảng giá</a>
                         <a href="#testimonials" className="text-slate-600 hover:text-emerald-600 text-sm font-medium transition-colors">Khách hàng</a>
@@ -70,6 +71,7 @@ function LandingHeader() {
                 {mobileMenuOpen && (
                     <div className="md:hidden py-4 border-t border-slate-100">
                         <nav className="flex flex-col gap-4">
+                            <Link to="/jobs" className="text-slate-600 hover:text-emerald-600 text-sm font-medium">Tìm việc</Link>
                             <a href="#features" className="text-slate-600 hover:text-emerald-600 text-sm font-medium">Tính năng</a>
                             <a href="#pricing" className="text-slate-600 hover:text-emerald-600 text-sm font-medium">Bảng giá</a>
                             <a href="#testimonials" className="text-slate-600 hover:text-emerald-600 text-sm font-medium">Khách hàng</a>

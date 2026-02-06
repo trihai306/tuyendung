@@ -18,6 +18,8 @@ import PricingPage from './features/pricing/PricingPage';
 import { NotificationsPage } from './features/notifications';
 import CalendarPage from './features/calendar/CalendarPage';
 import { CandidatesPage } from './features/candidates';
+import { PublicJobsPage } from './features/jobs/PublicJobsPage';
+import { PublicJobDetailPage } from './features/jobs/PublicJobDetailPage';
 import { WebSocketTest as WebSocketTestPage } from './components/debug/WebSocketTest';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { ToastProvider } from './components/ui';
@@ -59,6 +61,11 @@ function AppRoutes() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/landing" element={<LandingPage />} />
       <Route path="/pricing" element={<PricingPage />} />
+
+      {/* Public Jobs Routes */}
+      <Route path="/jobs" element={<PublicJobsPage />} />
+      <Route path="/jobs/:slug" element={<PublicJobDetailPage />} />
+
 
       {/* Guest Routes - Redirect authenticated users to /inbox */}
       <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />

@@ -523,12 +523,22 @@ class ZaloController extends Controller
                     ->where('direction', 'inbound')
                     ->count();
 
-                // Resolve participant name: cached display_name > cached zalo_name > original sender_name
-                $thread->participant_name = $thread->cached_display_name
-                    ?: $thread->cached_zalo_name
-                    ?: $thread->sender_name
-                    ?: 'Unknown';
-                $thread->participant_avatar = $thread->cached_avatar;
+                // Resolve participant name based on thread type
+                if ($thread->thread_type === 'group') {
+                    // For groups: lookup name from zalo_groups table
+                    $group = \App\Models\ZaloGroup::where('group_id', $thread->thread_id)
+                        ->where('zalo_account_id', $thread->zalo_account_id)
+                        ->first();
+                    $thread->participant_name = $group?->name ?: 'Nhóm chưa đặt tên';
+                    $thread->participant_avatar = $group?->avatar;
+                } else {
+                    // For users: cached display_name > cached zalo_name > original sender_name
+                    $thread->participant_name = $thread->cached_display_name
+                        ?: $thread->cached_zalo_name
+                        ?: $thread->sender_name
+                        ?: 'Unknown';
+                    $thread->participant_avatar = $thread->cached_avatar;
+                }
 
                 // Clean up joined fields
                 unset($thread->cached_display_name, $thread->cached_zalo_name, $thread->cached_avatar, $thread->sender_name);
@@ -1047,6 +1057,76 @@ class ZaloController extends Controller
             $zaloAccount->own_id,
             $threadId,
             $request->boolean('pinned', true)
+        );
+
+        return response()->json($result);
+    }
+
+    /**
+     * Change group avatar
+     */
+    public function changeGroupAvatar(Request $request, ZaloAccount $zaloAccount, string $groupId): JsonResponse
+    {
+        $request->validate(['avatar' => 'required|file|image']);
+
+        $avatarPath = $request->file('avatar')->store('temp/avatars', 'local');
+        $fullPath = storage_path('app/' . $avatarPath);
+
+        $result = $this->zaloService->changeGroupAvatar($zaloAccount->own_id, $groupId, $fullPath);
+
+        // Cleanup temp file
+        @unlink($fullPath);
+
+        return response()->json($result);
+    }
+
+    /**
+     * Get sticker pack details
+     */
+    public function getStickersDetail(ZaloAccount $zaloAccount, string $stickerType): JsonResponse
+    {
+        $result = $this->zaloService->getStickersDetail($zaloAccount->own_id, $stickerType);
+
+        return response()->json($result);
+    }
+
+    /**
+     * Send report
+     */
+    public function sendReport(Request $request, ZaloAccount $zaloAccount): JsonResponse
+    {
+        $request->validate([
+            'thread_id' => 'required|string',
+            'reason' => 'string',
+            'type' => 'in:user,group',
+        ]);
+
+        $result = $this->zaloService->sendReport(
+            $zaloAccount->own_id,
+            $request->thread_id,
+            $request->input('reason', 'spam'),
+            $request->input('type', 'user')
+        );
+
+        return response()->json($result);
+    }
+
+    /**
+     * Undo/recall message
+     */
+    public function undoMessage(Request $request, ZaloAccount $zaloAccount): JsonResponse
+    {
+        $request->validate([
+            'thread_id' => 'required|string',
+            'msg_id' => 'required|string',
+            'type' => 'in:user,group',
+        ]);
+
+        $result = $this->zaloService->undoMessage(
+            $zaloAccount->own_id,
+            $request->thread_id,
+            $request->msg_id,
+            $request->input('type', 'user')
         );
 
         return response()->json($result);

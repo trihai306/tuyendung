@@ -117,7 +117,19 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit(formData);
+        // Map frontend fields to backend API fields
+        const apiData = {
+            title: formData.title,
+            location: formData.location,
+            description: formData.description,
+            requirements: formData.requirements,
+            target_count: formData.headcount,
+            department: formData.category,
+            benefits: formData.benefits.map(b => b.label).join(', '),
+            // Parse salary
+            salary_min: formData.salaryAmount ? parseInt(formData.salaryAmount.replace(/[,.\s]/g, '')) : null,
+        };
+        onSubmit(apiData as any);
     };
 
     const tabs = [

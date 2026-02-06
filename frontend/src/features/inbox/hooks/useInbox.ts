@@ -51,7 +51,7 @@ export function useInbox() {
     );
 
     const selectConversation = useCallback(
-        (id: number | null) => {
+        (id: string | null) => {
             dispatch(setActiveConversation(id));
         },
         [dispatch]
@@ -68,7 +68,7 @@ export function useInbox() {
     };
 }
 
-export function useConversation(conversationId: number) {
+export function useConversation(conversationId: string) {
     const conversation = useAppSelector((state) => state.inbox.conversations[conversationId]);
     const messages = useAppSelector((state) => state.inbox.messages[conversationId] || []);
 

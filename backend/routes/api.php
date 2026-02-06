@@ -28,6 +28,11 @@ Route::prefix('auth')->name('auth.')->group(function () {
 Route::get('/packages', [PackageController::class, 'index'])->name('packages.index');
 Route::get('/packages/{slug}', [PackageController::class, 'show'])->name('packages.show');
 
+// Public jobs route (for unauthenticated users)
+Route::get('/public/jobs', [JobController::class, 'publicIndex'])->name('jobs.public.index');
+Route::get('/public/jobs/{slug}', [JobController::class, 'publicShow'])->name('jobs.public.show');
+
+
 // Test broadcast route
 Route::post('/test-broadcast', function () {
     event(new \App\Events\TestBroadcastEvent('Hello from Laravel at ' . now()->format('H:i:s')));
@@ -218,6 +223,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{zaloAccount}/notes/{noteId}', [ZaloController::class, 'editNote'])->name('notes.edit');
         Route::post('/{zaloAccount}/users/{userId}/alias', [ZaloController::class, 'setAlias'])->name('users.alias');
         Route::post('/{zaloAccount}/conversations/{threadId}/pin', [ZaloController::class, 'pinConversation'])->name('conversations.pin');
+
+        // Complete zca-js API coverage
+        Route::post('/{zaloAccount}/groups/{groupId}/avatar', [ZaloController::class, 'changeGroupAvatar'])->name('groups.avatar');
+        Route::get('/{zaloAccount}/stickers/{stickerType}', [ZaloController::class, 'getStickersDetail'])->name('stickers.detail');
+        Route::post('/{zaloAccount}/report', [ZaloController::class, 'sendReport'])->name('report');
+        Route::post('/{zaloAccount}/undo-message', [ZaloController::class, 'undoMessage'])->name('undo-message');
     });
 
     // Broadcasting auth endpoint

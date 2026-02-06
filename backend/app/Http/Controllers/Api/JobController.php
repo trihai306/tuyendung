@@ -115,4 +115,93 @@ class JobController extends Controller
 
         return response()->json(['data' => $application]);
     }
+
+    /**
+     * Public API: Get all open jobs (no auth required)
+     */
+    public function publicIndex(Request $request): JsonResponse
+    {
+        $query = RecruitmentJob::where('status', 'open')
+            ->whereNotNull('published_at')
+            ->with('user:id,name')
+            ->select([
+                'id',
+                'title',
+                'slug',
+                'department',
+                'location',
+                'job_type',
+                'salary_min',
+                'salary_max',
+                'salary_currency',
+                'description',
+                'requirements',
+                'benefits',
+                'published_at',
+                'user_id'
+            ])
+            ->orderByDesc('published_at');
+
+        // Search
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('location', 'like', "%{$search}%")
+                    ->orWhere('department', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by job_type
+        if ($jobType = $request->input('job_type')) {
+            $query->where('job_type', $jobType);
+        }
+
+        // Filter by location
+        if ($location = $request->input('location')) {
+            $query->where('location', 'like', "%{$location}%");
+        }
+
+        // Filter by salary range
+        if ($minSalary = $request->input('min_salary')) {
+            $query->where('salary_min', '>=', $minSalary);
+        }
+        if ($maxSalary = $request->input('max_salary')) {
+            $query->where('salary_max', '<=', $maxSalary);
+        }
+
+        $jobs = $query->paginate(12);
+
+        return response()->json($jobs);
+    }
+
+    /**
+     * Public API: Get job detail by slug (no auth required)
+     */
+    public function publicShow(string $slug): JsonResponse
+    {
+        $job = RecruitmentJob::where('slug', $slug)
+            ->where('status', 'open')
+            ->whereNotNull('published_at')
+            ->with('user:id,name')
+            ->select([
+                'id',
+                'title',
+                'slug',
+                'department',
+                'location',
+                'job_type',
+                'salary_min',
+                'salary_max',
+                'salary_currency',
+                'description',
+                'requirements',
+                'benefits',
+                'published_at',
+                'expires_at',
+                'user_id'
+            ])
+            ->firstOrFail();
+
+        return response()->json(['data' => $job]);
+    }
 }

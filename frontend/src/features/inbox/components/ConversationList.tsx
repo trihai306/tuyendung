@@ -2,7 +2,7 @@ import { useConversationList } from '../hooks';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 interface ConversationListProps {
-    onSelect: (id: number) => void;
+    onSelect: (id: string) => void;
 }
 
 // Account type icons
@@ -120,8 +120,8 @@ export function ConversationList({ onSelect }: ConversationListProps) {
                                     {/* Avatar with account badge */}
                                     <div className="relative flex-shrink-0">
                                         <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white font-medium text-sm ${isUnread
-                                                ? 'bg-gradient-to-br from-emerald-400 to-teal-500 ring-2 ring-emerald-500/30'
-                                                : 'bg-gradient-to-br from-slate-400 to-slate-500'
+                                            ? 'bg-gradient-to-br from-emerald-400 to-teal-500 ring-2 ring-emerald-500/30'
+                                            : 'bg-gradient-to-br from-slate-400 to-slate-500'
                                             }`}>
                                             {conversation.participant_name?.[0]?.toUpperCase() || '?'}
                                         </div>
@@ -157,17 +157,17 @@ export function ConversationList({ onSelect }: ConversationListProps) {
                                         <div className="flex items-center gap-2 mt-1.5">
                                             <span
                                                 className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded ${conversation.status === 'open'
-                                                        ? isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-700'
-                                                        : conversation.status === 'pending'
-                                                            ? isDark ? 'bg-amber-500/20 text-amber-400' : 'bg-amber-100 text-amber-700'
-                                                            : isDark ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-500'
+                                                    ? isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-700'
+                                                    : conversation.status === 'pending'
+                                                        ? isDark ? 'bg-amber-500/20 text-amber-400' : 'bg-amber-100 text-amber-700'
+                                                        : isDark ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-500'
                                                     }`}
                                             >
                                                 <span className={`w-1.5 h-1.5 rounded-full ${conversation.status === 'open'
-                                                        ? 'bg-emerald-500'
-                                                        : conversation.status === 'pending'
-                                                            ? 'bg-amber-500'
-                                                            : 'bg-slate-400'
+                                                    ? 'bg-emerald-500'
+                                                    : conversation.status === 'pending'
+                                                        ? 'bg-amber-500'
+                                                        : 'bg-slate-400'
                                                     }`} />
                                                 {conversation.status === 'open' ? 'Mở' : conversation.status === 'pending' ? 'Chờ' : 'Xong'}
                                             </span>

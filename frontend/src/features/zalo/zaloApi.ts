@@ -8,6 +8,7 @@ export interface ZaloAccount {
     phone: string;
     avatar?: string;
     status: string;
+    isOnline: boolean;
     companyId?: number;
     userId?: number;
     userName?: string;
@@ -25,23 +26,73 @@ export interface ZaloConversation {
     threadType: 'user' | 'group';
     lastMessage: string;
     lastMessageTime: string;
-    senderName: string;
+    // Sender info from zca-js TMessage
+    senderName: string;        // dName
     senderAvatar?: string | null;
     unreadCount: number;
 }
 
+// Match zca-js TMessage structure
 export interface ZaloMessage {
     id: string;
     threadId: string;
     threadType: 'user' | 'group';
-    senderId?: string;
-    senderName?: string;
+    // Message identifiers (from TMessage)
+    msgId?: string;
+    cliMsgId?: string;
+    msgType?: string;
+    // Sender info (from TMessage)
+    uidFrom?: string;          // Sender ID
+    dName?: string;            // Sender display name
+    senderId?: string;         // Alias for uidFrom
+    senderName?: string;       // Alias for dName
     senderAvatar?: string | null;
-    content: string;
+    // Receiver
+    idTo?: string;
+    // Content
+    content: string | ZaloAttachment;
+    ts?: string;               // Original Zalo timestamp
+    // Quote/Reply (from TMessage.quote)
+    quote?: ZaloQuote | null;
+    // Mentions for groups (from TGroupMessage.mentions)
+    mentions?: ZaloMention[] | null;
+    // Metadata
     direction: 'inbound' | 'outbound';
+    isSelf?: boolean;
     timestamp: string;
     isRead?: boolean;
 }
+
+// Match zca-js TAttachmentContent
+export interface ZaloAttachment {
+    title?: string;
+    description?: string;
+    href?: string;
+    thumb?: string;
+    type?: string;
+}
+
+// Match zca-js TQuote
+export interface ZaloQuote {
+    ownerId: string;
+    cliMsgId: number;
+    globalMsgId: number;
+    cliMsgType?: number;
+    ts?: number;
+    msg: string;
+    attach?: string;
+    fromD?: string;
+    ttl?: number;
+}
+
+// Match zca-js TMention
+export interface ZaloMention {
+    uid: string;
+    pos: number;
+    len: number;
+    type: 0 | 1;
+}
+
 
 // ===================
 // Account APIs
@@ -53,7 +104,20 @@ export interface ZaloMessage {
  */
 export async function getZaloAccounts(): Promise<ZaloAccount[]> {
     const response = await api.get('/zalo');
-    return response.data.data || [];
+    const accounts = response.data.data || [];
+    // Map backend status to isOnline for UI
+    return accounts.map((acc: Record<string, unknown>) => ({
+        id: acc.id,
+        ownId: acc.own_id,
+        displayName: acc.display_name,
+        phone: acc.phone,
+        avatar: acc.avatar,
+        status: acc.status,
+        isOnline: acc.status === 'connected',
+        companyId: acc.company_id,
+        userId: acc.user_id,
+        userName: acc.user_name,
+    }));
 }
 
 /**
@@ -62,7 +126,11 @@ export async function getZaloAccounts(): Promise<ZaloAccount[]> {
  */
 export async function initiateQRLogin(): Promise<{ sessionId: string; message: string }> {
     const response = await api.post('/zalo/login');
-    return response.data;
+    // Map snake_case from backend to camelCase for frontend
+    return {
+        sessionId: response.data.session_id,
+        message: response.data.message,
+    };
 }
 
 /**
@@ -111,8 +179,60 @@ export async function assignUser(accountId: number, userId: number | null): Prom
 }
 
 // ===================
+// User Search APIs
+// ===================
+
+/**
+ * Found user info from Zalo
+ */
+export interface ZaloFoundUser {
+    uid: string;
+    zaloName: string;
+    displayName: string;
+    avatar: string;
+    status: string;
+    gender: number;
+    dob?: number;
+    globalId?: string;
+}
+
+/**
+ * Find user by phone number
+ * Route: POST /zalo/{zaloAccount}/find-user
+ */
+export async function findUserByPhone(accountId: number, phone: string): Promise<{ success: boolean; data?: ZaloFoundUser; error?: string }> {
+    try {
+        const response = await api.post(`/zalo/${accountId}/find-user`, { phone });
+        const result = response.data;
+        if (result.success && result.data) {
+            const data = result.data;
+            return {
+                success: true,
+                data: {
+                    // Support both camelCase (from CLI) and snake_case
+                    uid: data.uid,
+                    zaloName: data.zaloName || data.zalo_name,
+                    displayName: data.displayName || data.display_name,
+                    avatar: data.avatar,
+                    status: data.status,
+                    gender: data.gender,
+                    dob: data.dob,
+                    globalId: data.globalId,
+                },
+            };
+        }
+
+        return { success: false, error: result.message || 'User not found' };
+    } catch (error) {
+        return { success: false, error: 'Failed to search user' };
+    }
+}
+
+// ===================
 // Messaging APIs
 // ===================
+
+
 
 /**
  * Send message

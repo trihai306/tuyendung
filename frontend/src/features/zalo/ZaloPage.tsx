@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ConfirmModal, useToast } from '../../components/ui';
 import zaloApi, { type ZaloAccount as ApiZaloAccount, type ZaloGroup } from '../../services/zaloApi';
+import apiClient from '../../services/apiClient';
 
 // UI-specific type (maps from API type)
 interface ZaloAccountUI {
@@ -41,20 +42,8 @@ function QRLoginModal({ isOpen, onClose, isDark }: { isOpen: boolean; onClose: (
 
         try {
             // Call Laravel API to initiate login (dispatches job)
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-            const token = localStorage.getItem('token');
-
-            const response = await fetch(`${apiUrl}/zalo/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-                },
-                credentials: 'include',
-            });
-
-            const data = await response.json();
+            const response = await apiClient.post('/zalo/login');
+            const data = response.data;
 
             if (data.success && data.session_id) {
                 setSessionId(data.session_id);

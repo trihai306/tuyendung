@@ -24,7 +24,7 @@ class CandidateController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        $company = $user->companies()->first();
+        $company = $user->company;
 
         if (!$company) {
             return $this->error('Bạn chưa thuộc doanh nghiệp nào', 403);
@@ -44,7 +44,7 @@ class CandidateController extends Controller
     public function store(Request $request): JsonResponse
     {
         $user = $request->user();
-        $company = $user->companies()->first();
+        $company = $user->company;
 
         if (!$company) {
             return $this->error('Bạn chưa thuộc doanh nghiệp nào', 403);
@@ -100,13 +100,13 @@ class CandidateController extends Controller
     public function update(Request $request, Candidate $candidate): JsonResponse
     {
         $user = $request->user();
-        $company = $user->companies()->first();
+        $company = $user->company;
 
         if (!$company || $candidate->company_id !== $company->id) {
             return $this->error('Không có quyền cập nhật ứng viên này', 403);
         }
 
-        $isManager = $this->candidateService->isManager($company);
+        $isManager = $this->candidateService->isManager($user);
 
         $rules = [
             'full_name' => 'sometimes|string|max:255',
@@ -146,13 +146,13 @@ class CandidateController extends Controller
     public function destroy(Request $request, Candidate $candidate): JsonResponse
     {
         $user = $request->user();
-        $company = $user->companies()->first();
+        $company = $user->company;
 
         if (!$company || $candidate->company_id !== $company->id) {
             return $this->error('Không có quyền xóa ứng viên này', 403);
         }
 
-        if (!$this->candidateService->isManager($company)) {
+        if (!$this->candidateService->isManager($user)) {
             return $this->error('Chỉ quản lý mới có thể xóa ứng viên', 403);
         }
 
@@ -196,13 +196,13 @@ class CandidateController extends Controller
     public function assign(Request $request, Candidate $candidate): JsonResponse
     {
         $user = $request->user();
-        $company = $user->companies()->first();
+        $company = $user->company;
 
         if (!$company || $candidate->company_id !== $company->id) {
             return $this->error('Không có quyền phân công ứng viên này', 403);
         }
 
-        if (!$this->candidateService->isManager($company)) {
+        if (!$this->candidateService->isManager($user)) {
             return $this->error('Chỉ quản lý mới có thể phân công ứng viên', 403);
         }
 
@@ -228,13 +228,13 @@ class CandidateController extends Controller
     public function bulkAssign(Request $request): JsonResponse
     {
         $user = $request->user();
-        $company = $user->companies()->first();
+        $company = $user->company;
 
         if (!$company) {
             return $this->error('Bạn chưa thuộc doanh nghiệp nào', 403);
         }
 
-        if (!$this->candidateService->isManager($company)) {
+        if (!$this->candidateService->isManager($user)) {
             return $this->error('Chỉ quản lý mới có thể phân công hàng loạt', 403);
         }
 

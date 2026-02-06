@@ -520,6 +520,55 @@ class ZaloService
         ]);
     }
 
+    /**
+     * Get sticker pack details
+     */
+    public function getStickersDetail(string $ownId, string $stickerType): array
+    {
+        return $this->executeWithCredentials('stickers-detail', $ownId, [
+            'type' => $stickerType,
+        ]);
+    }
+
+    // ===========================================
+    // EXTENDED ACTIONS
+    // ===========================================
+
+    /**
+     * Change group avatar
+     */
+    public function changeGroupAvatar(string $ownId, string $groupId, string $avatarPath): array
+    {
+        return $this->executeWithCredentials('change-group-avatar', $ownId, [
+            'group' => $groupId,
+            'file' => $avatarPath,
+        ]);
+    }
+
+    /**
+     * Send report
+     */
+    public function sendReport(string $ownId, string $threadId, string $reason = 'spam', string $type = 'user'): array
+    {
+        return $this->executeWithCredentials('send-report', $ownId, [
+            'thread' => $threadId,
+            'reason' => $reason,
+            'type' => $type,
+        ]);
+    }
+
+    /**
+     * Undo/recall message
+     */
+    public function undoMessage(string $ownId, string $threadId, string $msgId, string $type = 'user'): array
+    {
+        return $this->executeWithCredentials('undo', $ownId, [
+            'thread' => $threadId,
+            'msgId' => $msgId,
+            'type' => $type,
+        ]);
+    }
+
     // ===========================================
     // DATABASE SYNC
     // ===========================================

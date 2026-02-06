@@ -7,6 +7,7 @@ use App\Events\ZaloMessageReceived;
 use App\Http\Controllers\Controller;
 use App\Jobs\FetchZaloUserProfileJob;
 use App\Models\ZaloAccount;
+use App\Models\ZaloGroup;
 use App\Models\ZaloMessage;
 use App\Models\ZaloUser;
 use Illuminate\Http\JsonResponse;
@@ -66,43 +67,87 @@ class ZaloWebhookController extends Controller
             $zaloAccount->update(['last_active_at' => now()]);
         }
 
-        $senderId = $data['senderId'] ?? '';
+        // Extract new zca-js fields from daemon
+        $senderId = $data['uidFrom'] ?? $data['senderId'] ?? '';
         $threadId = $data['threadId'] ?? '';
         $threadType = $data['threadType'] ?? 'user';
-        $senderName = $data['senderName'] ?? 'Unknown';
+        $senderName = $data['dName'] ?? $data['senderName'] ?? 'Unknown';
 
-        // Auto-sync: Check if sender is already cached
+        // User caching: Check by senderId, skip CLI if already cached
         $cachedUser = null;
         if ($senderId) {
             $cachedUser = ZaloUser::where('zalo_user_id', $senderId)->first();
 
-            // If not cached or stale, dispatch job to fetch profile
-            if (!$cachedUser || $cachedUser->isStale()) {
+            if ($cachedUser) {
+                // User exists in cache → use cached name, no CLI call needed
+                $senderName = $cachedUser->display_name ?: $cachedUser->zalo_name ?: $senderName;
+            } else {
+                // New user not in cache → dispatch job to fetch profile via CLI
                 FetchZaloUserProfileJob::dispatch(
                     $accountId,
                     $senderId,
                     $threadId,
                     $threadType
                 )->onQueue('zalo-sync');
-            } else {
-                // Use cached name if available
-                $senderName = $cachedUser->display_name ?: $cachedUser->zalo_name ?: $senderName;
             }
         }
 
-        // Store message in database
+        // Group caching: Check by threadId, create only if not exists
+        // No CLI call for group info, just store basic record
+        if ($threadType === 'group' && $zaloAccount && $threadId) {
+            try {
+                // Use firstOrCreate with threadId as key - atomic, no race conditions
+                ZaloGroup::firstOrCreate(
+                    [
+                        'zalo_account_id' => $zaloAccount->id,
+                        'group_id' => $threadId,
+                    ],
+                    [
+                        'name' => $data['groupName'] ?? 'Nhóm chưa đặt tên',
+                        'synced_at' => now(),
+                    ]
+                );
+                // If group already exists, no update needed unless explicitly requested
+            } catch (\Exception $e) {
+                // Log error but don't fail the webhook
+                Log::warning('Failed to cache group', [
+                    'group_id' => $threadId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Handle content - could be string or object (attachment)
+        $content = $data['content'] ?? '';
+        if (!is_string($content)) {
+            $content = json_encode($content);
+        }
+
+        // Store message in database with new zca-js fields
         ZaloMessage::create([
             'zalo_account_id' => $zaloAccount?->id,
             'external_account_id' => $accountId,
             'thread_id' => $threadId,
             'thread_type' => $threadType,
+            // New zca-js message identifiers
+            'msg_id' => $data['msgId'] ?? null,
+            'cli_msg_id' => $data['cliMsgId'] ?? null,
+            'msg_type' => $data['msgType'] ?? null,
+            // Sender/Receiver
             'sender_id' => $senderId,
             'sender_name' => $senderName,
-            'content' => $data['content'] ?? '',
-            'direction' => $data['direction'] ?? 'inbound',
+            'id_to' => $data['idTo'] ?? $accountId,
+            // Content
+            'content' => $content,
+            'quote_data' => $data['quote'] ?? null,
+            'mentions' => $data['mentions'] ?? null,
+            // Metadata
+            'direction' => $data['isSelf'] ? 'outbound' : 'inbound',
             'raw_data' => $data['raw'] ?? null,
-            'received_at' => $data['timestamp'] ?? now(),
+            'received_at' => now(),
+            'ts' => $data['ts'] ?? null,
         ]);
+
 
         // Broadcast to frontend via Soketi
         broadcast(new ZaloMessageReceived($data))->toOthers();

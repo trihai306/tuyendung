@@ -389,8 +389,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className={`min-h-screen transition-colors duration-200 ${resolvedTheme === 'dark' ? 'bg-slate-950' : 'bg-slate-50'}`}>
                 <Sidebar />
                 <Header />
-                <main className={`pt-14 min-h-screen transition-all duration-200 ${collapsed ? 'pl-16' : 'pl-60'}`}>
-                    <div className="p-4">
+                <main className={`pt-14 h-screen overflow-hidden transition-all duration-200 ${collapsed ? 'pl-16' : 'pl-60'}`}>
+                    <div className="p-4 h-full flex flex-col">
                         {children}
                     </div>
                 </main>

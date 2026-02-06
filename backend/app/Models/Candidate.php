@@ -162,14 +162,12 @@ class Candidate extends Model
      */
     public function isAccessibleBy(User $user): bool
     {
-        // Get user's company membership
-        $member = $user->companies()->where('company_id', $this->company_id)->first();
-
-        if (!$member) {
+        // Check if user belongs to same company
+        if ($user->company_id !== $this->company_id) {
             return false;
         }
 
-        $role = $member->pivot->role;
+        $role = $user->company_role;
 
         // Owner and Admin can see all candidates
         if (in_array($role, ['owner', 'admin'])) {
