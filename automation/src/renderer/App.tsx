@@ -1,7 +1,10 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { ProfileManager } from './components/ProfileManager';
+import { BrowserView } from './components/BrowserView';
+import { MultiBrowserView } from './components/MultiBrowserView';
 
-const API_URL = 'http://localhost:3001';
+const API_URL = 'http://localhost:3005';
 
 interface LogEntry {
     id: number;
@@ -33,6 +36,16 @@ function App() {
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [proxyCount, setProxyCount] = useState(0);
     const [serverOnline, setServerOnline] = useState(false);
+
+    // Multi-browser sessions
+    const [browserSessions, setBrowserSessions] = useState<Array<{
+        id: string;
+        profileId: string;
+        profileName: string;
+        isStreaming: boolean;
+        frame: string | null;
+        status: 'launching' | 'running' | 'stopped';
+    }>>([]);
 
     // Add log entry
     const addLog = useCallback((message: string, type: LogEntry['type'] = 'info', time?: string) => {
@@ -100,6 +113,42 @@ function App() {
             addLog(`Error: ${(error as Error).message}`, 'error');
         }
         setIsLoading(false);
+    };
+
+    // Launch browser with profile - adds to multi-browser grid
+    const handleLaunchWithProfile = async (profileId: string, profileName?: string) => {
+        setIsLoading(true);
+        try {
+            const result = await api(`/api/profiles/${profileId}/launch`, { method: 'POST' });
+            if (result.success) {
+                // Add new session to the grid
+                const newSession = {
+                    id: `session-${Date.now()}`,
+                    profileId,
+                    profileName: result.profile || profileName || 'Profile',
+                    isStreaming: false,
+                    frame: null,
+                    status: 'running' as const,
+                };
+                setBrowserSessions(prev => [...prev, newSession]);
+                setIsBrowserRunning(true);
+                addLog(`Launched with profile: ${result.profile}`, 'success');
+            } else {
+                addLog(`Error: ${result.error}`, 'error');
+            }
+        } catch (error) {
+            addLog(`Error: ${(error as Error).message}`, 'error');
+        }
+        setIsLoading(false);
+    };
+
+    // Close specific browser session
+    const handleCloseSession = async (sessionId: string) => {
+        setBrowserSessions(prev => prev.filter(s => s.id !== sessionId));
+        if (browserSessions.length <= 1) {
+            setIsBrowserRunning(false);
+        }
+        addLog(`Closed browser session`, 'info');
     };
 
     // Close browser
@@ -248,8 +297,8 @@ function App() {
                 <div className="flex items-center gap-4">
                     {/* Server Status */}
                     <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${serverOnline
-                            ? 'bg-blue-500/15 text-blue-400'
-                            : 'bg-gray-500/15 text-gray-400'
+                        ? 'bg-blue-500/15 text-blue-400'
+                        : 'bg-gray-500/15 text-gray-400'
                         }`}>
                         <div className={`w-2 h-2 rounded-full ${serverOnline ? 'bg-blue-400 animate-pulse-dot' : 'bg-gray-400'
                             }`}></div>
@@ -257,8 +306,8 @@ function App() {
                     </div>
                     {/* Browser Status */}
                     <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${isBrowserRunning
-                            ? 'bg-green-500/15 text-green-400'
-                            : 'bg-red-500/15 text-red-400'
+                        ? 'bg-green-500/15 text-green-400'
+                        : 'bg-red-500/15 text-red-400'
                         }`}>
                         <div className={`w-2 h-2 rounded-full animate-pulse-dot ${isBrowserRunning ? 'bg-green-400' : 'bg-red-400'
                             }`}></div>
@@ -332,14 +381,19 @@ function App() {
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
                             Proxies
                         </h3>
-                        <div className="bg-dark-tertiary rounded-lg px-4 py-3 text-sm">
-                            Active: <span className="text-primary-400 font-medium">{proxyCount}</span>
+                        <div className="bg-[var(--color-dark-tertiary)] rounded-lg px-4 py-3 text-sm">
+                            Active: <span className="text-[var(--color-primary-400)] font-medium">{proxyCount}</span>
                         </div>
                     </div>
                 </aside>
 
                 {/* Control Panel */}
                 <main className="flex-1 p-8 flex flex-col gap-6 overflow-auto">
+                    {/* Profile Manager */}
+                    <ProfileManager
+                        onLaunchProfile={handleLaunchWithProfile}
+                        browserRunning={isBrowserRunning}
+                    />
                     {/* Navigation Card */}
                     <div className="card">
                         <h2 className="text-lg font-semibold mb-4">🌐 Navigation</h2>
@@ -420,17 +474,20 @@ function App() {
                         </div>
                     </div>
 
-                    {/* Screenshot Preview */}
-                    <div className="card">
-                        <h2 className="text-lg font-semibold mb-4">📸 Preview</h2>
-                        <div className="bg-dark-tertiary rounded-lg aspect-video flex items-center justify-center overflow-hidden">
-                            {screenshot ? (
-                                <img src={screenshot} alt="Screenshot" className="w-full h-full object-contain" />
-                            ) : (
-                                <span className="text-gray-500 text-sm">No screenshot yet</span>
-                            )}
-                        </div>
-                    </div>
+                    {/* Multi-Browser Grid View */}
+                    <MultiBrowserView
+                        socket={socket}
+                        sessions={browserSessions}
+                        onSessionClose={handleCloseSession}
+                    />
+
+                    {/* Single Browser View (Legacy - for when no sessions) */}
+                    {browserSessions.length === 0 && (
+                        <BrowserView
+                            socket={socket}
+                            isActive={isBrowserRunning}
+                        />
+                    )}
 
                     {/* Logs */}
                     <div className="card">
@@ -443,8 +500,8 @@ function App() {
                                     <div
                                         key={log.id}
                                         className={`py-1 border-b border-dark-border last:border-0 ${log.type === 'success' ? 'text-green-400' :
-                                                log.type === 'error' ? 'text-red-400' :
-                                                    'text-primary-400'
+                                            log.type === 'error' ? 'text-red-400' :
+                                                'text-primary-400'
                                             }`}
                                     >
                                         <span className="text-gray-500 mr-2">[{log.time}]</span>

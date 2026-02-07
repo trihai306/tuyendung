@@ -2,7 +2,7 @@
 /// Horizontal scrollable filter chips for task status
 
 import 'package:flutter/material.dart';
-import '../../../../theme/app_theme.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../data/models/task_model.dart';
 
 class TaskFilterChips extends StatelessWidget {
@@ -55,7 +55,7 @@ class TaskFilterChips extends StatelessWidget {
     required bool isDark,
     Color? statusColor,
   }) {
-    final color = statusColor ?? AppTheme.primary;
+    final color = statusColor ?? AppColors.primary;
     
     return Material(
       color: Colors.transparent,
@@ -67,12 +67,12 @@ class TaskFilterChips extends StatelessWidget {
           decoration: BoxDecoration(
             color: isSelected
                 ? color
-                : (isDark ? AppTheme.surfaceDark : AppTheme.surface),
+                : (isDark ? AppColors.surfaceDark : AppColors.surface),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isSelected
                   ? color
-                  : (isDark ? AppTheme.borderDark : AppTheme.border),
+                  : (isDark ? AppColors.borderDark : AppColors.border),
             ),
           ),
           child: Text(
@@ -82,7 +82,7 @@ class TaskFilterChips extends StatelessWidget {
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               color: isSelected
                   ? Colors.white
-                  : (isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondary),
+                  : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
             ),
           ),
         ),

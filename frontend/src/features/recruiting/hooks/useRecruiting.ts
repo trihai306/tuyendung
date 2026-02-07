@@ -7,7 +7,10 @@ import {
     useGetJobPipelineQuery,
     useMoveApplicationStageMutation,
     useCreateJobMutation,
+    useUpdateJobMutation,
+    useDeleteJobMutation,
     usePublishJobMutation,
+    useCloseJobMutation,
 } from '../recruitingApi';
 
 export function useJobs(filters?: Record<string, any>) {
@@ -16,7 +19,10 @@ export function useJobs(filters?: Record<string, any>) {
 
     const { data, isFetching, refetch } = useGetJobsQuery(filters || {});
     const [createJobMutation] = useCreateJobMutation();
+    const [updateJobMutation] = useUpdateJobMutation();
+    const [deleteJobMutation] = useDeleteJobMutation();
     const [publishJobMutation] = usePublishJobMutation();
+    const [closeJobMutation] = useCloseJobMutation();
 
     useEffect(() => {
         if (data?.data) {
@@ -31,6 +37,20 @@ export function useJobs(filters?: Record<string, any>) {
         [createJobMutation]
     );
 
+    const updateJob = useCallback(
+        async (id: number, jobData: any) => {
+            return await updateJobMutation({ id, ...jobData }).unwrap();
+        },
+        [updateJobMutation]
+    );
+
+    const deleteJob = useCallback(
+        async (id: number) => {
+            return await deleteJobMutation(id).unwrap();
+        },
+        [deleteJobMutation]
+    );
+
     const publishJob = useCallback(
         async (jobId: number) => {
             return await publishJobMutation(jobId).unwrap();
@@ -38,11 +58,21 @@ export function useJobs(filters?: Record<string, any>) {
         [publishJobMutation]
     );
 
+    const closeJob = useCallback(
+        async (jobId: number) => {
+            return await closeJobMutation(jobId).unwrap();
+        },
+        [closeJobMutation]
+    );
+
     return {
         jobs: jobIds.map((id) => jobs[id]),
         isLoading: isLoading || isFetching,
         createJob,
+        updateJob,
+        deleteJob,
         publishJob,
+        closeJob,
         refetch,
     };
 }

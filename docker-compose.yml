@@ -142,24 +142,27 @@ services:
     networks:
       - recruitment_network
 
-  # Zalo Daemon - Event listener that forwards to Laravel webhook
-  # QR login now via CLI + Soketi (no HTTP server needed)
-  zalo-daemon:
-    build:
-      context: ./zalo-service
-      dockerfile: Dockerfile
-    container_name: recruitment_zalo_daemon
-    restart: unless-stopped
-    command: node daemon/index.js
-    environment:
-      - WEBHOOK_URL=http://nginx/api/zalo-webhook
-      - WEBHOOK_SECRET=
-    volumes:
-      - ./zalo-service/data:/app/data
-    depends_on:
-      - nginx
-    networks:
-      - recruitment_network
+  # =============================================
+  # Zalo Daemon - DISABLED (migrated to automation app client-side)
+  # Zalo operations now run in automation/ Electron app via zca-js
+  # Backend dispatches tasks via Soketi → automation app executes
+  # =============================================
+  # zalo-daemon:
+  #   build:
+  #     context: ./zalo-service
+  #     dockerfile: Dockerfile
+  #   container_name: recruitment_zalo_daemon
+  #   restart: unless-stopped
+  #   command: node daemon/index.js
+  #   environment:
+  #     - WEBHOOK_URL=http://nginx/api/zalo-webhook
+  #     - WEBHOOK_SECRET=
+  #   volumes:
+  #     - ./zalo-service/data:/app/data
+  #   depends_on:
+  #     - nginx
+  #   networks:
+  #     - recruitment_network
 
 networks:
   recruitment_network:

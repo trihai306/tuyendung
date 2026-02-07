@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build
+out/
+dist/
+
+# Electron
+*.asar
+
+# Profiles & data (sensitive)
+src/profiles/
+data/
+
+# IDE
+.idea/
+.vscode/
+
+# Playwright MCP
+.playwright-mcp/
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+
+# Temporary
+electron-main.cjs

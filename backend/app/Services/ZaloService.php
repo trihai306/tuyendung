@@ -2,220 +2,177 @@
 
 namespace App\Services;
 
+use App\Models\AgentTask;
 use App\Models\ZaloAccount;
 use App\Models\ZaloGroup;
 use App\Models\ZaloUser;
+use App\Events\AgentTaskDispatched;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 /**
- * ZaloService - CLI Bridge
+ * ZaloService - Agent Bridge Dispatcher
  * 
- * All operations use CLI commands with credentials from DB
- * CLI Path: ../zalo-service/cli/index.js
+ * All Zalo operations are dispatched to the client-side Automation app 
+ * via Soketi (Pusher protocol). The automation app executes using zca-js
+ * and returns results via HTTP callback.
+ * 
+ * Flow: Backend → AgentTask → Soketi → Automation App → zca-js → Result callback
  */
 class ZaloService
 {
-    protected string $cliPath;
+    /**
+     * Default timeout waiting for agent response (seconds)
+     */
+    protected int $timeout = 30;
 
-    public function __construct()
+    /**
+     * Dispatch a Zalo command to the automation agent and wait for result
+     * 
+     * @param string $action Zalo action (send_message, get_groups, etc.)
+     * @param array $params Action parameters
+     * @param int|null $companyId Company context (optional)
+     * @return array{success: bool, data?: mixed, error?: string}
+     */
+    public function dispatchCommand(string $action, array $params = [], ?int $companyId = null): array
     {
-        // CLI path - use env variable (Docker) or fallback to relative path (local)
-        $this->cliPath = env('ZALO_CLI_PATH', base_path('../zalo-service/cli/index.js'));
+        try {
+            $taskId = (string) Str::uuid();
+
+            $task = AgentTask::create([
+                'type' => 'zalo_command',
+                'payload' => array_merge(['action' => $action], $params),
+                'status' => 'pending',
+                'company_id' => $companyId,
+                'callback_url' => url('/api/agent/task-result'),
+            ]);
+
+            // Broadcast to automation app via Soketi
+            event(new AgentTaskDispatched($task));
+            $task->markAsDispatched();
+
+            // Wait for result (polling cache key set by callback)
+            $cacheKey = "agent_task_result:{$task->id}";
+            $maxWait = $this->timeout;
+            $waited = 0;
+            $pollInterval = 500000; // 0.5 second in microseconds
+
+            while ($waited < $maxWait) {
+                usleep($pollInterval);
+                $waited += 0.5;
+
+                $result = Cache::get($cacheKey);
+                if ($result !== null) {
+                    Cache::forget($cacheKey);
+                    return $result;
+                }
+
+                // Check if task completed in DB
+                $task->refresh();
+                if (in_array($task->status, ['completed', 'failed'])) {
+                    $taskResult = $task->result ?? [];
+                    return [
+                        'success' => $task->status === 'completed',
+                        'data' => $taskResult['data'] ?? null,
+                        'error' => $taskResult['error'] ?? null,
+                    ];
+                }
+            }
+
+            // Timeout - agent may not be connected
+            Log::warning("ZaloService: Task timeout", ['task_id' => $task->id, 'action' => $action]);
+            return [
+                'success' => false,
+                'error' => 'Agent timeout - automation app may not be running',
+            ];
+        } catch (\Exception $e) {
+            Log::error("ZaloService dispatch error", ['action' => $action, 'error' => $e->getMessage()]);
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
     }
 
     /**
-     * Get credentials from database for an account
-     * Returns JSON string for CLI --credentials argument
+     * Execute command with credentials from DB
      */
-    public function getCredentials(string $ownId): ?string
+    protected function executeWithCredentials(string $action, string $ownId, array $params = []): array
     {
         $account = ZaloAccount::where('own_id', $ownId)->first();
 
         if (!$account || empty($account->credentials)) {
-            Log::warning("ZaloService: No credentials found for account", ['ownId' => $ownId]);
-            return null;
+            return ['success' => false, 'error' => "No credentials for account {$ownId}"];
         }
 
-        return json_encode($account->credentials);
-    }
+        $params['ownId'] = $ownId;
+        $params['credentials'] = $account->credentials;
 
-    /**
-     * Execute CLI command and return parsed JSON result
-     * 
-     * @param string $command CLI command name (e.g., 'send', 'groups')
-     * @param array $args Arguments as key => value pairs
-     * @return array{success: bool, data?: mixed, error?: string}
-     */
-    public function executeCliCommand(string $command, array $args = []): array
-    {
-        try {
-            // Build command arguments
-            $argString = '';
-            foreach ($args as $key => $value) {
-                if (is_bool($value)) {
-                    if ($value)
-                        $argString .= " --{$key}";
-                } elseif (is_array($value)) {
-                    $argString .= " --{$key}=" . escapeshellarg(json_encode($value));
-                } else {
-                    $argString .= " --{$key}=" . escapeshellarg((string) $value);
-                }
-            }
-
-            $fullCommand = "node {$this->cliPath} {$command}{$argString}";
-
-            Log::debug("ZaloService CLI: {$fullCommand}");
-
-            $result = Process::timeout(30)->run($fullCommand);
-
-            if (!$result->successful()) {
-                $errorOutput = $result->errorOutput() ?: $result->output();
-                Log::error("ZaloService CLI failed", [
-                    'command' => $command,
-                    'error' => $errorOutput,
-                    'exitCode' => $result->exitCode()
-                ]);
-
-                // Try to parse error output as JSON
-                $parsed = json_decode($errorOutput, true);
-                return [
-                    'success' => false,
-                    'error' => $parsed['error'] ?? $errorOutput,
-                ];
-            }
-
-            $output = trim($result->output());
-            $parsed = json_decode($output, true);
-
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                return [
-                    'success' => false,
-                    'error' => 'Invalid JSON response: ' . $output,
-                ];
-            }
-
-            return [
-                'success' => true,
-                'data' => $parsed['data'] ?? $parsed,
-            ];
-
-        } catch (\Exception $e) {
-            Log::error("ZaloService CLI exception", [
-                'command' => $command,
-                'error' => $e->getMessage()
-            ]);
-            return [
-                'success' => false,
-                'error' => $e->getMessage(),
-            ];
-        }
-    }
-
-    /**
-     * Execute CLI command with credentials from DB
-     */
-    protected function executeWithCredentials(string $command, string $ownId, array $args = []): array
-    {
-        $credentials = $this->getCredentials($ownId);
-        if (!$credentials) {
-            return [
-                'success' => false,
-                'error' => "No credentials found for account {$ownId}",
-            ];
-        }
-
-        $args['account'] = $ownId;
-        $args['credentials'] = $credentials;
-
-        return $this->executeCliCommand($command, $args);
+        return $this->dispatchCommand($action, $params, $account->company_id);
     }
 
     // ===========================================
     // MESSAGING
     // ===========================================
 
-    /**
-     * Send message to user or group
-     */
     public function sendMessage(string $ownId, string $threadId, string $message, string $type = 'user'): array
     {
-        return $this->executeWithCredentials('send', $ownId, [
-            'to' => $threadId,
+        return $this->executeWithCredentials('send_message', $ownId, [
+            'threadId' => $threadId,
             'message' => $message,
             'type' => $type,
         ]);
     }
 
-    /**
-     * Send sticker
-     */
     public function sendSticker(string $ownId, string $threadId, string $stickerId, string $type = 'user'): array
     {
-        return $this->executeWithCredentials('send-sticker', $ownId, [
-            'to' => $threadId,
-            'sticker' => $stickerId,
+        return $this->executeWithCredentials('send_sticker', $ownId, [
+            'threadId' => $threadId,
+            'stickerId' => $stickerId,
             'type' => $type,
         ]);
     }
 
-    /**
-     * Send voice message
-     */
     public function sendVoice(string $ownId, string $threadId, string $filePath, string $type = 'user'): array
     {
-        return $this->executeWithCredentials('send-voice', $ownId, [
-            'to' => $threadId,
-            'file' => $filePath,
+        return $this->executeWithCredentials('send_voice', $ownId, [
+            'threadId' => $threadId,
+            'filePath' => $filePath,
             'type' => $type,
         ]);
     }
 
-    /**
-     * Send file
-     */
     public function sendFile(string $ownId, string $threadId, string $filePath, string $type = 'user'): array
     {
-        return $this->executeWithCredentials('send-file', $ownId, [
-            'to' => $threadId,
-            'file' => $filePath,
+        return $this->executeWithCredentials('send_file', $ownId, [
+            'threadId' => $threadId,
+            'filePath' => $filePath,
             'type' => $type,
         ]);
     }
 
-    /**
-     * Send contact card
-     */
     public function sendCard(string $ownId, string $threadId, string $userId, string $phone, string $type = 'user'): array
     {
-        return $this->executeWithCredentials('send-card', $ownId, [
-            'to' => $threadId,
+        return $this->executeWithCredentials('send_card', $ownId, [
+            'threadId' => $threadId,
             'userId' => $userId,
             'phone' => $phone,
             'type' => $type,
         ]);
     }
 
-    /**
-     * React to message
-     */
     public function reactToMessage(string $ownId, string $threadId, string $msgId, string $icon, string $type = 'user'): array
     {
         return $this->executeWithCredentials('react', $ownId, [
-            'thread' => $threadId,
+            'threadId' => $threadId,
             'msgId' => $msgId,
             'icon' => $icon,
             'type' => $type,
         ]);
     }
 
-    /**
-     * Delete message
-     */
     public function deleteMessage(string $ownId, string $threadId, string $msgId, bool $forAll = false, string $type = 'user'): array
     {
-        return $this->executeWithCredentials('delete-message', $ownId, [
-            'thread' => $threadId,
+        return $this->executeWithCredentials('delete_message', $ownId, [
+            'threadId' => $threadId,
             'msgId' => $msgId,
             'forAll' => $forAll,
             'type' => $type,
@@ -226,48 +183,33 @@ class ZaloService
     // ACCOUNT & USER
     // ===========================================
 
-    /**
-     * Get account info
-     */
     public function getAccountInfo(string $ownId): array
     {
-        return $this->executeWithCredentials('account-info', $ownId);
+        return $this->executeWithCredentials('account_info', $ownId);
     }
 
-    /**
-     * Get user info
-     */
     public function getUserInfo(string $ownId, string $userId): array
     {
-        return $this->executeWithCredentials('user-info', $ownId, [
+        return $this->executeWithCredentials('user_info', $ownId, [
             'userId' => $userId,
         ]);
     }
 
-    /**
-     * Find user by phone
-     */
     public function findUser(string $ownId, string $phone): array
     {
-        return $this->executeWithCredentials('find-user', $ownId, [
+        return $this->executeWithCredentials('find_user', $ownId, [
             'phone' => $phone,
         ]);
     }
 
-    /**
-     * Set alias for user
-     */
     public function setAlias(string $ownId, string $userId, string $alias): array
     {
-        return $this->executeWithCredentials('set-alias', $ownId, [
+        return $this->executeWithCredentials('set_alias', $ownId, [
             'userId' => $userId,
             'alias' => $alias,
         ]);
     }
 
-    /**
-     * Pin conversation
-     */
     public function pinConversation(string $ownId, string $threadId, bool $pinned = true): array
     {
         return $this->executeWithCredentials('pin', $ownId, [
@@ -280,38 +222,26 @@ class ZaloService
     // FRIENDS
     // ===========================================
 
-    /**
-     * Get friends list
-     */
     public function getFriends(string $ownId): array
     {
-        return $this->executeWithCredentials('friends', $ownId);
+        return $this->executeWithCredentials('get_friends', $ownId);
     }
 
-    /**
-     * Send friend request
-     */
     public function sendFriendRequest(string $ownId, string $userId, string $message = 'Xin chào!'): array
     {
-        return $this->executeWithCredentials('add-friend', $ownId, [
+        return $this->executeWithCredentials('add_friend', $ownId, [
             'userId' => $userId,
             'message' => $message,
         ]);
     }
 
-    /**
-     * Accept friend request
-     */
     public function acceptFriendRequest(string $ownId, string $userId): array
     {
-        return $this->executeWithCredentials('accept-friend', $ownId, [
+        return $this->executeWithCredentials('accept_friend', $ownId, [
             'userId' => $userId,
         ]);
     }
 
-    /**
-     * Block user
-     */
     public function blockUser(string $ownId, string $userId): array
     {
         return $this->executeWithCredentials('block', $ownId, [
@@ -319,9 +249,6 @@ class ZaloService
         ]);
     }
 
-    /**
-     * Unblock user
-     */
     public function unblockUser(string $ownId, string $userId): array
     {
         return $this->executeWithCredentials('unblock', $ownId, [
@@ -333,94 +260,69 @@ class ZaloService
     // GROUPS
     // ===========================================
 
-    /**
-     * Get groups
-     */
     public function getGroups(string $ownId): array
     {
-        $result = $this->executeWithCredentials('groups', $ownId);
+        $result = $this->executeWithCredentials('get_groups', $ownId);
+        if ($result['success'] && isset($result['data']['groups'])) {
+            return $result['data']['groups'];
+        }
         return $result['success'] ? ($result['data'] ?? []) : [];
     }
 
-    /**
-     * Get group info
-     */
     public function getGroupInfo(string $ownId, string $groupId): array
     {
-        return $this->executeWithCredentials('group-info', $ownId, [
+        return $this->executeWithCredentials('group_info', $ownId, [
             'groupId' => $groupId,
         ]);
     }
 
-    /**
-     * Create group
-     */
     public function createGroup(string $ownId, string $name, array $members = []): array
     {
-        return $this->executeWithCredentials('create-group', $ownId, [
+        return $this->executeWithCredentials('create_group', $ownId, [
             'name' => $name,
             'members' => $members,
         ]);
     }
 
-    /**
-     * Rename group
-     */
     public function renameGroup(string $ownId, string $groupId, string $name): array
     {
-        return $this->executeWithCredentials('rename-group', $ownId, [
+        return $this->executeWithCredentials('rename_group', $ownId, [
             'groupId' => $groupId,
             'name' => $name,
         ]);
     }
 
-    /**
-     * Delete group
-     */
     public function deleteGroup(string $ownId, string $groupId): array
     {
-        return $this->executeWithCredentials('delete-group', $ownId, [
+        return $this->executeWithCredentials('delete_group', $ownId, [
             'groupId' => $groupId,
         ]);
     }
 
-    /**
-     * Add member to group
-     */
     public function addMemberToGroup(string $ownId, string $groupId, string $userId): array
     {
-        return $this->executeWithCredentials('add-to-group', $ownId, [
+        return $this->executeWithCredentials('add_to_group', $ownId, [
             'groupId' => $groupId,
             'userId' => $userId,
         ]);
     }
 
-    /**
-     * Leave group
-     */
     public function leaveGroup(string $ownId, string $groupId, bool $silent = false): array
     {
-        return $this->executeWithCredentials('leave-group', $ownId, [
-            'group' => $groupId,
+        return $this->executeWithCredentials('leave_group', $ownId, [
+            'groupId' => $groupId,
             'silent' => $silent,
         ]);
     }
 
-
-    /**
-     * Remove member from group
-     */
     public function removeMemberFromGroup(string $ownId, string $groupId, string $userId): array
     {
-        return $this->executeWithCredentials('remove-from-group', $ownId, [
+        return $this->executeWithCredentials('remove_from_group', $ownId, [
             'groupId' => $groupId,
             'userId' => $userId,
         ]);
     }
 
-    /**
-     * Promote to admin
-     */
     public function promoteToAdmin(string $ownId, string $groupId, string $userId): array
     {
         return $this->executeWithCredentials('promote', $ownId, [
@@ -429,9 +331,6 @@ class ZaloService
         ]);
     }
 
-    /**
-     * Demote from admin
-     */
     public function demoteFromAdmin(string $ownId, string $groupId, string $userId): array
     {
         return $this->executeWithCredentials('demote', $ownId, [
@@ -440,12 +339,9 @@ class ZaloService
         ]);
     }
 
-    /**
-     * Transfer ownership
-     */
     public function transferOwnership(string $ownId, string $groupId, string $userId): array
     {
-        return $this->executeWithCredentials('transfer-owner', $ownId, [
+        return $this->executeWithCredentials('transfer_owner', $ownId, [
             'groupId' => $groupId,
             'userId' => $userId,
         ]);
@@ -455,34 +351,25 @@ class ZaloService
     // POLLS & NOTES
     // ===========================================
 
-    /**
-     * Create poll
-     */
     public function createPoll(string $ownId, string $groupId, string $question, array $options, array $settings = []): array
     {
-        return $this->executeWithCredentials('create-poll', $ownId, array_merge([
+        return $this->executeWithCredentials('create_poll', $ownId, array_merge([
             'groupId' => $groupId,
             'question' => $question,
             'options' => $options,
         ], $settings));
     }
 
-    /**
-     * Lock poll
-     */
     public function lockPoll(string $ownId, string $pollId): array
     {
-        return $this->executeWithCredentials('lock-poll', $ownId, [
+        return $this->executeWithCredentials('lock_poll', $ownId, [
             'pollId' => $pollId,
         ]);
     }
 
-    /**
-     * Create note
-     */
     public function createNote(string $ownId, string $groupId, string $title, string $content, int $pinAct = 1): array
     {
-        return $this->executeWithCredentials('create-note', $ownId, [
+        return $this->executeWithCredentials('create_note', $ownId, [
             'groupId' => $groupId,
             'title' => $title,
             'content' => $content,
@@ -490,29 +377,18 @@ class ZaloService
         ]);
     }
 
-    /**
-     * Edit note
-     */
     public function editNote(string $ownId, string $noteId, string $title, string $content, ?int $pinAct = null): array
     {
-        $args = [
-            'noteId' => $noteId,
-            'title' => $title,
-            'content' => $content,
-        ];
-        if ($pinAct !== null) {
+        $args = ['noteId' => $noteId, 'title' => $title, 'content' => $content];
+        if ($pinAct !== null)
             $args['pinAct'] = $pinAct;
-        }
-        return $this->executeWithCredentials('edit-note', $ownId, $args);
+        return $this->executeWithCredentials('edit_note', $ownId, $args);
     }
 
     // ===========================================
     // STICKERS
     // ===========================================
 
-    /**
-     * Get stickers
-     */
     public function getStickers(string $ownId, string $keyword = 'hello'): array
     {
         return $this->executeWithCredentials('stickers', $ownId, [
@@ -520,46 +396,34 @@ class ZaloService
         ]);
     }
 
-    /**
-     * Get sticker pack details
-     */
     public function getStickersDetail(string $ownId, string $stickerType): array
     {
-        return $this->executeWithCredentials('stickers-detail', $ownId, [
+        return $this->executeWithCredentials('stickers_detail', $ownId, [
             'type' => $stickerType,
         ]);
     }
 
     // ===========================================
-    // EXTENDED ACTIONS
+    // EXTENDED
     // ===========================================
 
-    /**
-     * Change group avatar
-     */
     public function changeGroupAvatar(string $ownId, string $groupId, string $avatarPath): array
     {
-        return $this->executeWithCredentials('change-group-avatar', $ownId, [
+        return $this->executeWithCredentials('change_group_avatar', $ownId, [
             'group' => $groupId,
             'file' => $avatarPath,
         ]);
     }
 
-    /**
-     * Send report
-     */
     public function sendReport(string $ownId, string $threadId, string $reason = 'spam', string $type = 'user'): array
     {
-        return $this->executeWithCredentials('send-report', $ownId, [
+        return $this->executeWithCredentials('send_report', $ownId, [
             'thread' => $threadId,
             'reason' => $reason,
             'type' => $type,
         ]);
     }
 
-    /**
-     * Undo/recall message
-     */
     public function undoMessage(string $ownId, string $threadId, string $msgId, string $type = 'user'): array
     {
         return $this->executeWithCredentials('undo', $ownId, [
@@ -570,12 +434,9 @@ class ZaloService
     }
 
     // ===========================================
-    // DATABASE SYNC
+    // DATABASE SYNC (still runs on backend)
     // ===========================================
 
-    /**
-     * Sync groups for an account
-     */
     public function syncGroupsForAccount(ZaloAccount $account): array
     {
         $groups = $this->getGroups($account->own_id);
@@ -601,47 +462,32 @@ class ZaloService
     }
 
     // ===========================================
-    // USER CACHING
+    // USER CACHING (still runs on backend)
     // ===========================================
 
-    /**
-     * Fetch user profile and cache in database
-     */
     public function fetchAndCacheUserProfile(string $ownId, string $zaloUserId, bool $forceRefresh = false): ?ZaloUser
     {
-        // Check cache first
         $cachedUser = ZaloUser::where('zalo_user_id', $zaloUserId)->first();
 
         if ($cachedUser && !$forceRefresh && !$cachedUser->isStale()) {
             return $cachedUser;
         }
 
-        // Fetch from API
         $result = $this->getUserInfo($ownId, $zaloUserId);
 
         if (!$result['success'] || empty($result['data'])) {
-            Log::warning("Failed to fetch Zalo user info", [
-                'userId' => $zaloUserId,
-                'error' => $result['error'] ?? 'Unknown'
-            ]);
-            return $cachedUser; // Return stale cache if available
-        }
-
-        // Parse API response - user info is in changed_profiles
-        $data = $result['data'];
-        $profileData = $data['changed_profiles'][$zaloUserId] ?? null;
-
-        if (!$profileData) {
             return $cachedUser;
         }
 
-        // Update cache
+        $data = $result['data'];
+        $profileData = $data['changed_profiles'][$zaloUserId] ?? null;
+
+        if (!$profileData)
+            return $cachedUser;
+
         return ZaloUser::updateFromApiResponse($zaloUserId, $profileData);
     }
 
-    /**
-     * Get cached user info or fetch if not available
-     */
     public function getCachedUserInfo(string $ownId, string $zaloUserId): array
     {
         $user = $this->fetchAndCacheUserProfile($ownId, $zaloUserId);

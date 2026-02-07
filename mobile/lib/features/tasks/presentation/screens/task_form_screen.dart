@@ -4,7 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../../../theme/app_theme.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../data/models/task_model.dart';
 import '../../data/providers/task_provider.dart';
 
@@ -188,7 +188,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
             backgroundImage: employee.avatarUrl != null
                 ? NetworkImage(employee.avatarUrl!)
                 : null,
-            backgroundColor: AppTheme.primary.withValues(alpha: 0.2),
+            backgroundColor: AppColors.primary.withValues(alpha: 0.2),
             child: employee.avatarUrl == null
                 ? Text(
                     employee.name[0].toUpperCase(),
@@ -203,12 +203,12 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
               _selectedAssignee = isSelected ? null : employee;
             });
           },
-          selectedColor: AppTheme.primary.withValues(alpha: 0.2),
-          checkmarkColor: AppTheme.primary,
+          selectedColor: AppColors.primary.withValues(alpha: 0.2),
+          checkmarkColor: AppColors.primary,
           side: BorderSide(
             color: isSelected
-                ? AppTheme.primary
-                : (isDark ? AppTheme.borderDark : AppTheme.border),
+                ? AppColors.primary
+                : (isDark ? AppColors.borderDark : AppColors.border),
           ),
         );
       }).toList(),
@@ -275,7 +275,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
           color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isDark ? AppTheme.borderDark : AppTheme.border,
+            color: isDark ? AppColors.borderDark : AppColors.border,
           ),
         ),
         child: Row(
@@ -283,7 +283,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
             Icon(
               Icons.calendar_today,
               size: 20,
-              color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondary,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -291,13 +291,13 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
                 DateFormat('dd/MM/yyyy, HH:mm').format(_dueDate),
                 style: TextStyle(
                   fontSize: 16,
-                  color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimary,
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                 ),
               ),
             ),
             Icon(
               Icons.arrow_drop_down,
-              color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondary,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
             ),
           ],
         ),
@@ -312,7 +312,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
         color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? AppTheme.borderDark : AppTheme.border,
+          color: isDark ? AppColors.borderDark : AppColors.border,
           style: BorderStyle.solid,
         ),
       ),
@@ -323,7 +323,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
             children: [
               Icon(
                 Icons.cloud_upload_outlined,
-                color: AppTheme.primary,
+                color: AppColors.primary,
                 size: 32,
               ),
             ],
@@ -332,7 +332,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
           Text(
             'Kéo thả file hoặc nhấn để tải lên',
             style: TextStyle(
-              color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondary,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 8),

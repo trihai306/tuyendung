@@ -16,6 +16,10 @@ use App\Http\Controllers\Api\ZaloController;
 use App\Http\Controllers\Api\JobAssignmentController;
 use App\Http\Controllers\Api\ZaloWebhookController;
 use App\Http\Controllers\Api\JobAlertController;
+use App\Http\Controllers\Api\CalendarController;
+use App\Http\Controllers\Api\ScheduledGroupPostController;
+use App\Http\Controllers\Api\FacebookGroupController;
+use App\Http\Controllers\Api\AgentTaskController;
 
 // Public routes
 Route::prefix('auth')->name('auth.')->group(function () {
@@ -56,6 +60,10 @@ Route::prefix('zalo-webhook')->name('zalo-webhook.')->group(function () {
     Route::post('/reaction', [ZaloWebhookController::class, 'handleReaction'])->name('reaction');
     Route::post('/status', [ZaloWebhookController::class, 'handleStatus'])->name('status');
 });
+
+// Agent task result callback (called by automation app, no auth)
+Route::post('/agent/task-result', [AgentTaskController::class, 'receiveResult'])
+    ->name('agent.task-result');
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -142,6 +150,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/my-stats', [DashboardController::class, 'myStats'])->name('my-stats');
         Route::get('/tasks', [DashboardController::class, 'tasks'])->name('tasks');
         Route::get('/interviews', [DashboardController::class, 'interviews'])->name('interviews');
+    });
+
+    // Calendar
+    Route::prefix('calendar')->name('calendar.')->group(function () {
+        Route::get('/events', [CalendarController::class, 'events'])->name('events');
     });
 
     // Task Management
@@ -232,8 +245,39 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{zaloAccount}/undo-message', [ZaloController::class, 'undoMessage'])->name('undo-message');
     });
 
+    // Scheduled Group Posts (Zalo group automation)
+    Route::prefix('scheduled-group-posts')->name('scheduled-group-posts.')->group(function () {
+        Route::get('/', [ScheduledGroupPostController::class, 'index'])->name('index');
+        Route::post('/', [ScheduledGroupPostController::class, 'store'])->name('store');
+        Route::get('/available-groups', [ScheduledGroupPostController::class, 'availableGroups'])->name('available-groups');
+        Route::get('/{scheduledGroupPost}', [ScheduledGroupPostController::class, 'show'])->name('show');
+        Route::put('/{scheduledGroupPost}', [ScheduledGroupPostController::class, 'update'])->name('update');
+        Route::delete('/{scheduledGroupPost}', [ScheduledGroupPostController::class, 'destroy'])->name('destroy');
+        Route::post('/{scheduledGroupPost}/approve', [ScheduledGroupPostController::class, 'approve'])->name('approve');
+        Route::post('/{scheduledGroupPost}/execute-now', [ScheduledGroupPostController::class, 'executeNow'])->name('execute-now');
+    });
+
+    // Facebook Groups Management
+    Route::prefix('facebook-groups')->name('facebook-groups.')->group(function () {
+        Route::get('/', [FacebookGroupController::class, 'index'])->name('index');
+        Route::post('/sync', [FacebookGroupController::class, 'sync'])->name('sync');
+        Route::get('/{facebookGroup}', [FacebookGroupController::class, 'show'])->name('show');
+        Route::put('/{facebookGroup}', [FacebookGroupController::class, 'update'])->name('update');
+        Route::post('/{facebookGroup}/post', [FacebookGroupController::class, 'post'])->name('post');
+        Route::get('/{facebookGroup}/members', [FacebookGroupController::class, 'members'])->name('members');
+        Route::get('/{facebookGroup}/pending-members', [FacebookGroupController::class, 'pendingMembers'])->name('pending-members');
+        Route::post('/{facebookGroup}/approve-member', [FacebookGroupController::class, 'approveMember'])->name('approve-member');
+    });
+
     // Broadcasting auth endpoint
     Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
         return \Illuminate\Support\Facades\Broadcast::auth($request);
+    });
+
+    // Agent Tasks
+    Route::prefix('agent')->name('agent.')->group(function () {
+        Route::get('/tasks', [AgentTaskController::class, 'index'])->name('tasks.index');
+        Route::post('/dispatch', [AgentTaskController::class, 'dispatch'])->name('dispatch');
+        Route::get('/tasks/{agentTask}', [AgentTaskController::class, 'show'])->name('tasks.show');
     });
 });

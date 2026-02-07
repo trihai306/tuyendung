@@ -3,7 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../../theme/app_theme.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../data/models/task_model.dart';
 
 class TaskCard extends StatelessWidget {
@@ -21,7 +21,7 @@ class TaskCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Material(
-      color: isDark ? AppTheme.surfaceDark : AppTheme.surface,
+      color: isDark ? AppColors.surfaceDark : AppColors.surface,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
@@ -31,7 +31,7 @@ class TaskCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isDark ? AppTheme.borderDark : AppTheme.border,
+              color: isDark ? AppColors.borderDark : AppColors.border,
             ),
           ),
           child: Column(
@@ -47,7 +47,7 @@ class TaskCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimary,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -69,14 +69,14 @@ class TaskCard extends StatelessWidget {
                     backgroundImage: task.assignedTo.avatarUrl != null
                         ? NetworkImage(task.assignedTo.avatarUrl!)
                         : null,
-                    backgroundColor: AppTheme.primary.withValues(alpha: 0.2),
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.2),
                     child: task.assignedTo.avatarUrl == null
                         ? Text(
                             task.assignedTo.name[0].toUpperCase(),
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: AppTheme.primary,
+                              color: AppColors.primary,
                             ),
                           )
                         : null,
@@ -87,7 +87,7 @@ class TaskCard extends StatelessWidget {
                       task.assignedTo.name,
                       style: TextStyle(
                         fontSize: 13,
-                        color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondary,
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -98,7 +98,7 @@ class TaskCard extends StatelessWidget {
                     size: 14,
                     color: task.isOverdue
                         ? Colors.red
-                        : (isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondary),
+                        : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                   ),
                   const SizedBox(width: 4),
                   Text(
@@ -107,7 +107,7 @@ class TaskCard extends StatelessWidget {
                       fontSize: 13,
                       color: task.isOverdue
                           ? Colors.red
-                          : (isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondary),
+                          : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                       fontWeight: task.isOverdue ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),

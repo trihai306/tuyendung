@@ -119,7 +119,7 @@ export function AdminDashboard() {
     }
 
     return (
-        <div className={`min-h-screen ${isDark ? 'bg-slate-950' : 'bg-gradient-to-br from-slate-50 via-white to-emerald-50/30'}`}>
+        <div className={`pb-8 ${isDark ? '' : 'bg-gradient-to-br from-slate-50 via-white to-emerald-50/30'}`}>
             {/* Background Decoration */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className={`absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl ${isDark ? 'bg-emerald-900/20' : 'bg-emerald-200/40'}`} />

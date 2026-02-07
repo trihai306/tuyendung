@@ -71,19 +71,30 @@ description: Quy tắc test web với browser - kiểm tra UI, responsive, và c
 - Expected vs Actual behavior
 ```
 
-## 4. Test URLs
+## 4. Test Configuration
 
+### Development URL
 ```typescript
-// Development
-const DEV_URL = 'http://localhost:5173';
+const DEV_URL = 'http://localhost:3000';
+```
 
-// Test pages
+### Test Account
+```
+Email: admin@example.com
+Password: password123
+```
+
+### Test Pages
+```typescript
 const TEST_PAGES = [
-  '/',                    // Landing page
-  '/login',               // Login page
-  '/register',            // Register page
-  '/company',             // Company dashboard
-  '/zalo',                // Zalo integration
+  '/',                          // Landing page
+  '/login',                     // Login page
+  '/register',                  // Register page
+  '/employer/dashboard',        // Employer dashboard
+  '/employer/jobs',             // Jobs management
+  '/employer/candidates',       // Candidates
+  '/employer/scheduled-posts',  // Scheduled posts (new)
+  '/employer/zalo',             // Zalo integration
 ];
 ```
 

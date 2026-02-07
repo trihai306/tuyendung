@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { ShiftPicker } from './ShiftPicker';
 import { InterviewScheduler } from './InterviewScheduler';
@@ -148,8 +149,8 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
 
     const labelClass = `block text-sm font-medium mb-1.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`;
 
-    return (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+    return createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4">
             <div className={`
                 w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden
                 ${isDark ? 'bg-slate-900' : 'bg-white'}
@@ -466,6 +467,7 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

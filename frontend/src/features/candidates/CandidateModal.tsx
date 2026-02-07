@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { XMarkIcon } from '../../components/ui/icons';
 import type { Candidate, CreateCandidateData, UpdateCandidateData } from './candidatesApi';
@@ -105,30 +106,27 @@ export function CandidateModal({ isOpen, onClose, candidate, onSave, isLoading }
 
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             {/* Backdrop */}
-            <div 
+            <div
                 className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                 onClick={onClose}
             />
-            
+
             {/* Modal */}
-            <div className={`relative w-full max-w-lg rounded-2xl shadow-2xl ${
-                isDark ? 'bg-slate-900 border border-slate-800' : 'bg-white'
-            }`}>
-                {/* Header */}
-                <div className={`flex items-center justify-between px-6 py-4 border-b ${
-                    isDark ? 'border-slate-800' : 'border-slate-100'
+            <div className={`relative w-full max-w-lg rounded-2xl shadow-2xl ${isDark ? 'bg-slate-900 border border-slate-800' : 'bg-white'
                 }`}>
+                {/* Header */}
+                <div className={`flex items-center justify-between px-6 py-4 border-b ${isDark ? 'border-slate-800' : 'border-slate-100'
+                    }`}>
                     <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         {isEdit ? 'Sửa ứng viên' : 'Thêm ứng viên mới'}
                     </h2>
                     <button
                         onClick={onClose}
-                        className={`p-2 rounded-lg transition-colors ${
-                            isDark ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-500'
-                        }`}
+                        className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-500'
+                            }`}
                     >
                         <XMarkIcon className="w-5 h-5" />
                     </button>
@@ -146,13 +144,12 @@ export function CandidateModal({ isOpen, onClose, candidate, onSave, isLoading }
                             value={formData.full_name}
                             onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
                             placeholder="Nhập họ và tên"
-                            className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
-                                errors.full_name
-                                    ? 'border-red-500 focus:border-red-500'
-                                    : isDark
-                                        ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
-                                        : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-emerald-500'
-                            }`}
+                            className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${errors.full_name
+                                ? 'border-red-500 focus:border-red-500'
+                                : isDark
+                                    ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
+                                    : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-emerald-500'
+                                }`}
                         />
                         {errors.full_name && (
                             <p className="text-red-500 text-xs mt-1">{errors.full_name}</p>
@@ -170,13 +167,12 @@ export function CandidateModal({ isOpen, onClose, candidate, onSave, isLoading }
                                 value={formData.phone}
                                 onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                                 placeholder="0912345678"
-                                className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
-                                    errors.phone
-                                        ? 'border-red-500 focus:border-red-500'
-                                        : isDark
-                                            ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
-                                            : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-emerald-500'
-                                }`}
+                                className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${errors.phone
+                                    ? 'border-red-500 focus:border-red-500'
+                                    : isDark
+                                        ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
+                                        : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-emerald-500'
+                                    }`}
                             />
                             {errors.phone && (
                                 <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
@@ -192,13 +188,12 @@ export function CandidateModal({ isOpen, onClose, candidate, onSave, isLoading }
                                 value={formData.email}
                                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                                 placeholder="email@example.com"
-                                className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
-                                    errors.email
-                                        ? 'border-red-500 focus:border-red-500'
-                                        : isDark
-                                            ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
-                                            : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-emerald-500'
-                                }`}
+                                className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${errors.email
+                                    ? 'border-red-500 focus:border-red-500'
+                                    : isDark
+                                        ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
+                                        : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-emerald-500'
+                                    }`}
                             />
                             {errors.email && (
                                 <p className="text-red-500 text-xs mt-1">{errors.email}</p>
@@ -215,11 +210,10 @@ export function CandidateModal({ isOpen, onClose, candidate, onSave, isLoading }
                             <select
                                 value={formData.source}
                                 onChange={(e) => setFormData(prev => ({ ...prev, source: e.target.value as typeof formData.source }))}
-                                className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
-                                    isDark
-                                        ? 'bg-slate-800 border-slate-700 text-white'
-                                        : 'bg-white border-slate-200 text-slate-900'
-                                }`}
+                                className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${isDark
+                                    ? 'bg-slate-800 border-slate-700 text-white'
+                                    : 'bg-white border-slate-200 text-slate-900'
+                                    }`}
                             >
                                 {SOURCE_OPTIONS.map(opt => (
                                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -235,11 +229,10 @@ export function CandidateModal({ isOpen, onClose, candidate, onSave, isLoading }
                                 <select
                                     value={formData.status}
                                     onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as typeof formData.status }))}
-                                    className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
-                                        isDark
-                                            ? 'bg-slate-800 border-slate-700 text-white'
-                                            : 'bg-white border-slate-200 text-slate-900'
-                                    }`}
+                                    className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${isDark
+                                        ? 'bg-slate-800 border-slate-700 text-white'
+                                        : 'bg-white border-slate-200 text-slate-900'
+                                        }`}
                                 >
                                     {STATUS_OPTIONS.map(opt => (
                                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -259,11 +252,10 @@ export function CandidateModal({ isOpen, onClose, candidate, onSave, isLoading }
                             value={formData.tags}
                             onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
                             placeholder="Nhập tags, phân cách bằng dấu phẩy"
-                            className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
-                                isDark
-                                    ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
-                                    : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-emerald-500'
-                            }`}
+                            className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${isDark
+                                ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
+                                : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-emerald-500'
+                                }`}
                         />
                         <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                             Ví dụ: Phục vụ, Bán hàng, Full-time
@@ -280,11 +272,10 @@ export function CandidateModal({ isOpen, onClose, candidate, onSave, isLoading }
                             onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                             placeholder="Ghi chú về ứng viên..."
                             rows={3}
-                            className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors resize-none ${
-                                isDark
-                                    ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
-                                    : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-emerald-500'
-                            }`}
+                            className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors resize-none ${isDark
+                                ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
+                                : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-emerald-500'
+                                }`}
                         />
                     </div>
 
@@ -294,11 +285,10 @@ export function CandidateModal({ isOpen, onClose, candidate, onSave, isLoading }
                             type="button"
                             onClick={onClose}
                             disabled={isLoading}
-                            className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-colors ${
-                                isDark
-                                    ? 'bg-slate-800 text-white hover:bg-slate-700'
-                                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                            }`}
+                            className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-colors ${isDark
+                                ? 'bg-slate-800 text-white hover:bg-slate-700'
+                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                }`}
                         >
                             Huỷ
                         </button>
@@ -315,7 +305,8 @@ export function CandidateModal({ isOpen, onClose, candidate, onSave, isLoading }
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 

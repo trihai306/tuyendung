@@ -14,6 +14,7 @@ import { SettingsPage } from './features/settings/SettingsPage';
 import { CompanyPage } from './features/company/CompanyPage';
 import { DashboardPage } from './features/dashboard/DashboardPage';
 import { ZaloPage } from './features/zalo/ZaloPage';
+import { ZaloGroupsPage } from './features/zalo/ZaloGroupsPage';
 import { LandingPage } from './features/landing/LandingPage';
 import { PermissionsPage } from './features/permissions/PermissionsPage';
 import PricingPage from './features/pricing/PricingPage';
@@ -22,6 +23,10 @@ import CalendarPage from './features/calendar/CalendarPage';
 import { CandidatesPage } from './features/candidates';
 import { PublicJobsPage } from './features/jobs/PublicJobsPage';
 import { PublicJobDetailPage } from './features/jobs/PublicJobDetailPage';
+import { ScheduledPostsPage } from './features/scheduling';
+import { FacebookGroupsPage } from './features/facebook-groups';
+import { FacebookPage } from './features/facebook';
+import { PosterCreatorPage } from './features/poster-creator';
 import { CandidateDashboard, MyApplicationsPage, SavedJobsPage, CandidateProfilePage } from './features/candidate';
 import { WebSocketTest as WebSocketTestPage } from './components/debug/WebSocketTest';
 import { DashboardLayout } from './components/layout/DashboardLayout';
@@ -212,6 +217,56 @@ function AppRoutes() {
           <ProtectedRoute>
             <DashboardLayout>
               <ZaloPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employer/zalo-groups"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <ZaloGroupsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employer/scheduled-posts"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <ScheduledPostsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employer/facebook"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <FacebookPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employer/facebook-groups"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <FacebookGroupsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employer/poster"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <PosterCreatorPage />
             </DashboardLayout>
           </ProtectedRoute>
         }

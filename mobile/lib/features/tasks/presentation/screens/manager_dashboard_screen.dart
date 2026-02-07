@@ -3,7 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../theme/app_theme.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../data/models/task_model.dart';
 import '../../data/providers/task_provider.dart';
 import '../widgets/stat_card.dart';
@@ -43,7 +43,7 @@ class ManagerDashboardScreen extends ConsumerWidget {
                 background: Container(
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [AppTheme.primary, AppTheme.secondary],
+                      colors: [AppColors.primary, AppColors.secondary],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -183,7 +183,7 @@ class ManagerDashboardScreen extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimary,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                   ),
                 ),
               ),
@@ -232,7 +232,7 @@ class ManagerDashboardScreen extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimary,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                   ),
                 ),
               ),
@@ -360,10 +360,10 @@ class ManagerDashboardScreen extends ConsumerWidget {
       width: 180,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.surfaceDark : AppTheme.surface,
+        color: isDark ? AppColors.surfaceDark : AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? AppTheme.borderDark : AppTheme.border,
+          color: isDark ? AppColors.borderDark : AppColors.border,
         ),
       ),
       child: Row(
@@ -376,14 +376,14 @@ class ManagerDashboardScreen extends ConsumerWidget {
                 backgroundImage: employee.avatarUrl != null
                     ? NetworkImage(employee.avatarUrl!)
                     : null,
-                backgroundColor: AppTheme.primary.withValues(alpha: 0.2),
+                backgroundColor: AppColors.primary.withValues(alpha: 0.2),
                 child: employee.avatarUrl == null
                     ? Text(
                         employee.name[0].toUpperCase(),
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.primary,
+                          color: AppColors.primary,
                         ),
                       )
                     : null,
@@ -415,7 +415,7 @@ class ManagerDashboardScreen extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimary,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -425,7 +425,7 @@ class ManagerDashboardScreen extends ConsumerWidget {
                   '${stats.inProgress} việc đang làm',
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondary,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 4),

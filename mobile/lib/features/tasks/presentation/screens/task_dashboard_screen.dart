@@ -3,7 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../theme/app_theme.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../data/models/task_model.dart';
 import '../../data/providers/task_provider.dart';
 import 'task_detail_screen.dart';
@@ -113,7 +113,7 @@ class TaskDashboardScreen extends ConsumerWidget {
               loading: () => SliverFillRemaining(
                 child: Center(
                   child: CircularProgressIndicator(
-                    color: AppTheme.primary,
+                    color: AppColors.primary,
                   ),
                 ),
               ),
@@ -145,7 +145,7 @@ class TaskDashboardScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openCreateTask(context),
-        backgroundColor: AppTheme.primary,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text('Giao việc'),
@@ -161,14 +161,14 @@ class TaskDashboardScreen extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppTheme.primary, AppTheme.secondary],
+          colors: [AppColors.primary, AppColors.secondary],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primary.withValues(alpha: 0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),

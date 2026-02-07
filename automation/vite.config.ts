@@ -9,6 +9,14 @@ export default defineConfig({
         outDir: path.resolve(__dirname, 'dist'),
     },
     server: {
-        port: 5173,
+        port: 5180,
+        watch: {
+            // Ignore data folder to prevent HMR reloads when browser writes profile data
+            ignored: [
+                '**/data/**',
+                '**/node_modules/**',
+                '**/.git/**',
+            ],
+        },
     },
 });

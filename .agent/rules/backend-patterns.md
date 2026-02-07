@@ -8,128 +8,53 @@ description: Design patterns chuẩn cho Laravel Backend - Controller-Service pa
 
 ## 1. Controller-Service Pattern
 
-### Cấu trúc thư mục
 ```
 app/
-├── Http/
-│   └── Controllers/
-│       └── Api/           # API Controllers
-│           └── UserController.php
-├── Services/              # Business Logic
-│   └── UserService.php
-├── Repositories/          # Data Access (optional)
-│   └── UserRepository.php
-└── Models/                # Eloquent Models
-    └── User.php
+├── Http/Controllers/Api/   # API Controllers (chỉ handle HTTP)
+├── Services/               # Business Logic
+├── Models/                 # Eloquent Models
+├── Http/Requests/          # FormRequest validation
+├── Http/Resources/         # API Resource transformers
+└── Policies/               # Authorization
 ```
 
-### Controller Rules
+### Controller: Chỉ handle HTTP layer
 ```php
-<?php
-
-namespace App\Http\Controllers\Api;
-
-use App\Http\Controllers\Controller;
-use App\Services\UserService;
-use App\Http\Requests\StoreUserRequest;
-
 class UserController extends Controller
 {
-    // ✅ Inject Service qua constructor
-    public function __construct(
-        private UserService $userService
-    ) {}
+    public function __construct(private UserService $userService) {}
 
-    // ✅ Controller chỉ handle HTTP layer
     public function store(StoreUserRequest $request)
     {
-        // Validation đã được handle bởi FormRequest
-        $validated = $request->validated();
-        
-        // Business logic delegate cho Service
-        $user = $this->userService->createUser($validated);
-        
-        // Return response
-        return response()->json([
-            'success' => true,
-            'data' => $user,
-            'message' => 'User created successfully'
-        ], 201);
+        $user = $this->userService->createUser($request->validated());
+        return $this->success($user, 'User created', 201);
     }
-
-    // ❌ KHÔNG LÀM: Business logic trong controller
-    // public function store(Request $request)
-    // {
-    //     // Validation here - SAI
-    //     // Model queries here - SAI
-    //     // Email sending here - SAI
-    // }
+    // ❌ KHÔNG: validation, queries, email trong controller
 }
 ```
 
-### Service Rules
+### Service: Chứa business logic
 ```php
-<?php
-
-namespace App\Services;
-
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-
 class UserService
 {
-    // ✅ Service chứa business logic
     public function createUser(array $data): User
     {
         return DB::transaction(function () use ($data) {
-            $user = User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-            ]);
-            
-            // Related operations
-            $user->profile()->create([
-                'bio' => $data['bio'] ?? null,
-            ]);
-            
-            // Events, notifications, etc.
+            $user = User::create([...$data, 'password' => Hash::make($data['password'])]);
+            $user->profile()->create(['bio' => $data['bio'] ?? null]);
             event(new UserCreated($user));
-            
             return $user;
         });
-    }
-
-    public function updateUser(User $user, array $data): User
-    {
-        $user->update($data);
-        return $user->fresh();
-    }
-
-    public function deleteUser(User $user): bool
-    {
-        return $user->delete();
     }
 }
 ```
 
-## 2. Request Validation Layer
+## 2. FormRequest Validation
 
-### FormRequest Class
 ```php
-<?php
-
-namespace App\Http\Requests;
-
-use Illuminate\Foundation\Http\FormRequest;
-
 class StoreUserRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        return true; // Or check authorization
-    }
+    public function authorize(): bool { return true; }
 
     public function rules(): array
     {
@@ -152,18 +77,24 @@ class StoreUserRequest extends FormRequest
 
 ## 3. API Response Format
 
-### Standard Response Structure
+### ApiResponse Trait (sử dụng trong Controller)
 ```php
-<?php
+trait ApiResponse
+{
+    protected function success($data, string $message = 'Success', int $code = 200)
+    {
+        return response()->json(['success' => true, 'data' => $data, 'message' => $message], $code);
+    }
 
-// Success Response
-return response()->json([
-    'success' => true,
-    'data' => $data,
-    'message' => 'Operation successful'
-], 200);
+    protected function error(string $message, int $code = 400, $errors = null)
+    {
+        return response()->json(['success' => false, 'error' => ['message' => $message, 'details' => $errors]], $code);
+    }
+}
+```
 
-// Paginated Response
+### Paginated Response
+```php
 return response()->json([
     'success' => true,
     'data' => $collection->items(),
@@ -173,129 +104,180 @@ return response()->json([
         'total' => $collection->total(),
         'last_page' => $collection->lastPage(),
     ],
-], 200);
-
-// Error Response
-return response()->json([
-    'success' => false,
-    'error' => [
-        'code' => 'VALIDATION_ERROR',
-        'message' => 'Validation failed',
-        'details' => $errors,
-    ],
-], 422);
-```
-
-### Response Trait
-```php
-<?php
-
-namespace App\Traits;
-
-trait ApiResponse
-{
-    protected function success($data, string $message = 'Success', int $code = 200)
-    {
-        return response()->json([
-            'success' => true,
-            'data' => $data,
-            'message' => $message,
-        ], $code);
-    }
-
-    protected function error(string $message, int $code = 400, $errors = null)
-    {
-        return response()->json([
-            'success' => false,
-            'error' => [
-                'message' => $message,
-                'details' => $errors,
-            ],
-        ], $code);
-    }
-}
+]);
 ```
 
 ## 4. Error Handling
 
-### Exception Handler
 ```php
-<?php
-// app/Exceptions/Handler.php
-
-public function render($request, Throwable $exception)
-{
-    if ($request->expectsJson()) {
-        if ($exception instanceof ValidationException) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'VALIDATION_ERROR',
-                    'message' => 'Validation failed',
-                    'details' => $exception->errors(),
-                ],
-            ], 422);
-        }
-
-        if ($exception instanceof ModelNotFoundException) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'NOT_FOUND',
-                    'message' => 'Resource not found',
-                ],
-            ], 404);
-        }
+// app/Exceptions/Handler.php - cho API requests
+if ($request->expectsJson()) {
+    if ($exception instanceof ValidationException) {
+        return response()->json(['success' => false, 'error' => ['code' => 'VALIDATION_ERROR', 'details' => $exception->errors()]], 422);
     }
-
-    return parent::render($request, $exception);
+    if ($exception instanceof ModelNotFoundException) {
+        return response()->json(['success' => false, 'error' => ['code' => 'NOT_FOUND', 'message' => 'Resource not found']], 404);
+    }
 }
 ```
 
-## 5. Repository Pattern (Optional)
+## 5. Model Conventions
+
+### Structure: $fillable, $casts, $hidden, Accessors
+```php
+class RecruitmentJob extends Model
+{
+    use HasFactory, SoftDeletes;
+
+    protected $fillable = ['company_id', 'title', 'department', 'location', 'employment_type',
+        'salary_min', 'salary_max', 'description', 'requirements', 'benefits', 'status'];
+
+    protected $casts = ['salary_min' => 'integer', 'salary_max' => 'integer',
+        'deadline' => 'datetime', 'is_featured' => 'boolean', 'metadata' => 'array', 'tags' => 'array'];
+
+    protected $hidden = ['deleted_at'];
+    protected $appends = ['salary_range'];
+
+    public function getSalaryRangeAttribute(): string
+    {
+        if (!$this->salary_min && !$this->salary_max) return 'Thỏa thuận';
+        return number_format($this->salary_min) . ' - ' . number_format($this->salary_max);
+    }
+}
+```
+
+### Query Scopes
+```php
+class Candidate extends Model
+{
+    public function scopeActive($query) { return $query->where('status', 'active'); }
+    public function scopeBySource($query, string $source) { return $query->where('source', $source); }
+    public function scopeForCompany($query, int $companyId) { return $query->where('company_id', $companyId); }
+    public function scopeSearch($query, ?string $term)
+    {
+        if (!$term) return $query;
+        return $query->where(fn($q) => $q->where('full_name', 'like', "%{$term}%")
+            ->orWhere('email', 'like', "%{$term}%")->orWhere('phone', 'like', "%{$term}%"));
+    }
+}
+// Usage: Candidate::active()->bySource('chat')->search($term)->forCompany($id)->paginate(15);
+```
+
+### Relations
+```php
+class Company extends Model
+{
+    public function jobs(): HasMany { return $this->hasMany(RecruitmentJob::class); }
+    public function users(): BelongsToMany { return $this->belongsToMany(User::class, 'company_user')->withPivot('role')->withTimestamps(); }
+    public function candidates(): HasMany { return $this->hasMany(Candidate::class); }
+}
+
+class RecruitmentJob extends Model
+{
+    public function company(): BelongsTo { return $this->belongsTo(Company::class); }
+    public function createdBy(): BelongsTo { return $this->belongsTo(User::class, 'created_by_user_id'); }
+    public function applications(): HasMany { return $this->hasMany(JobApplication::class); }
+}
+```
+
+## 6. Policies (Authorization)
 
 ```php
-<?php
-
-namespace App\Repositories;
-
-use App\Models\User;
-
-interface UserRepositoryInterface
+class CandidatePolicy
 {
-    public function all();
-    public function find(int $id);
-    public function create(array $data);
-    public function update(int $id, array $data);
-    public function delete(int $id);
-}
-
-class UserRepository implements UserRepositoryInterface
-{
-    public function __construct(
-        private User $model
-    ) {}
-
-    public function all()
+    public function viewAny(User $user): bool { return $user->hasCompany(); }
+    public function view(User $user, Candidate $candidate): bool
     {
-        return $this->model->all();
+        if ($user->isCompanyMember()) return $candidate->assigned_user_id === $user->id;
+        return $user->company_id === $candidate->company_id;
     }
-
-    public function findWithRelations(int $id, array $relations = [])
+    public function create(User $user): bool { return $user->hasCompany(); }
+    public function update(User $user, Candidate $candidate): bool
     {
-        return $this->model->with($relations)->findOrFail($id);
+        if (!$user->hasCompany()) return false;
+        if ($user->isCompanyMember()) return $candidate->assigned_user_id === $user->id;
+        return $user->company_id === $candidate->company_id;
+    }
+    public function delete(User $user, Candidate $candidate): bool
+    {
+        return $user->isCompanyManager() && $user->company_id === $candidate->company_id;
     }
 }
+
+// Controller: $this->authorize('viewAny', Candidate::class);
 ```
 
-## 6. Checklist
+## 7. Middleware
+
+```php
+class EnsureUserHasCompany
+{
+    public function handle(Request $request, Closure $next)
+    {
+        if (!$request->user()?->hasCompany()) {
+            return response()->json(['success' => false, 'error' => ['code' => 'NO_COMPANY', 'message' => 'Cần tạo/tham gia công ty']], 403);
+        }
+        return $next($request);
+    }
+}
+
+// bootstrap/app.php (Laravel 11+)
+->withMiddleware(fn(Middleware $m) => $m->alias([
+    'has.company' => EnsureUserHasCompany::class,
+    'company.role' => CheckCompanyRole::class,
+]))
+
+// Routes
+Route::middleware(['auth:sanctum', 'has.company'])->group(fn() => Route::apiResource('candidates', CandidateController::class));
+Route::middleware(['auth:sanctum', 'company.role:owner,admin'])->group(fn() => Route::post('/company/invite', [CompanyController::class, 'invite']));
+```
+
+## 8. Resource Classes
+
+```php
+class CandidateResource extends JsonResource
+{
+    public function toArray($request): array
+    {
+        return [
+            'id' => $this->id, 'full_name' => $this->full_name, 'email' => $this->email,
+            'phone' => $this->phone, 'source' => $this->source, 'status' => $this->status,
+            'rating' => $this->rating, 'tags' => $this->tags ?? [],
+            'applications' => ApplicationResource::collection($this->whenLoaded('applications')),
+            'assigned_user' => new UserResource($this->whenLoaded('assignedUser')),
+            'created_at' => $this->created_at->toISOString(),
+        ];
+    }
+}
+
+// Controller: return new CandidateCollection($candidates);
+```
+
+## 9. Events & Listeners
+
+```php
+// Event: app/Events/CandidateCreated.php
+class CandidateCreated { use Dispatchable, SerializesModels; public function __construct(public Candidate $candidate) {} }
+
+// Listener: app/Listeners/SendNewCandidateNotification.php
+class SendNewCandidateNotification {
+    public function handle(CandidateCreated $event): void {
+        $owner = $event->candidate->company->users()->wherePivot('role', 'owner')->first();
+        $owner?->notify(new NewCandidateNotification($event->candidate));
+    }
+}
+
+// EventServiceProvider: CandidateCreated::class => [SendNewCandidateNotification::class]
+```
+
+## Checklist
 
 ```
-[ ] Controllers chỉ handle HTTP (request/response)
-[ ] Services chứa business logic
-[ ] FormRequest cho validation
-[ ] Consistent API response format
-[ ] Proper error handling
-[ ] Database transactions khi cần
-[ ] Events cho side effects
+[ ] Controllers chỉ handle HTTP, Services chứa business logic
+[ ] FormRequest cho validation, Resources cho API output
+[ ] Consistent API response format (ApiResponse trait)
+[ ] Models có $fillable, $casts, $hidden, Query Scopes
+[ ] Relations định nghĩa đúng foreign keys
+[ ] Policies cho authorization, Middleware cho access control
+[ ] Events cho side effects, DB transactions khi cần
 ```

@@ -4,7 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../../../theme/app_theme.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../data/models/task_model.dart';
 import '../../data/providers/task_provider.dart';
 
@@ -107,7 +107,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimary,
+                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -136,10 +136,10 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: isDark ? AppTheme.surfaceDark : AppTheme.surface,
+                  color: isDark ? AppColors.surfaceDark : AppColors.surface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isDark ? AppTheme.borderDark : AppTheme.border,
+                    color: isDark ? AppColors.borderDark : AppColors.border,
                   ),
                 ),
                 child: Text(
@@ -147,7 +147,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                   style: TextStyle(
                     fontSize: 15,
                     height: 1.5,
-                    color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondary,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -210,10 +210,10 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.surfaceDark : AppTheme.surface,
+        color: isDark ? AppColors.surfaceDark : AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? AppTheme.borderDark : AppTheme.border,
+          color: isDark ? AppColors.borderDark : AppColors.border,
         ),
       ),
       child: Column(
@@ -268,7 +268,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
         Icon(
           icon,
           size: 20,
-          color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondary,
+          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -279,7 +279,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                 label,
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondary,
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 2),
@@ -301,7 +301,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                         color: isOverdue
                             ? Colors.red
                             : (valueColor ??
-                                (isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimary)),
+                                (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary)),
                       ),
                     ),
                   ),
@@ -318,10 +318,10 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.surfaceDark : AppTheme.surface,
+        color: isDark ? AppColors.surfaceDark : AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? AppTheme.borderDark : AppTheme.border,
+          color: isDark ? AppColors.borderDark : AppColors.border,
         ),
       ),
       child: Column(
@@ -335,13 +335,13 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimary,
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withValues(alpha: 0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -349,7 +349,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.primary,
+                    color: AppColors.primary,
                   ),
                 ),
               ),
@@ -358,10 +358,10 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
           const SizedBox(height: 16),
           SliderTheme(
             data: SliderThemeData(
-              activeTrackColor: AppTheme.primary,
-              inactiveTrackColor: AppTheme.primary.withValues(alpha: 0.2),
-              thumbColor: AppTheme.primary,
-              overlayColor: AppTheme.primary.withValues(alpha: 0.1),
+              activeTrackColor: AppColors.primary,
+              inactiveTrackColor: AppColors.primary.withValues(alpha: 0.2),
+              thumbColor: AppColors.primary,
+              overlayColor: AppColors.primary.withValues(alpha: 0.1),
               trackHeight: 8,
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
             ),
@@ -417,10 +417,10 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
       return Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: isDark ? AppTheme.surfaceDark : AppTheme.surface,
+          color: isDark ? AppColors.surfaceDark : AppColors.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isDark ? AppTheme.borderDark : AppTheme.border,
+            color: isDark ? AppColors.borderDark : AppColors.border,
           ),
         ),
         child: Center(
@@ -440,10 +440,10 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.surfaceDark : AppTheme.surface,
+        color: isDark ? AppColors.surfaceDark : AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? AppTheme.borderDark : AppTheme.border,
+          color: isDark ? AppColors.borderDark : AppColors.border,
         ),
       ),
       child: ListView.separated(
@@ -467,7 +467,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
     switch (activity.type) {
       case 'progress_update':
         icon = Icons.trending_up;
-        iconColor = AppTheme.primary;
+        iconColor = AppColors.primary;
         break;
       case 'comment':
         icon = Icons.chat_bubble_outline;
@@ -502,7 +502,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                 DateFormat('HH:mm, dd/MM/yyyy').format(activity.createdAt),
                 style: TextStyle(
                   fontSize: 11,
-                  color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondary,
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 4),
@@ -510,7 +510,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                 text: TextSpan(
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimary,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                   ),
                   children: [
                     TextSpan(
@@ -544,10 +544,10 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.surfaceDark : AppTheme.surface,
+        color: isDark ? AppColors.surfaceDark : AppColors.surface,
         border: Border(
           top: BorderSide(
-            color: isDark ? AppTheme.borderDark : AppTheme.border,
+            color: isDark ? AppColors.borderDark : AppColors.border,
           ),
         ),
       ),
@@ -570,13 +570,13 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide(
-                          color: isDark ? AppTheme.borderDark : AppTheme.border,
+                          color: isDark ? AppColors.borderDark : AppColors.border,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide(
-                          color: isDark ? AppTheme.borderDark : AppTheme.border,
+                          color: isDark ? AppColors.borderDark : AppColors.border,
                         ),
                       ),
                     ),
@@ -587,7 +587,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                   onPressed: () => _submitComment(task.id),
                   icon: const Icon(Icons.send),
                   style: IconButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                   ),
                 ),
