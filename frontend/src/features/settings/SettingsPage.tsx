@@ -4,6 +4,7 @@ import { subscriptionApi } from '../../services/packageApi';
 import type { Subscription } from '../../services/packageApi';
 import { seatApi, type CompanySeats } from '../../services/seatApi';
 import { LinkIcon, CreditCardIcon, TeamIcon, AIIcon, NotificationIcon, CandidateIcon } from '../../components/ui/icons';
+import { Input, Select, Button } from '../../components/ui';
 import apiClient from '../../services/apiClient';
 
 interface PlatformAccount {
@@ -210,27 +211,21 @@ export function SettingsPage() {
                                             <form onSubmit={handleUpdateProfile} className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                                                 <h3 className="font-medium text-gray-900 dark:text-white">Thông tin cơ bản</h3>
 
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Họ và tên</label>
-                                                    <input
-                                                        type="text"
-                                                        value={profileForm.name}
-                                                        onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                                                        className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                                        required
-                                                    />
-                                                </div>
+                                                <Input
+                                                    label="Họ và tên"
+                                                    type="text"
+                                                    value={profileForm.name}
+                                                    onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                                                    required
+                                                />
 
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-                                                    <input
-                                                        type="email"
-                                                        value={profileForm.email}
-                                                        onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
-                                                        className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                                        required
-                                                    />
-                                                </div>
+                                                <Input
+                                                    label="Email"
+                                                    type="email"
+                                                    value={profileForm.email}
+                                                    onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                                                    required
+                                                />
 
                                                 {profileMessage && (
                                                     <div className={`p-3 rounded-lg text-sm ${profileMessage.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
@@ -238,13 +233,9 @@ export function SettingsPage() {
                                                     </div>
                                                 )}
 
-                                                <button
-                                                    type="submit"
-                                                    disabled={savingProfile}
-                                                    className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
-                                                >
+                                                <Button type="submit" disabled={savingProfile}>
                                                     {savingProfile ? 'Đang lưu...' : 'Lưu thay đổi'}
-                                                </button>
+                                                </Button>
                                             </form>
                                         </div>
                                     ) : (
@@ -257,40 +248,29 @@ export function SettingsPage() {
                                     <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Đổi mật khẩu</h2>
 
                                     <form onSubmit={handleUpdatePassword} className="space-y-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mật khẩu hiện tại</label>
-                                            <input
-                                                type="password"
-                                                value={passwordForm.current_password}
-                                                onChange={(e) => setPasswordForm({ ...passwordForm, current_password: e.target.value })}
-                                                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                                required
-                                            />
-                                        </div>
+                                        <Input
+                                            label="Mật khẩu hiện tại"
+                                            type="password"
+                                            value={passwordForm.current_password}
+                                            onChange={(e) => setPasswordForm({ ...passwordForm, current_password: e.target.value })}
+                                            required
+                                        />
 
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mật khẩu mới</label>
-                                            <input
-                                                type="password"
-                                                value={passwordForm.password}
-                                                onChange={(e) => setPasswordForm({ ...passwordForm, password: e.target.value })}
-                                                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                                minLength={8}
-                                                required
-                                            />
-                                        </div>
+                                        <Input
+                                            label="Mật khẩu mới"
+                                            type="password"
+                                            value={passwordForm.password}
+                                            onChange={(e) => setPasswordForm({ ...passwordForm, password: e.target.value })}
+                                            required
+                                        />
 
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Xác nhận mật khẩu mới</label>
-                                            <input
-                                                type="password"
-                                                value={passwordForm.password_confirmation}
-                                                onChange={(e) => setPasswordForm({ ...passwordForm, password_confirmation: e.target.value })}
-                                                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                                minLength={8}
-                                                required
-                                            />
-                                        </div>
+                                        <Input
+                                            label="Xác nhận mật khẩu mới"
+                                            type="password"
+                                            value={passwordForm.password_confirmation}
+                                            onChange={(e) => setPasswordForm({ ...passwordForm, password_confirmation: e.target.value })}
+                                            required
+                                        />
 
                                         {passwordMessage && (
                                             <div className={`p-3 rounded-lg text-sm ${passwordMessage.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
@@ -298,61 +278,58 @@ export function SettingsPage() {
                                             </div>
                                         )}
 
-                                        <button
-                                            type="submit"
-                                            disabled={savingPassword}
-                                            className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 disabled:opacity-50 transition-colors"
-                                        >
+                                        <Button type="submit" disabled={savingPassword}>
                                             {savingPassword ? 'Đang đổi...' : 'Đổi mật khẩu'}
-                                        </button>
+                                        </Button>
                                     </form>
                                 </div>
                             </div>
                         )}
 
                         {activeTab === 'accounts' && (
-                            <div className="bg-white rounded-xl shadow-sm p-6">
+                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
                                 <div className="flex items-center justify-between mb-6">
                                     <div>
-                                        <h2 className="font-semibold text-gray-900">Kết nối tài khoản</h2>
-                                        <p className="text-sm text-gray-500 mt-1">
+                                        <h2 className="font-semibold text-gray-900 dark:text-white">Kết nối tài khoản</h2>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                             Kết nối Zalo OA hoặc Facebook Page để nhận tin nhắn
                                         </p>
                                     </div>
-                                    <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                                    <Button size="sm" icon={
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                             <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                                         </svg>
+                                    }>
                                         Thêm tài khoản
-                                    </button>
+                                    </Button>
                                 </div>
 
                                 {/* Platform Buttons */}
                                 <div className="grid grid-cols-2 gap-4 mb-8">
-                                    <button className="p-4 border-2 border-dashed border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all flex items-center gap-4">
+                                    <button className="p-4 border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-xl hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex items-center gap-4">
                                         <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
                                             <span className="text-2xl text-white font-bold">Z</span>
                                         </div>
                                         <div className="text-left">
-                                            <div className="font-semibold text-gray-900">Zalo OA</div>
-                                            <div className="text-sm text-gray-500">Kết nối Official Account</div>
+                                            <div className="font-semibold text-gray-900 dark:text-white">Zalo OA</div>
+                                            <div className="text-sm text-gray-500 dark:text-gray-400">Kết nối Official Account</div>
                                         </div>
                                     </button>
 
-                                    <button className="p-4 border-2 border-dashed border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all flex items-center gap-4">
+                                    <button className="p-4 border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-xl hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex items-center gap-4">
                                         <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
                                             <span className="text-2xl text-white font-bold">f</span>
                                         </div>
                                         <div className="text-left">
-                                            <div className="font-semibold text-gray-900">Facebook</div>
-                                            <div className="text-sm text-gray-500">Kết nối Pages & Messenger</div>
+                                            <div className="font-semibold text-gray-900 dark:text-white">Facebook</div>
+                                            <div className="text-sm text-gray-500 dark:text-gray-400">Kết nối Pages & Messenger</div>
                                         </div>
                                     </button>
                                 </div>
 
                                 {/* Connected Accounts */}
                                 {accounts.length === 0 ? (
-                                    <div className="text-center py-12 text-gray-500">
+                                    <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                                         <p>Chưa có tài khoản nào được kết nối</p>
                                     </div>
                                 ) : (
@@ -360,7 +337,7 @@ export function SettingsPage() {
                                         {accounts.map((account) => (
                                             <div
                                                 key={account.id}
-                                                className="border border-gray-200 rounded-xl p-4 flex items-center justify-between"
+                                                className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex items-center justify-between"
                                             >
                                                 <div className="flex items-center gap-4">
                                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${account.platform === 'zalo' ? 'bg-blue-600' : 'bg-blue-500'
@@ -370,22 +347,22 @@ export function SettingsPage() {
                                                         </span>
                                                     </div>
                                                     <div>
-                                                        <div className="font-medium text-gray-900">{account.account_name}</div>
-                                                        <div className="text-sm text-gray-500">
+                                                        <div className="font-medium text-gray-900 dark:text-white">{account.account_name}</div>
+                                                        <div className="text-sm text-gray-500 dark:text-gray-400">
                                                             {account.channels?.length || 0} kênh
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-3">
                                                     <span className={`px-2 py-1 text-xs rounded-full ${account.status === 'active'
-                                                        ? 'bg-green-100 text-green-700'
+                                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                                                         : account.status === 'expired'
-                                                            ? 'bg-red-100 text-red-700'
-                                                            : 'bg-gray-100 text-gray-700'
+                                                            ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                                                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-400'
                                                         }`}>
                                                         {account.status === 'active' ? 'Hoạt động' : account.status === 'expired' ? 'Hết hạn' : 'Tạm dừng'}
                                                     </span>
-                                                    <button className="text-gray-400 hover:text-gray-600">
+                                                    <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                             <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                                                         </svg>
@@ -399,25 +376,25 @@ export function SettingsPage() {
                         )}
 
                         {activeTab === 'ai' && (
-                            <div className="bg-white rounded-xl shadow-sm p-6">
-                                <h2 className="font-semibold text-gray-900 mb-4">Cấu hình AI Agent</h2>
+                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                                <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Cấu hình AI Agent</h2>
 
                                 <div className="space-y-6">
                                     {/* Enable Toggle */}
-                                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+                                    <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-xl">
                                         <div>
-                                            <div className="font-medium text-gray-900">Tự động trả lời</div>
-                                            <div className="text-sm text-gray-500">AI tự động phản hồi tin nhắn từ ứng viên</div>
+                                            <div className="font-medium text-gray-900 dark:text-white">Tự động trả lời</div>
+                                            <div className="text-sm text-gray-500 dark:text-gray-400">AI tự động phản hồi tin nhắn từ ứng viên</div>
                                         </div>
-                                        <button className="w-12 h-6 bg-gray-200 rounded-full relative">
+                                        <button className="w-12 h-6 bg-gray-200 dark:bg-gray-600 rounded-full relative">
                                             <span className="w-5 h-5 bg-white rounded-full absolute left-0.5 top-0.5 shadow"></span>
                                         </button>
                                     </div>
 
                                     {/* Confidence Threshold */}
-                                    <div className="p-4 border border-gray-200 rounded-xl">
-                                        <div className="font-medium text-gray-900 mb-2">Ngưỡng tự tin</div>
-                                        <div className="text-sm text-gray-500 mb-4">
+                                    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-xl">
+                                        <div className="font-medium text-gray-900 dark:text-white mb-2">Ngưỡng tự tin</div>
+                                        <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                                             AI chỉ gửi tự động khi độ tin cậy ≥ giá trị này
                                         </div>
                                         <div className="flex items-center gap-4">
@@ -433,13 +410,15 @@ export function SettingsPage() {
                                     </div>
 
                                     {/* Response Style */}
-                                    <div className="p-4 border border-gray-200 rounded-xl">
-                                        <div className="font-medium text-gray-900 mb-2">Phong cách trả lời</div>
-                                        <select className="w-full px-4 py-2 border border-gray-200 rounded-lg">
-                                            <option value="professional">Chuyên nghiệp</option>
-                                            <option value="friendly">Thân thiện</option>
-                                            <option value="formal">Trang trọng</option>
-                                        </select>
+                                    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-xl">
+                                        <div className="font-medium text-gray-900 dark:text-white mb-2">Phong cách trả lời</div>
+                                        <Select
+                                            options={[
+                                                { value: 'professional', label: 'Chuyên nghiệp' },
+                                                { value: 'friendly', label: 'Thân thiện' },
+                                                { value: 'formal', label: 'Trang trọng' },
+                                            ]}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -448,21 +427,21 @@ export function SettingsPage() {
                         {activeTab === 'subscription' && (
                             <div className="space-y-6">
                                 {/* Current Plan Card */}
-                                <div className="bg-white rounded-xl shadow-sm p-6">
-                                    <h2 className="font-semibold text-gray-900 mb-4">Gói dịch vụ hiện tại</h2>
+                                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                                    <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Gói dịch vụ hiện tại</h2>
 
                                     {loadingSub ? (
                                         <div className="flex items-center justify-center py-8">
                                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
                                         </div>
                                     ) : subscription ? (
-                                        <div className="border border-gray-200 rounded-xl p-6">
+                                        <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-6">
                                             <div className="flex items-center justify-between mb-4">
                                                 <div>
-                                                    <div className="text-2xl font-bold text-gray-900">
+                                                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
                                                         {subscription.package?.name || 'Starter'}
                                                     </div>
-                                                    <div className="text-gray-500 text-sm">
+                                                    <div className="text-gray-500 dark:text-gray-400 text-sm">
                                                         {subscription.status === 'active' ? (
                                                             <span className="text-emerald-600">✓ Đang hoạt động</span>
                                                         ) : subscription.status === 'pending' ? (
@@ -476,47 +455,47 @@ export function SettingsPage() {
                                                     <div className="text-2xl font-bold text-emerald-600">
                                                         {subscription.package?.formatted_price || 'Miễn phí'}
                                                     </div>
-                                                    <div className="text-gray-500 text-sm">/tháng</div>
+                                                    <div className="text-gray-500 dark:text-gray-400 text-sm">/tháng</div>
                                                 </div>
                                             </div>
 
-                                            <div className="grid grid-cols-3 gap-4 mb-4 pt-4 border-t border-gray-100">
+                                            <div className="grid grid-cols-3 gap-4 mb-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                                                 <div className="text-center">
-                                                    <div className="text-xl font-bold text-gray-900">
+                                                    <div className="text-xl font-bold text-gray-900 dark:text-white">
                                                         {subscription.package?.max_jobs === -1 ? '∞' : subscription.package?.max_jobs || 3}
                                                     </div>
-                                                    <div className="text-xs text-gray-500">Tin tuyển dụng</div>
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400">Tin tuyển dụng</div>
                                                 </div>
                                                 <div className="text-center">
-                                                    <div className="text-xl font-bold text-gray-900">
+                                                    <div className="text-xl font-bold text-gray-900 dark:text-white">
                                                         {subscription.package?.max_candidates === -1 ? '∞' : subscription.package?.max_candidates || 50}
                                                     </div>
-                                                    <div className="text-xs text-gray-500">Ứng viên</div>
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400">Ứng viên</div>
                                                 </div>
                                                 <div className="text-center">
-                                                    <div className="text-xl font-bold text-gray-900">
+                                                    <div className="text-xl font-bold text-gray-900 dark:text-white">
                                                         {subscription.package?.max_users || 2}
                                                     </div>
-                                                    <div className="text-xs text-gray-500">Thành viên</div>
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400">Thành viên</div>
                                                 </div>
                                             </div>
 
                                             {subscription.expires_at && (
-                                                <div className="text-sm text-gray-500 pt-4 border-t border-gray-100">
+                                                <div className="text-sm text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-100 dark:border-gray-700">
                                                     Hết hạn: {new Date(subscription.expires_at).toLocaleDateString('vi-VN')}
                                                 </div>
                                             )}
                                         </div>
                                     ) : (
-                                        <div className="text-center py-8 text-gray-500">
-                                            Chưa có gói dịch vụ. <Link to="/pricing" className="text-emerald-600 hover:underline">Chọn gói ngay</Link>
+                                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                            Chưa có gói dịch vụ. <Link to="/pricing" className="text-emerald-600 dark:text-emerald-400 hover:underline">Chọn gói ngay</Link>
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Seats Management */}
-                                <div className="bg-white rounded-xl shadow-sm p-6">
-                                    <h2 className="font-semibold text-gray-900 mb-4">Quản lý Seats</h2>
+                                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                                    <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Quản lý Seats</h2>
 
                                     {loadingSeats ? (
                                         <div className="flex items-center justify-center py-8">
@@ -525,23 +504,23 @@ export function SettingsPage() {
                                     ) : seats?.has_seats ? (
                                         <div className="space-y-4">
                                             {/* Seat Overview */}
-                                            <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl">
+                                            <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                                                 <div className="text-center">
-                                                    <div className="text-2xl font-bold text-gray-900">{seats.total_seats}</div>
-                                                    <div className="text-xs text-gray-500">Tổng seats</div>
+                                                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{seats.total_seats}</div>
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400">Tổng seats</div>
                                                 </div>
                                                 <div className="text-center">
                                                     <div className="text-2xl font-bold text-emerald-600">{seats.used_seats}</div>
-                                                    <div className="text-xs text-gray-500">Đang dùng</div>
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400">Đang dùng</div>
                                                 </div>
                                                 <div className="text-center">
                                                     <div className="text-2xl font-bold text-teal-600">{seats.available_seats}</div>
-                                                    <div className="text-xs text-gray-500">Còn trống</div>
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400">Còn trống</div>
                                                 </div>
                                             </div>
 
                                             {seats.expires_at && (
-                                                <div className="text-sm text-gray-500">
+                                                <div className="text-sm text-gray-500 dark:text-gray-400">
                                                     Hết hạn: {new Date(seats.expires_at).toLocaleDateString('vi-VN')}
                                                 </div>
                                             )}
@@ -549,13 +528,13 @@ export function SettingsPage() {
                                             {/* Assigned Users */}
                                             {seats.assigned_users.length > 0 && (
                                                 <div>
-                                                    <h3 className="text-sm font-medium text-gray-700 mb-2">Đã gán ({seats.assigned_users.length})</h3>
+                                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Đã gán ({seats.assigned_users.length})</h3>
                                                     <div className="space-y-2">
                                                         {seats.assigned_users.map((user) => (
-                                                            <div key={user.id} className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg">
+                                                            <div key={user.id} className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
                                                                 <div>
-                                                                    <div className="font-medium text-gray-900">{user.name}</div>
-                                                                    <div className="text-sm text-gray-500">{user.email}</div>
+                                                                    <div className="font-medium text-gray-900 dark:text-white">{user.name}</div>
+                                                                    <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
                                                                 </div>
                                                                 <button
                                                                     onClick={() => handleUnassign(user.id)}
@@ -573,15 +552,15 @@ export function SettingsPage() {
                                             {/* Available to Assign */}
                                             {seats.available_seats > 0 && seats.company_users.filter(u => !seats.assigned_users.find(a => a.id === u.id)).length > 0 && (
                                                 <div>
-                                                    <h3 className="text-sm font-medium text-gray-700 mb-2">Chưa gán</h3>
+                                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chưa gán</h3>
                                                     <div className="space-y-2">
                                                         {seats.company_users
                                                             .filter(u => !seats.assigned_users.find(a => a.id === u.id))
                                                             .map((user) => (
-                                                                <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                                                <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                                                                     <div>
-                                                                        <div className="font-medium text-gray-900">{user.name}</div>
-                                                                        <div className="text-sm text-gray-500">{user.email}</div>
+                                                                        <div className="font-medium text-gray-900 dark:text-white">{user.name}</div>
+                                                                        <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
                                                                     </div>
                                                                     <button
                                                                         onClick={() => handleAssign(user.id)}
@@ -598,7 +577,7 @@ export function SettingsPage() {
 
                                             <Link
                                                 to="/pricing"
-                                                className="block text-center py-2 px-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                                                className="block text-center py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
                                             >
                                                 + Mua thêm seats
                                             </Link>
@@ -606,7 +585,7 @@ export function SettingsPage() {
                                     ) : (
                                         <div className="text-center py-8">
                                             <div className="text-4xl mb-4">💼</div>
-                                            <p className="text-gray-500 mb-4">Chưa có seats nào.</p>
+                                            <p className="text-gray-500 dark:text-gray-400 mb-4">Chưa có seats nào.</p>
                                             <Link
                                                 to="/pricing"
                                                 className="inline-block px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
@@ -636,16 +615,16 @@ export function SettingsPage() {
                         )}
 
                         {activeTab === 'team' && (
-                            <div className="bg-white rounded-xl shadow-sm p-6">
-                                <h2 className="font-semibold text-gray-900 mb-4">Quản lý thành viên</h2>
-                                <p className="text-gray-500">Tính năng đang phát triển...</p>
+                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                                <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Quản lý thành viên</h2>
+                                <p className="text-gray-500 dark:text-gray-400">Tính năng đang phát triển...</p>
                             </div>
                         )}
 
                         {activeTab === 'notifications' && (
-                            <div className="bg-white rounded-xl shadow-sm p-6">
-                                <h2 className="font-semibold text-gray-900 mb-4">Cài đặt thông báo</h2>
-                                <p className="text-gray-500">Tính năng đang phát triển...</p>
+                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                                <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Cài đặt thông báo</h2>
+                                <p className="text-gray-500 dark:text-gray-400">Tính năng đang phát triển...</p>
                             </div>
                         )}
                     </div>

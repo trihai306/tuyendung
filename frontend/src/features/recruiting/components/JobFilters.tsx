@@ -1,5 +1,6 @@
 import { useTheme } from '../../../contexts/ThemeContext';
 import { MagnifyingGlassIcon, FunnelIcon, ChevronDownIcon } from '../../../components/ui/icons';
+import { Select } from '../../../components/ui';
 import { useState } from 'react';
 
 type JobStatus = 'all' | 'open' | 'draft' | 'closed' | 'paused';
@@ -113,60 +114,33 @@ export function JobFilters({
             {/* Expandable Filters */}
             {showFilters && (
                 <div className={`px-4 pb-4 grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-4 ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
-                    <div>
-                        <label className={`block text-xs font-medium mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                            Loại hình
-                        </label>
-                        <select className={`
-                            w-full px-3 py-2 rounded-lg text-sm
-                            ${isDark
-                                ? 'bg-slate-800 border-slate-700 text-white'
-                                : 'bg-white border-slate-200 text-slate-800'
-                            }
-                            border focus:ring-2 focus:ring-emerald-500/30 focus:outline-none
-                        `}>
-                            <option value="">Tất cả</option>
-                            <option value="full_time">Full-time</option>
-                            <option value="part_time">Part-time</option>
-                            <option value="contract">Hợp đồng</option>
-                            <option value="internship">Thực tập</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className={`block text-xs font-medium mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                            Địa điểm
-                        </label>
-                        <select className={`
-                            w-full px-3 py-2 rounded-lg text-sm
-                            ${isDark
-                                ? 'bg-slate-800 border-slate-700 text-white'
-                                : 'bg-white border-slate-200 text-slate-800'
-                            }
-                            border focus:ring-2 focus:ring-emerald-500/30 focus:outline-none
-                        `}>
-                            <option value="">Tất cả địa điểm</option>
-                            <option value="hanoi">Hà Nội</option>
-                            <option value="hcm">TP. Hồ Chí Minh</option>
-                            <option value="danang">Đà Nẵng</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className={`block text-xs font-medium mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                            Sắp xếp
-                        </label>
-                        <select className={`
-                            w-full px-3 py-2 rounded-lg text-sm
-                            ${isDark
-                                ? 'bg-slate-800 border-slate-700 text-white'
-                                : 'bg-white border-slate-200 text-slate-800'
-                            }
-                            border focus:ring-2 focus:ring-emerald-500/30 focus:outline-none
-                        `}>
-                            <option value="newest">Mới nhất</option>
-                            <option value="oldest">Cũ nhất</option>
-                            <option value="most_applicants">Nhiều ứng viên nhất</option>
-                        </select>
-                    </div>
+                    <Select
+                        label="Loại hình"
+                        placeholder="Tất cả"
+                        options={[
+                            { value: 'full_time', label: 'Full-time' },
+                            { value: 'part_time', label: 'Part-time' },
+                            { value: 'contract', label: 'Hợp đồng' },
+                            { value: 'internship', label: 'Thực tập' },
+                        ]}
+                    />
+                    <Select
+                        label="Địa điểm"
+                        placeholder="Tất cả địa điểm"
+                        options={[
+                            { value: 'hanoi', label: 'Hà Nội' },
+                            { value: 'hcm', label: 'TP. Hồ Chí Minh' },
+                            { value: 'danang', label: 'Đà Nẵng' },
+                        ]}
+                    />
+                    <Select
+                        label="Sắp xếp"
+                        options={[
+                            { value: 'newest', label: 'Mới nhất' },
+                            { value: 'oldest', label: 'Cũ nhất' },
+                            { value: 'most_applicants', label: 'Nhiều ứng viên nhất' },
+                        ]}
+                    />
                 </div>
             )}
         </div>

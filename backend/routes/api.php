@@ -107,9 +107,14 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Jobs
+    Route::get('/jobs/trashed', [JobController::class, 'trashed'])->name('jobs.trashed');
+    Route::get('/jobs/expired', [JobController::class, 'expired'])->name('jobs.expired');
     Route::apiResource('jobs', JobController::class);
     Route::post('/jobs/{job}/publish', [JobController::class, 'publish'])->name('jobs.publish');
     Route::post('/jobs/{job}/close', [JobController::class, 'close'])->name('jobs.close');
+    Route::post('/jobs/{id}/restore', [JobController::class, 'restore'])->name('jobs.restore');
+    Route::delete('/jobs/{id}/force', [JobController::class, 'forceDelete'])->name('jobs.force-delete');
+    Route::post('/jobs/{job}/renew', [JobController::class, 'renewJob'])->name('jobs.renew');
     Route::get('/jobs/{job}/pipeline', [JobController::class, 'pipeline'])->name('jobs.pipeline');
 
     // Job Alerts

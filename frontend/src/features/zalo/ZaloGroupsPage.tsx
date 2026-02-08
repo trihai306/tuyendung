@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import apiClient from '../../services/apiClient';
+import { useToast } from '../../components/ui';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ZaloGroup {
     id: string;
@@ -57,16 +59,18 @@ const Icons = {
 function ZaloGroupCard({
     group,
     onPost,
-    onLeave
+    onLeave,
+    isDark,
 }: {
     group: ZaloGroup;
     onPost: (groupId: string) => void;
     onLeave: (group: ZaloGroup) => void;
+    isDark: boolean;
 }) {
     const [menuOpen, setMenuOpen] = useState(false);
 
     return (
-        <div className="group bg-white rounded-2xl border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all duration-300 overflow-hidden">
+        <div className="group bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-lg transition-all duration-300 overflow-hidden">
             {/* Header with gradient */}
             <div className="h-20 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 relative">
                 <div className="absolute inset-0 bg-black/5" />
@@ -84,17 +88,17 @@ function ZaloGroupCard({
                     {menuOpen && (
                         <>
                             <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-                            <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg shadow-xl border border-slate-200 py-1 z-20">
+                            <div className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 py-1 z-20">
                                 <button
                                     onClick={() => { onPost(group.group_id); setMenuOpen(false); }}
-                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                                 >
                                     {Icons.post}
                                     Đăng bài
                                 </button>
                                 <button
                                     onClick={() => { onLeave(group); setMenuOpen(false); }}
-                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                                 >
                                     {Icons.leave}
                                     Rời nhóm
@@ -107,7 +111,7 @@ function ZaloGroupCard({
 
             {/* Avatar */}
             <div className="relative -mt-10 px-4">
-                <div className="w-16 h-16 rounded-xl bg-white border-4 border-white shadow-md overflow-hidden">
+                <div className="w-16 h-16 rounded-xl bg-white dark:bg-slate-800 border-4 border-white dark:border-slate-800 shadow-md overflow-hidden">
                     {group.avatar ? (
                         <img src={group.avatar} alt={group.name} className="w-full h-full object-cover" />
                     ) : (
@@ -122,11 +126,11 @@ function ZaloGroupCard({
 
             {/* Content */}
             <div className="p-4 pt-3">
-                <h3 className="font-semibold text-slate-900 truncate text-base">
+                <h3 className="font-semibold text-slate-900 dark:text-white truncate text-base">
                     {group.name}
                 </h3>
 
-                <div className="flex items-center gap-3 mt-2 text-sm text-slate-500">
+                <div className="flex items-center gap-3 mt-2 text-sm text-slate-500 dark:text-slate-400">
                     <span className="flex items-center gap-1.5">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
@@ -134,14 +138,14 @@ function ZaloGroupCard({
                         <span className="font-medium">{group.member_count?.toLocaleString() || 0}</span>
                     </span>
                     {group.type && (
-                        <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full text-xs capitalize">
+                        <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-full text-xs capitalize">
                             {group.type}
                         </span>
                     )}
                 </div>
 
                 {group.description && (
-                    <p className="text-sm text-slate-500 mt-2 line-clamp-2">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 line-clamp-2">
                         {group.description}
                     </p>
                 )}
@@ -157,7 +161,11 @@ function ZaloGroupCard({
                     </button>
                     <button
                         onClick={() => onLeave(group)}
-                        className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl font-medium text-sm hover:bg-slate-50 hover:border-red-200 hover:text-red-600 transition-all"
+                        className={`px-4 py-2.5 border rounded-xl font-medium text-sm transition-all
+                            ${isDark
+                                ? 'border-slate-700 text-slate-400 hover:bg-slate-800 hover:border-red-500/30 hover:text-red-400'
+                                : 'border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-red-200 hover:text-red-600'
+                            }`}
                     >
                         Rời
                     </button>
@@ -185,6 +193,9 @@ export function ZaloGroupsPage() {
     const [showLeaveModal, setShowLeaveModal] = useState(false);
     const [groupToLeave, setGroupToLeave] = useState<ZaloGroup | null>(null);
     const [leaving, setLeaving] = useState(false);
+    const { toast } = useToast();
+    const { resolvedTheme } = useTheme();
+    const isDark = resolvedTheme === 'dark';
 
     // Fetch Zalo accounts
     useEffect(() => {
@@ -255,7 +266,6 @@ export function ZaloGroupsPage() {
 
             if (response.data.success) {
                 setShowPostModal(false);
-                // Show success toast or notification
             }
         } catch (err: any) {
             console.error(err);
@@ -279,13 +289,12 @@ export function ZaloGroupsPage() {
                 group_id: groupToLeave.group_id
             });
 
-            // Remove from local state
             setGroups(prev => prev.filter(g => g.group_id !== groupToLeave.group_id));
             setShowLeaveModal(false);
             setGroupToLeave(null);
         } catch (err: any) {
             console.error('Failed to leave group:', err);
-            alert(err.response?.data?.error?.message || 'Không thể rời nhóm. Vui lòng thử lại.');
+            toast.error('Không thể rời nhóm', err.response?.data?.error?.message || 'Vui lòng thử lại.');
         } finally {
             setLeaving(false);
         }
@@ -299,15 +308,15 @@ export function ZaloGroupsPage() {
             <div className="mb-8">
                 <div className="flex items-start justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900">Nhóm Zalo</h1>
-                        <p className="text-slate-500 mt-1">Quản lý và đăng bài đến các nhóm Zalo của bạn</p>
+                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Nhóm Zalo</h1>
+                        <p className="text-slate-500 dark:text-slate-400 mt-1">Quản lý và đăng bài đến các nhóm Zalo của bạn</p>
                     </div>
                     <div className="flex items-center gap-3">
                         {zaloAccounts.length > 1 && (
                             <select
                                 value={selectedAccountId || ''}
                                 onChange={(e) => setSelectedAccountId(Number(e.target.value) || null)}
-                                className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                                className="rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                             >
                                 {zaloAccounts.map(acc => (
                                     <option key={acc.id} value={acc.id}>
@@ -331,57 +340,57 @@ export function ZaloGroupsPage() {
 
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                    <div className="bg-white rounded-2xl p-5 border border-slate-200">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
+                            <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
                                 {Icons.users}
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-slate-900">{groups.length}</p>
-                                <p className="text-sm text-slate-500">Nhóm</p>
+                                <p className="text-2xl font-bold text-slate-900 dark:text-white">{groups.length}</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Nhóm</p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white rounded-2xl p-5 border border-slate-200">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
+                            <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
                                 </svg>
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-slate-900">
+                                <p className="text-2xl font-bold text-slate-900 dark:text-white">
                                     {groups.reduce((sum, g) => sum + (g.member_count || 0), 0).toLocaleString()}
                                 </p>
-                                <p className="text-sm text-slate-500">Thành viên</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Thành viên</p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white rounded-2xl p-5 border border-slate-200">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600">
+                            <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 2C6.477 2 2 6.477 2 12c0 5.523 4.477 10 10 10s10-4.477 10-10c0-5.523-4.477-10-10-10zm4.8 14.4c-.47.47-1.17.6-1.8.4l-2.4-.8c-.3.2-.6.3-1 .4-.5.1-1 .1-1.5 0-.5-.1-.9-.3-1.3-.6s-.7-.6-.9-1c-.2-.4-.4-.9-.4-1.4 0-.3.1-.7.2-1 .1-.3.3-.6.5-.8.2-.2.5-.4.8-.5.3-.1.6-.2 1-.2h.5l1.2-3.6c.1-.3.3-.5.5-.7.2-.2.5-.3.8-.3h2c.3 0 .5.1.7.3.2.2.3.4.3.7v2h1c.3 0 .6.1.8.3.2.2.3.5.3.8v2c0 .3-.1.6-.3.8z" />
                                 </svg>
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-slate-900">{zaloAccounts.length}</p>
-                                <p className="text-sm text-slate-500">Tài khoản</p>
+                                <p className="text-2xl font-bold text-slate-900 dark:text-white">{zaloAccounts.length}</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Tài khoản</p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white rounded-2xl p-5 border border-slate-200">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600">
+                            <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400">
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-slate-900">
+                                <p className="text-2xl font-bold text-slate-900 dark:text-white">
                                     {zaloAccounts.filter(a => a.status === 'connected').length}
                                 </p>
-                                <p className="text-sm text-slate-500">Đang online</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Đang online</p>
                             </div>
                         </div>
                     </div>
@@ -390,14 +399,14 @@ export function ZaloGroupsPage() {
 
             {/* Content */}
             {!selectedAccountId ? (
-                <div className="text-center py-20 bg-white rounded-2xl border border-slate-200">
-                    <div className="w-20 h-20 mx-auto rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+                <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <div className="w-20 h-20 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-4">
                         <svg className="w-10 h-10 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 2C6.477 2 2 6.477 2 12c0 5.523 4.477 10 10 10s10-4.477 10-10c0-5.523-4.477-10-10-10zm4.8 14.4c-.47.47-1.17.6-1.8.4l-2.4-.8c-.3.2-.6.3-1 .4-.5.1-1 .1-1.5 0-.5-.1-.9-.3-1.3-.6s-.7-.6-.9-1c-.2-.4-.4-.9-.4-1.4 0-.3.1-.7.2-1 .1-.3.3-.6.5-.8.2-.2.5-.4.8-.5.3-.1.6-.2 1-.2h.5l1.2-3.6c.1-.3.3-.5.5-.7.2-.2.5-.3.8-.3h2c.3 0 .5.1.7.3.2.2.3.4.3.7v2h1c.3 0 .6.1.8.3.2.2.3.5.3.8v2c0 .3-.1.6-.3.8z" />
                         </svg>
                     </div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Chưa có tài khoản Zalo</h3>
-                    <p className="text-slate-500 mb-6 max-w-sm mx-auto">
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Chưa có tài khoản Zalo</h3>
+                    <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-sm mx-auto">
                         Kết nối tài khoản Zalo để bắt đầu quản lý nhóm
                     </p>
                     <a
@@ -412,12 +421,12 @@ export function ZaloGroupsPage() {
                     <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
                 </div>
             ) : groups.length === 0 ? (
-                <div className="text-center py-20 bg-white rounded-2xl border border-slate-200">
-                    <div className="w-20 h-20 mx-auto rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+                <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <div className="w-20 h-20 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-4">
                         {Icons.users}
                     </div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Chưa có nhóm nào</h3>
-                    <p className="text-slate-500 mb-6 max-w-sm mx-auto">
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Chưa có nhóm nào</h3>
+                    <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-sm mx-auto">
                         Nhấn "Đồng bộ" để lấy danh sách nhóm từ tài khoản Zalo
                     </p>
                     <button
@@ -437,6 +446,7 @@ export function ZaloGroupsPage() {
                             group={group}
                             onPost={handleOpenPost}
                             onLeave={handleOpenLeave}
+                            isDark={isDark}
                         />
                     ))}
                 </div>
@@ -445,15 +455,15 @@ export function ZaloGroupsPage() {
             {/* Post Modal */}
             {showPostModal && selectedGroup && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
-                        <div className="flex items-center justify-between p-5 border-b border-slate-100">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md shadow-2xl">
+                        <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-700">
                             <div>
-                                <h3 className="font-semibold text-slate-900">Đăng bài đến nhóm</h3>
-                                <p className="text-sm text-slate-500 mt-0.5">{selectedGroup.name}</p>
+                                <h3 className="font-semibold text-slate-900 dark:text-white">Đăng bài đến nhóm</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{selectedGroup.name}</p>
                             </div>
                             <button
                                 onClick={() => setShowPostModal(false)}
-                                className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                             >
                                 {Icons.close}
                             </button>
@@ -464,16 +474,17 @@ export function ZaloGroupsPage() {
                                 onChange={(e) => setPostContent(e.target.value)}
                                 rows={5}
                                 placeholder="Nhập nội dung bài đăng..."
-                                className="w-full rounded-xl border border-slate-200 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none"
+                                className="w-full rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none"
                             />
-                            <p className="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                            <p className={`text-xs mt-2 flex items-center gap-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                                 <span>💡</span> Bài đăng sẽ được lên lịch và xử lý qua hệ thống
                             </p>
                         </div>
                         <div className="flex gap-3 p-5 pt-0">
                             <button
                                 onClick={() => setShowPostModal(false)}
-                                className="flex-1 py-3 border border-slate-200 text-slate-700 rounded-xl font-medium text-sm hover:bg-slate-50 transition-colors"
+                                className={`flex-1 py-3 border rounded-xl font-medium text-sm transition-colors
+                                    ${isDark ? 'border-slate-600 text-slate-300 hover:bg-slate-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}
                             >
                                 Hủy
                             </button>
@@ -497,22 +508,23 @@ export function ZaloGroupsPage() {
             {/* Leave Confirmation Modal */}
             {showLeaveModal && groupToLeave && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6">
-                        <div className="w-14 h-14 mx-auto rounded-2xl bg-red-100 flex items-center justify-center mb-4">
-                            <svg className="w-7 h-7 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm shadow-2xl p-6">
+                        <div className="w-14 h-14 mx-auto rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
+                            <svg className="w-7 h-7 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                             </svg>
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-900 text-center mb-2">
+                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white text-center mb-2">
                             Rời khỏi nhóm?
                         </h3>
-                        <p className="text-sm text-slate-500 text-center mb-6">
-                            Bạn có chắc muốn rời khỏi nhóm <span className="font-medium text-slate-700">"{groupToLeave.name}"</span>? Hành động này không thể hoàn tác.
+                        <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">
+                            Bạn có chắc muốn rời khỏi nhóm <span className="font-medium text-slate-700 dark:text-slate-300">"{groupToLeave.name}"</span>? Hành động này không thể hoàn tác.
                         </p>
                         <div className="flex gap-3">
                             <button
                                 onClick={() => { setShowLeaveModal(false); setGroupToLeave(null); }}
-                                className="flex-1 py-3 border border-slate-200 text-slate-700 rounded-xl font-medium text-sm hover:bg-slate-50 transition-colors"
+                                className={`flex-1 py-3 border rounded-xl font-medium text-sm transition-colors
+                                    ${isDark ? 'border-slate-600 text-slate-300 hover:bg-slate-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}
                             >
                                 Hủy
                             </button>

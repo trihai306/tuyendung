@@ -3,6 +3,7 @@ import {
     CalendarIcon, MapPinIcon, PlusIcon, TrashIcon, ClockIcon,
     BuildingOffice2Icon, ComputerDesktopIcon, PhoneIcon, LightBulbIcon
 } from '../../../components/ui/icons';
+import { Input } from '../../../components/ui';
 
 type InterviewType = 'onsite' | 'online' | 'phone';
 
@@ -101,7 +102,7 @@ export function InterviewScheduler({ schedule, onChange }: InterviewSchedulerPro
                             : 'Số điện thoại liên hệ'
                     }
                 </label>
-                <input
+                <Input
                     type="text"
                     value={schedule.location}
                     onChange={(e) => updateField('location', e.target.value)}
@@ -112,14 +113,6 @@ export function InterviewScheduler({ schedule, onChange }: InterviewSchedulerPro
                                 ? 'VD: https://zoom.us/j/123456'
                                 : 'VD: 0901234567'
                     }
-                    className={`
-                        w-full px-4 py-2.5 rounded-lg text-sm
-                        ${isDark
-                            ? 'bg-slate-800 border-slate-700 text-white placeholder:text-slate-500'
-                            : 'bg-white border-slate-200 text-slate-800 placeholder:text-slate-400'
-                        }
-                        border focus:ring-2 focus:ring-emerald-500/30 focus:outline-none
-                    `}
                 />
             </div>
 
@@ -156,32 +149,16 @@ export function InterviewScheduler({ schedule, onChange }: InterviewSchedulerPro
                             `}
                         >
                             <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Từ</span>
-                            <input
+                            <Input
                                 type="time"
                                 value={slot.startTime}
                                 onChange={(e) => updateTimeSlot(slot.id, 'startTime', e.target.value)}
-                                className={`
-                                    px-3 py-2 rounded-lg text-sm
-                                    ${isDark
-                                        ? 'bg-slate-900 border-slate-700 text-white'
-                                        : 'bg-white border-slate-200 text-slate-800'
-                                    }
-                                    border focus:ring-2 focus:ring-emerald-500/30 focus:outline-none
-                                `}
                             />
                             <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>đến</span>
-                            <input
+                            <Input
                                 type="time"
                                 value={slot.endTime}
                                 onChange={(e) => updateTimeSlot(slot.id, 'endTime', e.target.value)}
-                                className={`
-                                    px-3 py-2 rounded-lg text-sm
-                                    ${isDark
-                                        ? 'bg-slate-900 border-slate-700 text-white'
-                                        : 'bg-white border-slate-200 text-slate-800'
-                                    }
-                                    border focus:ring-2 focus:ring-emerald-500/30 focus:outline-none
-                                `}
                             />
                             <button
                                 type="button"

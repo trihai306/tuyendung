@@ -130,6 +130,37 @@ export const recruitingApi = api.injectEndpoints({
             }),
             invalidatesTags: ['Assignment', 'Job'],
         }),
+
+        // Trashed & Expired Jobs
+        getTrashedJobs: builder.query({
+            query: () => '/jobs/trashed',
+            providesTags: ['Job'],
+        }),
+        getExpiredJobs: builder.query({
+            query: () => '/jobs/expired',
+            providesTags: ['Job'],
+        }),
+        restoreJob: builder.mutation({
+            query: (id: number) => ({
+                url: `/jobs/${id}/restore`,
+                method: 'POST',
+            }),
+            invalidatesTags: ['Job'],
+        }),
+        forceDeleteJob: builder.mutation({
+            query: (id: number) => ({
+                url: `/jobs/${id}/force`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['Job'],
+        }),
+        renewJob: builder.mutation({
+            query: (id: number) => ({
+                url: `/jobs/${id}/renew`,
+                method: 'POST',
+            }),
+            invalidatesTags: ['Job'],
+        }),
     }),
 });
 
@@ -154,5 +185,11 @@ export const {
     useUpdateAssignmentProgressMutation,
     useGetMyAssignmentsQuery,
     useRemoveAssignmentMutation,
+    // Trashed & Expired
+    useGetTrashedJobsQuery,
+    useGetExpiredJobsQuery,
+    useRestoreJobMutation,
+    useForceDeleteJobMutation,
+    useRenewJobMutation,
 } = recruitingApi;
 

@@ -11,6 +11,9 @@ import {
     useDeleteJobMutation,
     usePublishJobMutation,
     useCloseJobMutation,
+    useRestoreJobMutation,
+    useForceDeleteJobMutation,
+    useRenewJobMutation,
 } from '../recruitingApi';
 
 export function useJobs(filters?: Record<string, any>) {
@@ -23,6 +26,9 @@ export function useJobs(filters?: Record<string, any>) {
     const [deleteJobMutation] = useDeleteJobMutation();
     const [publishJobMutation] = usePublishJobMutation();
     const [closeJobMutation] = useCloseJobMutation();
+    const [restoreJobMutation] = useRestoreJobMutation();
+    const [forceDeleteJobMutation] = useForceDeleteJobMutation();
+    const [renewJobMutation] = useRenewJobMutation();
 
     useEffect(() => {
         if (data?.data) {
@@ -65,6 +71,27 @@ export function useJobs(filters?: Record<string, any>) {
         [closeJobMutation]
     );
 
+    const restoreJob = useCallback(
+        async (id: number) => {
+            return await restoreJobMutation(id).unwrap();
+        },
+        [restoreJobMutation]
+    );
+
+    const forceDeleteJob = useCallback(
+        async (id: number) => {
+            return await forceDeleteJobMutation(id).unwrap();
+        },
+        [forceDeleteJobMutation]
+    );
+
+    const renewJob = useCallback(
+        async (id: number) => {
+            return await renewJobMutation(id).unwrap();
+        },
+        [renewJobMutation]
+    );
+
     return {
         jobs: jobIds.map((id) => jobs[id]),
         isLoading: isLoading || isFetching,
@@ -73,6 +100,9 @@ export function useJobs(filters?: Record<string, any>) {
         deleteJob,
         publishJob,
         closeJob,
+        restoreJob,
+        forceDeleteJob,
+        renewJob,
         refetch,
     };
 }

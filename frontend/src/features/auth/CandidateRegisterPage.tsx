@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './useAuth';
 import { ThemeToggle } from '../../contexts/ThemeContext';
+import { Input } from '../../components/ui';
 
 export function CandidateRegisterPage() {
     const { registerCandidate, isLoading, error } = useAuth();
@@ -164,11 +165,10 @@ export function CandidateRegisterPage() {
                             {/* Name */}
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Họ và tên *</label>
-                                <input
+                                <Input
                                     type="text"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm"
                                     placeholder="Nguyễn Văn A"
                                     required
                                 />
@@ -177,11 +177,10 @@ export function CandidateRegisterPage() {
                             {/* Email */}
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email *</label>
-                                <input
+                                <Input
                                     type="email"
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm"
                                     placeholder="email@example.com"
                                     required
                                 />
@@ -191,11 +190,11 @@ export function CandidateRegisterPage() {
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Mật khẩu *</label>
                                 <div className="relative">
-                                    <input
+                                    <Input
                                         type={showPassword ? "text" : "password"}
                                         value={formData.password}
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        className="w-full px-4 py-3 pr-11 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm"
+                                        className="pr-11"
                                         placeholder="Tối thiểu 8 ký tự"
                                         required
                                         minLength={8}
@@ -217,11 +216,10 @@ export function CandidateRegisterPage() {
                             {/* Confirm Password */}
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Xác nhận mật khẩu *</label>
-                                <input
+                                <Input
                                     type="password"
                                     value={formData.confirmPassword}
                                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm"
                                     placeholder="Nhập lại mật khẩu"
                                     required
                                 />

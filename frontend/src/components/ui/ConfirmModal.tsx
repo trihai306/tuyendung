@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface ConfirmModalProps {
@@ -96,7 +97,7 @@ export function ConfirmModal({
 
     const styles = variantStyles[variant];
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
@@ -155,7 +156,8 @@ export function ConfirmModal({
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 

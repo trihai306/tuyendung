@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useAssignJobMutation } from '../recruitingApi';
+import { Input, Select, Button } from '../../../components/ui';
 
 interface AssignJobModalProps {
     isOpen: boolean;
@@ -62,31 +63,26 @@ export function AssignJobModal({ isOpen, onClose, job, members }: AssignJobModal
                         <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                             Chọn nhân viên *
                         </label>
-                        <select
+                        <Select
                             value={selectedUserId}
                             onChange={(e) => setSelectedUserId(e.target.value ? Number(e.target.value) : '')}
-                            className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
-                        >
-                            <option value="">-- Chọn nhân viên --</option>
-                            {members.map(member => (
-                                <option key={member.id} value={member.id}>
-                                    {member.name} ({member.email})
-                                </option>
-                            ))}
-                        </select>
+                            options={[
+                                { value: '', label: '-- Chọn nhân viên --' },
+                                ...members.map(member => ({ value: String(member.id), label: `${member.name} (${member.email})` }))
+                            ]}
+                        />
                     </div>
 
                     <div>
                         <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                             Số lượng được giao (tuỳ chọn)
                         </label>
-                        <input
+                        <Input
                             type="number"
                             min="1"
                             value={targetAssigned}
                             onChange={(e) => setTargetAssigned(e.target.value)}
                             placeholder="VD: 20"
-                            className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
                         />
                     </div>
 
@@ -95,20 +91,22 @@ export function AssignJobModal({ isOpen, onClose, job, members }: AssignJobModal
                     )}
 
                     <div className="flex gap-3 pt-2">
-                        <button
+                        <Button
                             type="button"
+                            variant="secondary"
                             onClick={onClose}
-                            className={`flex-1 px-4 py-2 rounded-lg ${isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                            fullWidth
                         >
                             Huỷ
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="submit"
                             disabled={isLoading}
-                            className="flex-1 px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50"
+                            loading={isLoading}
+                            fullWidth
                         >
                             {isLoading ? 'Đang giao...' : 'Giao việc'}
-                        </button>
+                        </Button>
                     </div>
                 </form>
             </div>

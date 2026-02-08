@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './useAuth';
 import { ThemeToggle } from '../../contexts/ThemeContext';
+import { Input } from '../../components/ui';
 
 export function RegisterPage() {
     const { register, isLoading, error } = useAuth();
@@ -184,22 +185,20 @@ export function RegisterPage() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Họ và tên *</label>
-                                    <input
+                                    <Input
                                         type="text"
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 transition-all text-sm"
                                         placeholder="Nguyễn Văn A"
                                         required
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email *</label>
-                                    <input
+                                    <Input
                                         type="email"
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 transition-all text-sm"
                                         placeholder="you@company.com"
                                         required
                                     />
@@ -210,22 +209,20 @@ export function RegisterPage() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Tên công ty *</label>
-                                    <input
+                                    <Input
                                         type="text"
                                         value={formData.company}
                                         onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 transition-all text-sm"
                                         placeholder="Công ty ABC"
                                         required
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Ngành nghề</label>
-                                    <input
+                                    <Input
                                         type="text"
                                         value={formData.companyIndustry}
                                         onChange={(e) => setFormData({ ...formData, companyIndustry: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 transition-all text-sm"
                                         placeholder="Công nghệ, Bán lẻ..."
                                     />
                                 </div>
@@ -234,11 +231,10 @@ export function RegisterPage() {
                             {/* Phone */}
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Số điện thoại</label>
-                                <input
+                                <Input
                                     type="tel"
                                     value={formData.companyPhone}
                                     onChange={(e) => setFormData({ ...formData, companyPhone: e.target.value })}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 transition-all text-sm"
                                     placeholder="0901234567"
                                 />
                             </div>
@@ -248,11 +244,11 @@ export function RegisterPage() {
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Mật khẩu *</label>
                                     <div className="relative">
-                                        <input
+                                        <Input
                                             type={showPassword ? "text" : "password"}
                                             value={formData.password}
                                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                            className="w-full px-4 py-3 pr-11 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 transition-all text-sm"
+                                            className="pr-11"
                                             placeholder="Tối thiểu 8 ký tự"
                                             required
                                             minLength={8}
@@ -272,11 +268,10 @@ export function RegisterPage() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Xác nhận *</label>
-                                    <input
+                                    <Input
                                         type="password"
                                         value={formData.confirmPassword}
                                         onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 transition-all text-sm"
                                         placeholder="Nhập lại mật khẩu"
                                         required
                                     />

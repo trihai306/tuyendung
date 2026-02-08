@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { publicJobsApi } from './services/publicJobsApi';
 import type { PublicJob } from './services/publicJobsApi';
+import { useToast } from '../../components/ui';
 import {
     updateSEO,
     addStructuredData,
@@ -14,6 +15,7 @@ import {
 export function PublicJobDetailPage() {
     const { slug } = useParams<{ slug: string }>();
     const navigate = useNavigate();
+    const { toast } = useToast();
     const [job, setJob] = useState<PublicJob | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
@@ -117,7 +119,7 @@ export function PublicJobDetailPage() {
             });
         } else {
             navigator.clipboard.writeText(window.location.href);
-            alert('Đã copy link vào clipboard!');
+            toast.success('Đã copy link vào clipboard!');
         }
     };
 

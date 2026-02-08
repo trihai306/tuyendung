@@ -1,8 +1,10 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useJobs } from './hooks/useRecruiting';
+import { useGetTrashedJobsQuery, useGetExpiredJobsQuery } from './recruitingApi';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useCompanyRole } from '../dashboard/useCompanyRole';
+import { useToast, ConfirmModal, Input } from '../../components/ui';
 import { JobCard } from './components/JobCard';
 import { JobForm } from './components/JobForm';
 import {
@@ -17,12 +19,15 @@ import {
     ClockIcon,
     ArrowTrendingUpIcon,
     SparklesIcon,
+    TrashIcon,
 } from '../../components/ui/icons';
 
-type JobStatus = 'all' | 'open' | 'draft' | 'closed' | 'paused';
+type JobStatus = 'all' | 'open' | 'draft' | 'closed' | 'paused' | 'trashed' | 'expired';
 
 export function RecruitingPage() {
-    const { jobs, isLoading, createJob, updateJob, deleteJob, refetch } = useJobs();
+    const { jobs, isLoading, createJob, updateJob, deleteJob, restoreJob, forceDeleteJob, renewJob, refetch } = useJobs();
+    const { data: trashedData, isFetching: isTrashedFetching, refetch: refetchTrashed } = useGetTrashedJobsQuery(undefined);
+    const { data: expiredData, isFetching: isExpiredFetching, refetch: refetchExpired } = useGetExpiredJobsQuery(undefined);
     const { resolvedTheme } = useTheme();
     const isDark = resolvedTheme === 'dark';
     const { isOwner, isAdmin, isMember, isLoading: roleLoading } = useCompanyRole();
@@ -35,6 +40,8 @@ export function RecruitingPage() {
     const [editingJob, setEditingJob] = useState<any>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [confirmDelete, setConfirmDelete] = useState<{ show: boolean; job: any | null }>({ show: false, job: null });
+    const { toast } = useToast();
 
     // Filter jobs based on role
     const roleFilteredJobs = useMemo(() => {
@@ -45,14 +52,19 @@ export function RecruitingPage() {
     const filteredJobs = useMemo(() => {
         let result = roleFilteredJobs;
 
-        if (activeTab !== 'all') {
+        // For trashed/expired tabs, use separate API data
+        if (activeTab === 'trashed') {
+            result = trashedData?.data || [];
+        } else if (activeTab === 'expired') {
+            result = expiredData?.data || [];
+        } else if (activeTab !== 'all') {
             result = result.filter((job) => job.status === activeTab);
         }
 
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             result = result.filter(
-                (job) =>
+                (job: any) =>
                     job.title?.toLowerCase().includes(query) ||
                     job.department?.toLowerCase().includes(query) ||
                     job.location?.toLowerCase().includes(query)
@@ -60,7 +72,7 @@ export function RecruitingPage() {
         }
 
         return result;
-    }, [roleFilteredJobs, activeTab, searchQuery]);
+    }, [roleFilteredJobs, activeTab, searchQuery, trashedData, expiredData]);
 
     // Calculate job counts
     const jobCounts = useMemo(
@@ -70,8 +82,10 @@ export function RecruitingPage() {
             draft: roleFilteredJobs.filter((j) => j.status === 'draft').length,
             paused: roleFilteredJobs.filter((j) => j.status === 'paused').length,
             closed: roleFilteredJobs.filter((j) => j.status === 'closed').length,
+            trashed: trashedData?.data?.length || 0,
+            expired: expiredData?.data?.length || 0,
         }),
-        [roleFilteredJobs]
+        [roleFilteredJobs, trashedData, expiredData]
     );
 
     // Stats
@@ -107,18 +121,17 @@ export function RecruitingPage() {
         setIsSubmitting(true);
         try {
             if (editingJob?.id) {
-                // Update existing job
                 await updateJob(editingJob.id, data);
             } else {
-                // Create new job
                 await createJob(data);
             }
             setShowJobForm(false);
             setEditingJob(null);
             refetch();
+            toast.success(editingJob?.id ? 'Đã cập nhật tin' : 'Đã tạo tin tuyển dụng');
         } catch (error) {
             console.error('Failed to save job:', error);
-            alert('Lỗi khi lưu tin tuyển dụng. Vui lòng thử lại.');
+            toast.error('Lỗi khi lưu tin tuyển dụng', 'Vui lòng thử lại.');
         } finally {
             setIsSubmitting(false);
         }
@@ -129,15 +142,21 @@ export function RecruitingPage() {
         setShowJobForm(true);
     };
 
-    const handleDeleteJob = async (job: any) => {
-        if (window.confirm(`Bạn có chắc muốn xóa tin "${job.title}"?`)) {
-            try {
-                await deleteJob(job.id);
-                refetch();
-            } catch (error) {
-                console.error('Failed to delete job:', error);
-                alert('Lỗi khi xóa tin. Vui lòng thử lại.');
-            }
+    const handleDeleteJob = (job: any) => {
+        setConfirmDelete({ show: true, job });
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!confirmDelete.job) return;
+        try {
+            await deleteJob(confirmDelete.job.id);
+            refetch();
+            toast.success('Đã xóa tin tuyển dụng');
+        } catch (error) {
+            console.error('Failed to delete job:', error);
+            toast.error('Lỗi khi xóa tin', 'Vui lòng thử lại.');
+        } finally {
+            setConfirmDelete({ show: false, job: null });
         }
     };
 
@@ -146,9 +165,10 @@ export function RecruitingPage() {
             const newStatus = job.status === 'open' ? 'paused' : job.status === 'paused' ? 'open' : job.status === 'draft' ? 'open' : 'open';
             await updateJob(job.id, { status: newStatus });
             refetch();
+            toast.success(`Đã chuyển sang ${newStatus === 'open' ? 'đang tuyển' : 'tạm dừng'}`);
         } catch (error) {
             console.error('Failed to toggle status:', error);
-            alert('Lỗi khi thay đổi trạng thái. Vui lòng thử lại.');
+            toast.error('Lỗi khi thay đổi trạng thái', 'Vui lòng thử lại.');
         }
     };
 
@@ -156,12 +176,47 @@ export function RecruitingPage() {
         const repostData = {
             ...job,
             id: undefined,
-            status: 'draft',
+            status: 'open',
             created_at: undefined,
             applications_count: 0,
         };
         setEditingJob(repostData);
         setShowJobForm(true);
+    };
+
+    const handleRestoreJob = async (job: any) => {
+        try {
+            await restoreJob(job.id);
+            refetchTrashed();
+            refetch();
+            toast.success('Đã khôi phục tin tuyển dụng');
+        } catch (error) {
+            console.error('Failed to restore job:', error);
+            toast.error('Lỗi khi khôi phục', 'Vui lòng thử lại.');
+        }
+    };
+
+    const handleForceDeleteJob = async (job: any) => {
+        try {
+            await forceDeleteJob(job.id);
+            refetchTrashed();
+            toast.success('Đã xóa vĩnh viễn');
+        } catch (error) {
+            console.error('Failed to force delete job:', error);
+            toast.error('Lỗi khi xóa', 'Vui lòng thử lại.');
+        }
+    };
+
+    const handleRenewJob = async (job: any) => {
+        try {
+            await renewJob(job.id);
+            refetchExpired();
+            refetch();
+            toast.success('Đã gia hạn tin tuyển dụng thêm 30 ngày');
+        } catch (error) {
+            console.error('Failed to renew job:', error);
+            toast.error('Lỗi khi gia hạn', 'Vui lòng thử lại.');
+        }
     };
 
     if (roleLoading) {
@@ -201,15 +256,11 @@ export function RecruitingPage() {
 
                     <div className={`rounded-xl border ${isDark ? 'bg-slate-900/50 border-slate-800' : 'bg-white border-slate-200'}`}>
                         <div className="p-4">
-                            <input
+                            <Input
                                 type="text"
                                 placeholder="Tìm kiếm tin tuyển dụng..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className={`w-full px-4 py-2.5 text-sm rounded-lg border transition-colors ${isDark
-                                    ? 'bg-slate-800 border-slate-700 text-white placeholder:text-slate-500'
-                                    : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'
-                                    } focus:outline-none focus:border-emerald-500`}
                             />
                         </div>
                     </div>
@@ -241,6 +292,8 @@ export function RecruitingPage() {
         { key: 'draft', label: 'Bản nháp', icon: <ClockIcon className="w-4 h-4" /> },
         { key: 'paused', label: 'Tạm dừng', icon: <ClockIcon className="w-4 h-4" /> },
         { key: 'closed', label: 'Đã đóng', icon: <ClockIcon className="w-4 h-4" /> },
+        { key: 'expired', label: 'Hết hạn', icon: <CalendarIcon className="w-4 h-4" /> },
+        { key: 'trashed', label: 'Đã xóa', icon: <TrashIcon className="w-4 h-4" /> },
     ];
 
     return (
@@ -375,18 +428,12 @@ export function RecruitingPage() {
                         <div className={`flex items-center gap-3 p-3 border-t ${isDark ? 'border-slate-800/50' : 'border-slate-100'}`}>
                             <div className="relative flex-1 group">
                                 <MagnifyingGlassIcon className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${isDark ? 'text-slate-500 group-focus-within:text-emerald-400' : 'text-slate-400 group-focus-within:text-emerald-500'}`} />
-                                <input
+                                <Input
                                     type="text"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Tìm kiếm theo tên, phòng ban, địa điểm..."
-                                    className={`
-                                        w-full pl-10 pr-4 py-2.5 rounded-xl text-sm transition-all duration-200 focus:outline-none
-                                        ${isDark
-                                            ? 'bg-slate-800/40 border border-slate-700/40 text-white placeholder:text-slate-500 focus:border-emerald-500/40 focus:ring-2 focus:ring-emerald-500/10'
-                                            : 'bg-slate-50/80 border border-slate-200/60 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-emerald-500/40 focus:ring-2 focus:ring-emerald-500/10'
-                                        }
-                                    `}
+                                    className="pl-10"
                                 />
                                 {searchQuery && (
                                     <button
@@ -441,7 +488,7 @@ export function RecruitingPage() {
                     )}
 
                     {/* Jobs Grid/List */}
-                    {isLoading ? (
+                    {(activeTab === 'trashed' ? isTrashedFetching : activeTab === 'expired' ? isExpiredFetching : isLoading) ? (
                         <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
                             {[1, 2, 3, 4, 5, 6].map((i) => (
                                 <JobCardSkeleton key={i} isDark={isDark} />
@@ -455,14 +502,19 @@ export function RecruitingPage() {
                         />
                     ) : (
                         <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
-                            {filteredJobs.map((job) => (
+                            {filteredJobs.map((job: any) => (
                                 <JobCard
                                     key={job.id}
                                     job={job}
-                                    onEdit={handleEditJob}
-                                    onDelete={handleDeleteJob}
-                                    onToggleStatus={handleToggleJobStatus}
-                                    onRepost={handleRepostJob}
+                                    onEdit={activeTab === 'trashed' ? undefined : handleEditJob}
+                                    onDelete={activeTab === 'trashed' ? undefined : handleDeleteJob}
+                                    onToggleStatus={activeTab === 'trashed' ? undefined : handleToggleJobStatus}
+                                    onRepost={activeTab === 'trashed' ? undefined : handleRepostJob}
+                                    onRestore={activeTab === 'trashed' ? handleRestoreJob : undefined}
+                                    onForceDelete={activeTab === 'trashed' ? handleForceDeleteJob : undefined}
+                                    onRenew={activeTab === 'expired' ? handleRenewJob : undefined}
+                                    isTrashed={activeTab === 'trashed'}
+                                    isExpired={activeTab === 'expired'}
                                 />
                             ))}
                         </div>
@@ -634,6 +686,17 @@ export function RecruitingPage() {
                     isLoading={isSubmitting}
                 />
             )}
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmModal
+                isOpen={confirmDelete.show}
+                onClose={() => setConfirmDelete({ show: false, job: null })}
+                onConfirm={handleConfirmDelete}
+                title="Xác nhận xóa"
+                message={`Bạn có chắc muốn xóa tin "${confirmDelete.job?.title || ''}"?`}
+                variant="danger"
+                confirmText="Xóa"
+            />
         </div>
     );
 }
@@ -733,12 +796,14 @@ function EmptyState({ activeTab, isDark, onCreateClick, isMember = false }: {
     onCreateClick: () => void;
     isMember?: boolean;
 }) {
-    const messages = {
+    const messages: Record<string, string> = {
         all: 'Chưa có tin tuyển dụng nào',
         open: 'Không có tin đang mở',
         draft: 'Không có tin nháp',
         paused: 'Không có tin tạm dừng',
         closed: 'Không có tin đã đóng',
+        trashed: 'Không có tin đã xóa',
+        expired: 'Không có tin hết hạn',
     };
 
     return (

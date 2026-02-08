@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import apiClient from '../../services/apiClient';
 import { useTheme } from '../../contexts/ThemeContext';
 import { CompanyIcon, TeamIcon, BriefcaseIcon, CheckIcon } from '../../components/ui/icons';
+import { useToast, ConfirmModal, Input, Select, Textarea, Button } from '../../components/ui';
 
 // Types
 interface Company {
@@ -84,6 +85,8 @@ export function CompanyPage() {
     const [isEditing, setIsEditing] = useState(false);
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [formData, setFormData] = useState<Partial<Company>>({});
+    const { toast } = useToast();
+    const [confirmRemove, setConfirmRemove] = useState<{ show: boolean; memberId: number | null }>({ show: false, memberId: null });
 
     useEffect(() => { fetchCompany(); }, []);
     useEffect(() => {
@@ -138,12 +141,22 @@ export function CompanyPage() {
         } catch (err) { console.error('Failed to save company:', err); }
     };
 
-    const handleRemoveMember = async (memberId: number) => {
-        if (!confirm('Bạn có chắc muốn xóa thành viên này?')) return;
+    const handleRemoveMember = (memberId: number) => {
+        setConfirmRemove({ show: true, memberId });
+    };
+
+    const handleConfirmRemove = async () => {
+        if (!confirmRemove.memberId) return;
         try {
-            await apiClient.delete(`/company/members/${memberId}`);
+            await apiClient.delete(`/company/members/${confirmRemove.memberId}`);
             await fetchMembers();
-        } catch (err) { console.error('Failed to remove member:', err); }
+            toast.success('Đã xóa thành viên');
+        } catch (err) {
+            console.error('Failed to remove member:', err);
+            toast.error('Không thể xóa thành viên');
+        } finally {
+            setConfirmRemove({ show: false, memberId: null });
+        }
     };
 
     const handleUpdateRole = async (memberId: number, newRole: string) => {
@@ -201,15 +214,18 @@ export function CompanyPage() {
                         <div className="flex items-center gap-2">
                             {canManage && (
                                 <>
-                                    <button
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
                                         onClick={() => setShowInviteModal(true)}
-                                        className={`hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium ${isDark ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-700 hover:bg-slate-100'} rounded-lg transition-colors`}
+                                        icon={<PlusIcon />}
+                                        className="hidden sm:inline-flex"
                                     >
-                                        <PlusIcon /> Thêm thành viên
-                                    </button>
-                                    <button className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm">
-                                        <BriefcaseIcon className="w-4 h-4" /> Đăng tin
-                                    </button>
+                                        Thêm thành viên
+                                    </Button>
+                                    <Button size="sm" icon={<BriefcaseIcon className="w-4 h-4" />}>
+                                        Đăng tin
+                                    </Button>
                                 </>
                             )}
                         </div>
@@ -279,6 +295,17 @@ export function CompanyPage() {
                     isDark={isDark}
                 />
             )}
+
+            {/* Remove Member Confirmation */}
+            <ConfirmModal
+                isOpen={confirmRemove.show}
+                onClose={() => setConfirmRemove({ show: false, memberId: null })}
+                onConfirm={handleConfirmRemove}
+                title="Xác nhận xóa"
+                message="Bạn có chắc muốn xóa thành viên này?"
+                variant="danger"
+                confirmText="Xóa"
+            />
         </div>
     );
 }
@@ -365,9 +392,9 @@ function OverviewTab({ stats, metrics, activities, members, isLoading, onInviteC
                                 <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Cập nhật realtime</p>
                             </div>
                         </div>
-                        <button className={`flex items-center gap-1.5 text-sm font-medium hover:underline ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                            Xem tất cả <ChevronRightIcon />
-                        </button>
+                        <Button variant="ghost" size="sm" icon={<ChevronRightIcon />}>
+                            Xem tất cả
+                        </Button>
                     </div>
 
                     {activities.length === 0 ? (
@@ -593,12 +620,12 @@ function AnalyticsTab({ stats: _stats, isDark: _isDark }: { stats: CompanyStats 
                 </div>
             </div>
             <div className="flex gap-4">
-                <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                    <DownloadIcon /> Xuất Excel
-                </button>
-                <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                    <DownloadIcon /> Xuất PDF
-                </button>
+                <Button variant="outline" size="sm" icon={<DownloadIcon />}>
+                    Xuất Excel
+                </Button>
+                <Button variant="outline" size="sm" icon={<DownloadIcon />}>
+                    Xuất PDF
+                </Button>
             </div>
         </div>
     );
@@ -744,10 +771,15 @@ function MemberRow({ member, canManage, onRemove, onUpdateRole }: {
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${role.color}`}>{role.label}</span>
             {canManage && (
                 <div className="flex items-center gap-2">
-                    <select value={member.company_role} onChange={(e) => onUpdateRole(e.target.value)} className="text-sm border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200">
-                        <option value="admin">Admin</option>
-                        <option value="member">Nhân viên</option>
-                    </select>
+                    <Select
+                        value={member.company_role}
+                        onChange={(e) => onUpdateRole(e.target.value)}
+                        options={[
+                            { value: 'admin', label: 'Admin' },
+                            { value: 'member', label: 'Nhân viên' },
+                        ]}
+                        className="!py-1 !text-sm !rounded-lg"
+                    />
                     <button onClick={onRemove} className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                         <TrashIcon />
                     </button>
@@ -803,47 +835,60 @@ function EditCompanyForm({ formData, setFormData, onSave, onCancel }: {
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); onSave(); }}>
             <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">Chỉnh sửa thông tin</h2>
             <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tên doanh nghiệp *</label>
-                    <input type="text" value={formData.name || ''} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" required />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Ngành nghề</label>
-                    <select value={formData.industry || ''} onChange={(e) => setFormData({ ...formData, industry: e.target.value })} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
-                        <option value="">Chọn ngành nghề</option>
-                        {INDUSTRY_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                    </select>
-                </div>
+                <Input
+                    label="Tên doanh nghiệp"
+                    type="text"
+                    value={formData.name || ''}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                />
+                <Select
+                    label="Ngành nghề"
+                    value={formData.industry || ''}
+                    onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                    placeholder="Chọn ngành nghề"
+                    options={INDUSTRY_OPTIONS.map((opt) => ({ value: opt, label: opt }))}
+                />
             </div>
-            <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mô tả</label>
-                <textarea value={formData.description || ''} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={3} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 resize-none" placeholder="Giới thiệu về doanh nghiệp..." />
+            <Textarea
+                label="Mô tả"
+                value={formData.description || ''}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+                placeholder="Giới thiệu về doanh nghiệp..."
+            />
+            <div className="grid sm:grid-cols-2 gap-4">
+                <Select
+                    label="Quy mô"
+                    value={formData.size || '1-10'}
+                    onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                    options={SIZE_OPTIONS}
+                />
+                <Input
+                    label="Website"
+                    type="url"
+                    value={formData.website || ''}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                    placeholder="https://"
+                />
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Quy mô</label>
-                    <select value={formData.size || '1-10'} onChange={(e) => setFormData({ ...formData, size: e.target.value })} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
-                        {SIZE_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Website</label>
-                    <input type="url" value={formData.website || ''} onChange={(e) => setFormData({ ...formData, website: e.target.value })} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" placeholder="https://" />
-                </div>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Số điện thoại</label>
-                    <input type="tel" value={formData.phone || ''} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Địa chỉ</label>
-                    <input type="text" value={formData.address || ''} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
-                </div>
+                <Input
+                    label="Số điện thoại"
+                    type="tel"
+                    value={formData.phone || ''}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                />
+                <Input
+                    label="Địa chỉ"
+                    type="text"
+                    value={formData.address || ''}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                />
             </div>
             <div className="flex justify-end gap-3 pt-4">
-                <button type="button" onClick={onCancel} className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">Hủy</button>
-                <button type="submit" className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors">Lưu thay đổi</button>
+                <Button variant="outline" type="button" onClick={onCancel}>Hủy</Button>
+                <Button type="submit">Lưu thay đổi</Button>
             </div>
         </form>
     );
@@ -876,32 +921,44 @@ function InviteMemberModal({ onClose, onSuccess, isDark: _isDark }: { onClose: (
                 <div className="p-6">
                     <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">Thêm thành viên mới</h2>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Họ tên *</label>
-                            <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" required />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email *</label>
-                            <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" required />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mật khẩu *</label>
-                            <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" placeholder="Tối thiểu 8 ký tự" required />
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Thành viên sẽ dùng mật khẩu này để đăng nhập</p>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Vai trò</label>
-                            <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
-                                <option value="admin">Quản trị viên</option>
-                                <option value="member">Nhân viên</option>
-                            </select>
-                        </div>
+                        <Input
+                            label="Họ tên"
+                            type="text"
+                            value={form.name}
+                            onChange={(e) => setForm({ ...form, name: e.target.value })}
+                            required
+                        />
+                        <Input
+                            label="Email"
+                            type="email"
+                            value={form.email}
+                            onChange={(e) => setForm({ ...form, email: e.target.value })}
+                            required
+                        />
+                        <Input
+                            label="Mật khẩu"
+                            type="password"
+                            value={form.password}
+                            onChange={(e) => setForm({ ...form, password: e.target.value })}
+                            placeholder="Tối thiểu 8 ký tự"
+                            helperText="Thành viên sẽ dùng mật khẩu này để đăng nhập"
+                            required
+                        />
+                        <Select
+                            label="Vai trò"
+                            value={form.role}
+                            onChange={(e) => setForm({ ...form, role: e.target.value })}
+                            options={[
+                                { value: 'admin', label: 'Quản trị viên' },
+                                { value: 'member', label: 'Nhân viên' },
+                            ]}
+                        />
                         {error && <p className="text-sm text-red-500 dark:text-red-400">{error}</p>}
                         <div className="flex justify-end gap-3 pt-2">
-                            <button type="button" onClick={onClose} className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">Hủy</button>
-                            <button type="submit" disabled={loading} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
+                            <Button variant="outline" type="button" onClick={onClose}>Hủy</Button>
+                            <Button type="submit" disabled={loading}>
                                 {loading ? 'Đang tạo...' : 'Tạo tài khoản'}
-                            </button>
+                            </Button>
                         </div>
                     </form>
                 </div>
@@ -991,8 +1048,8 @@ function PremiumStatCard({ icon, value, label, sublabel, change, gradient, bgGra
                 {sublabel && <div className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{sublabel}</div>}
                 {change !== undefined && (
                     <div className={`inline-flex items-center gap-1 text-xs font-medium mt-2 px-2 py-0.5 rounded-full ${change >= 0
-                            ? isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-700'
-                            : isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-700'
+                        ? isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-700'
+                        : isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-700'
                         }`}>
                         {change >= 0 ? '↑' : '↓'} {Math.abs(change)}% vs tháng trước
                     </div>

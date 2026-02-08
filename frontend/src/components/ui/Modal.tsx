@@ -1,15 +1,33 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
     title?: string;
     children: React.ReactNode;
-    size?: 'sm' | 'md' | 'lg' | 'xl';
+    footer?: React.ReactNode;
+    size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+    hideCloseButton?: boolean;
 }
 
-export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
-    // Close on Escape key
+/**
+ * Modal - Reusable modal dialog with dark mode & Portal rendering
+ *
+ * Usage:
+ * ```tsx
+ * <Modal isOpen={show} onClose={() => setShow(false)} title="Tiêu đề" size="md"
+ *     footer={<><Button variant="ghost" onClick={close}>Hủy</Button><Button>Lưu</Button></>}
+ * >
+ *     <div className="p-6">Nội dung</div>
+ * </Modal>
+ * ```
+ */
+export function Modal({ isOpen, onClose, title, children, footer, size = 'md', hideCloseButton = false }: ModalProps) {
+    const { resolvedTheme } = useTheme();
+    const isDark = resolvedTheme === 'dark';
+
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
@@ -28,45 +46,69 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
 
     if (!isOpen) return null;
 
-    const sizes = {
+    const sizes: Record<string, string> = {
         sm: 'max-w-sm',
         md: 'max-w-md',
         lg: 'max-w-lg',
         xl: 'max-w-2xl',
+        full: 'max-w-5xl',
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    return createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/50 backdrop-blur-sm"
                 onClick={onClose}
+                style={{ animation: 'fadeIn 0.2s ease-out' }}
             />
 
-            {/* Modal */}
+            {/* Dialog */}
             <div
-                className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizes[size]} max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
+                className={`
+                    relative w-full ${sizes[size]} max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden
+                    ${isDark ? 'bg-slate-900 border border-slate-800' : 'bg-white'}
+                `}
+                style={{ animation: 'scaleIn 0.2s ease-out' }}
             >
                 {/* Header */}
                 {title && (
-                    <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                        <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-                        <button
-                            onClick={onClose}
-                            className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                        </button>
+                    <div className={`flex items-center justify-between px-6 py-4 border-b ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
+                        <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{title}</h2>
+                        {!hideCloseButton && (
+                            <button
+                                onClick={onClose}
+                                className={`p-1.5 rounded-lg transition-colors ${isDark
+                                    ? 'text-slate-500 hover:text-white hover:bg-slate-800'
+                                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                                    }`}
+                            >
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        )}
                     </div>
                 )}
 
                 {/* Content */}
-                <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
+                <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
                     {children}
                 </div>
+
+                {/* Footer */}
+                {footer && (
+                    <div className={`flex items-center justify-end gap-3 px-6 py-4 border-t ${isDark ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50/50'}`}>
+                        {footer}
+                    </div>
+                )}
             </div>
-        </div>
+
+            <style>{`
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+            `}</style>
+        </div>,
+        document.body
     );
 }

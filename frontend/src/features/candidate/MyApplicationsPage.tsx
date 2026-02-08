@@ -42,11 +42,11 @@ const mockApplications: Application[] = [
 ];
 
 const statusConfig = {
-    pending: { label: 'Đang chờ', color: 'bg-slate-100 text-slate-600' },
-    reviewing: { label: 'Đang xem xét', color: 'bg-amber-50 text-amber-600' },
-    interview: { label: 'Được mời phỏng vấn', color: 'bg-blue-50 text-blue-600' },
-    rejected: { label: 'Không phù hợp', color: 'bg-rose-50 text-rose-600' },
-    accepted: { label: 'Được nhận', color: 'bg-emerald-50 text-emerald-600' },
+    pending: { label: 'Đang chờ', color: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300' },
+    reviewing: { label: 'Đang xem xét', color: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400' },
+    interview: { label: 'Được mời phỏng vấn', color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' },
+    rejected: { label: 'Không phù hợp', color: 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400' },
+    accepted: { label: 'Được nhận', color: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' },
 };
 
 export function MyApplicationsPage() {
@@ -65,8 +65,8 @@ export function MyApplicationsPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-2xl font-bold text-slate-800 mb-2">Đơn ứng tuyển của tôi</h1>
-                <p className="text-slate-500">Theo dõi trạng thái các đơn ứng tuyển của bạn</p>
+                <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Đơn ứng tuyển của tôi</h1>
+                <p className="text-slate-500 dark:text-slate-400">Theo dõi trạng thái các đơn ứng tuyển của bạn</p>
             </div>
 
             {/* Filter Tabs */}
@@ -83,8 +83,8 @@ export function MyApplicationsPage() {
                         key={tab.value}
                         onClick={() => setFilter(tab.value as typeof filter)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filter === tab.value
-                                ? 'bg-emerald-600 text-white shadow-md'
-                                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                            ? 'bg-emerald-600 text-white shadow-md'
+                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                             }`}
                     >
                         {tab.label}
@@ -98,7 +98,7 @@ export function MyApplicationsPage() {
                     {filteredApplications.map((app) => (
                         <div
                             key={app.id}
-                            className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow"
+                            className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm hover:shadow-md transition-shadow"
                         >
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div className="flex gap-4">
@@ -108,10 +108,10 @@ export function MyApplicationsPage() {
                                         </span>
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-slate-800 mb-1">{app.jobTitle}</h3>
-                                        <p className="text-sm text-slate-500 mb-2">{app.company}</p>
+                                        <h3 className="font-semibold text-slate-800 dark:text-white mb-1">{app.jobTitle}</h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">{app.company}</p>
                                         <div className="flex flex-wrap items-center gap-3 text-sm">
-                                            <span className="flex items-center gap-1 text-slate-500">
+                                            <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
                                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                                 </svg>
@@ -134,14 +134,14 @@ export function MyApplicationsPage() {
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
-                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                     </div>
-                    <h3 className="text-lg font-medium text-slate-800 mb-2">Chưa có đơn ứng tuyển</h3>
-                    <p className="text-slate-500 mb-6">Bắt đầu tìm kiếm và ứng tuyển công việc phù hợp</p>
+                    <h3 className="text-lg font-medium text-slate-800 dark:text-white mb-2">Chưa có đơn ứng tuyển</h3>
+                    <p className="text-slate-500 dark:text-slate-400 mb-6">Bắt đầu tìm kiếm và ứng tuyển công việc phù hợp</p>
                     <Link
                         to="/jobs"
                         className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors"

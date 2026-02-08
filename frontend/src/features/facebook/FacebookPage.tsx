@@ -78,9 +78,9 @@ function FacebookAccountCard({
     };
 
     return (
-        <div className={`bg-white rounded-2xl border-2 transition-all duration-300 overflow-hidden ${account.is_default
-                ? 'border-blue-500 shadow-lg shadow-blue-500/10'
-                : 'border-slate-200 hover:border-slate-300 hover:shadow-md'
+        <div className={`bg-white dark:bg-slate-800 rounded-2xl border-2 transition-all duration-300 overflow-hidden ${account.is_default
+            ? 'border-blue-500 shadow-lg shadow-blue-500/10'
+            : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md'
             }`}>
             {/* Header with gradient */}
             <div className="h-24 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 relative">
@@ -95,10 +95,10 @@ function FacebookAccountCard({
 
                 <div className="absolute top-3 right-3 flex items-center gap-2">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${account.status === 'connected'
-                            ? 'bg-green-500/20 text-green-100'
-                            : account.status === 'expired'
-                                ? 'bg-amber-500/20 text-amber-100'
-                                : 'bg-red-500/20 text-red-100'
+                        ? 'bg-green-500/20 text-green-100'
+                        : account.status === 'expired'
+                            ? 'bg-amber-500/20 text-amber-100'
+                            : 'bg-red-500/20 text-red-100'
                         }`}>
                         {account.status === 'connected' ? '● Online' : account.status === 'expired' ? '● Hết hạn' : '● Offline'}
                     </span>
@@ -107,7 +107,7 @@ function FacebookAccountCard({
 
             {/* Avatar */}
             <div className="relative -mt-12 px-5">
-                <div className="w-20 h-20 rounded-2xl bg-white border-4 border-white shadow-lg overflow-hidden">
+                <div className="w-20 h-20 rounded-2xl bg-white dark:bg-slate-800 border-4 border-white dark:border-slate-800 shadow-lg overflow-hidden">
                     {account.metadata?.avatar_url ? (
                         <img src={account.metadata.avatar_url} alt={account.name} className="w-full h-full object-cover" />
                     ) : (
@@ -120,14 +120,14 @@ function FacebookAccountCard({
 
             {/* Content */}
             <div className="p-5 pt-3">
-                <h3 className="font-semibold text-lg text-slate-900 truncate">
+                <h3 className="font-semibold text-lg text-slate-900 dark:text-white truncate">
                     {account.name || account.account_name}
                 </h3>
                 {account.account_name && account.name !== account.account_name && (
-                    <p className="text-sm text-slate-500 truncate">@{account.account_name}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 truncate">@{account.account_name}</p>
                 )}
 
-                <div className="flex items-center gap-4 mt-3 text-sm text-slate-500">
+                <div className="flex items-center gap-4 mt-3 text-sm text-slate-500 dark:text-slate-400">
                     <span className="flex items-center gap-1.5">
                         {Icons.groups}
                         <span className="font-medium">{account.metadata?.groups_count || 0}</span> nhóm
@@ -139,7 +139,7 @@ function FacebookAccountCard({
                     <button
                         onClick={handleSync}
                         disabled={syncing}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-700 rounded-xl font-medium text-sm hover:bg-blue-100 transition-colors disabled:opacity-50"
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-xl font-medium text-sm hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50"
                     >
                         <span className={syncing ? 'animate-spin' : ''}>{Icons.sync}</span>
                         {syncing ? 'Đang đồng bộ...' : 'Đồng bộ'}
@@ -147,7 +147,7 @@ function FacebookAccountCard({
                     {!account.is_default && (
                         <button
                             onClick={() => onSetDefault(account.id)}
-                            className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors"
+                            className="px-4 py-2.5 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-xl text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                             title="Đặt làm mặc định"
                         >
                             {Icons.check}
@@ -155,7 +155,7 @@ function FacebookAccountCard({
                     )}
                     <button
                         onClick={() => onDelete(account)}
-                        className="px-4 py-2.5 border border-slate-200 text-red-500 rounded-xl text-sm hover:bg-red-50 hover:border-red-200 transition-colors"
+                        className="px-4 py-2.5 border border-slate-200 dark:border-slate-600 text-red-500 dark:text-red-400 rounded-xl text-sm hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200 dark:hover:border-red-800 transition-colors"
                         title="Xóa tài khoản"
                     >
                         {Icons.trash}
@@ -247,13 +247,13 @@ export function FacebookPage() {
             <div className="mb-8">
                 <div className="flex items-start justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
-                            <span className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
+                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                            <span className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400">
                                 {Icons.facebook}
                             </span>
                             Quản lý Facebook
                         </h1>
-                        <p className="text-slate-500 mt-2">Kết nối và quản lý tài khoản Facebook để đăng bài tự động</p>
+                        <p className="text-slate-500 dark:text-slate-400 mt-2">Kết nối và quản lý tài khoản Facebook để đăng bài tự động</p>
                     </div>
                     <button
                         onClick={() => setShowAddModal(true)}
@@ -266,55 +266,55 @@ export function FacebookPage() {
 
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                    <div className="bg-white rounded-2xl p-5 border border-slate-200">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
+                            <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400">
                                 {Icons.facebook}
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-slate-900">{accounts.length}</p>
-                                <p className="text-sm text-slate-500">Tài khoản</p>
+                                <p className="text-2xl font-bold text-slate-900 dark:text-white">{accounts.length}</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Tài khoản</p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white rounded-2xl p-5 border border-slate-200">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-green-600">
+                            <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-600 dark:text-green-400">
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-slate-900">{connectedCount}</p>
-                                <p className="text-sm text-slate-500">Đang kết nối</p>
+                                <p className="text-2xl font-bold text-slate-900 dark:text-white">{connectedCount}</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Đang kết nối</p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white rounded-2xl p-5 border border-slate-200">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600">
+                            <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center text-purple-600 dark:text-purple-400">
                                 {Icons.groups}
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-slate-900">
+                                <p className="text-2xl font-bold text-slate-900 dark:text-white">
                                     {accounts.reduce((sum, a) => sum + (a.metadata?.groups_count || 0), 0)}
                                 </p>
-                                <p className="text-sm text-slate-500">Nhóm</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Nhóm</p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white rounded-2xl p-5 border border-slate-200">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600">
+                            <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center text-amber-600 dark:text-amber-400">
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                                 </svg>
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-slate-900">
+                                <p className="text-2xl font-bold text-slate-900 dark:text-white">
                                     {accounts.filter(a => a.status === 'expired').length}
                                 </p>
-                                <p className="text-sm text-slate-500">Cần gia hạn</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Cần gia hạn</p>
                             </div>
                         </div>
                     </div>
@@ -327,12 +327,12 @@ export function FacebookPage() {
                     <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
                 </div>
             ) : accounts.length === 0 ? (
-                <div className="text-center py-20 bg-white rounded-2xl border border-slate-200">
-                    <div className="w-20 h-20 mx-auto rounded-2xl bg-blue-100 flex items-center justify-center mb-4 text-blue-600">
+                <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <div className="w-20 h-20 mx-auto rounded-2xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center mb-4 text-blue-600 dark:text-blue-400">
                         {Icons.facebook}
                     </div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Chưa có tài khoản Facebook</h3>
-                    <p className="text-slate-500 mb-6 max-w-sm mx-auto">
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Chưa có tài khoản Facebook</h3>
+                    <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-sm mx-auto">
                         Thêm tài khoản Facebook để bắt đầu quản lý nhóm và đăng bài tự động
                     </p>
                     <button
@@ -360,23 +360,23 @@ export function FacebookPage() {
             {/* Add Account Modal */}
             {showAddModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
-                        <div className="flex items-center justify-between p-5 border-b border-slate-100">
-                            <h3 className="font-semibold text-slate-900">Thêm tài khoản Facebook</h3>
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md shadow-2xl">
+                        <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-700">
+                            <h3 className="font-semibold text-slate-900 dark:text-white">Thêm tài khoản Facebook</h3>
                             <button
                                 onClick={() => setShowAddModal(false)}
-                                className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                             >
                                 {Icons.close}
                             </button>
                         </div>
                         <div className="p-5">
                             <div className="text-center py-8">
-                                <div className="w-16 h-16 mx-auto rounded-2xl bg-blue-100 flex items-center justify-center mb-4 text-blue-600">
+                                <div className="w-16 h-16 mx-auto rounded-2xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center mb-4 text-blue-600 dark:text-blue-400">
                                     {Icons.facebook}
                                 </div>
-                                <h4 className="font-medium text-slate-900 mb-2">Đăng nhập với Facebook</h4>
-                                <p className="text-sm text-slate-500 mb-6">
+                                <h4 className="font-medium text-slate-900 dark:text-white mb-2">Đăng nhập với Facebook</h4>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
                                     Chúng tôi sẽ sử dụng cookies để đăng bài tự động. Dữ liệu được mã hóa và bảo mật.
                                 </p>
                                 <button
@@ -399,20 +399,20 @@ export function FacebookPage() {
             {/* Delete Confirmation Modal */}
             {showDeleteModal && accountToDelete && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6">
-                        <div className="w-14 h-14 mx-auto rounded-2xl bg-red-100 flex items-center justify-center mb-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm shadow-2xl p-6">
+                        <div className="w-14 h-14 mx-auto rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
                             {Icons.trash}
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-900 text-center mb-2">
+                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white text-center mb-2">
                             Xóa tài khoản?
                         </h3>
-                        <p className="text-sm text-slate-500 text-center mb-6">
-                            Bạn có chắc muốn xóa tài khoản <span className="font-medium text-slate-700">"{accountToDelete.name}"</span>? Tất cả nhóm liên kết sẽ bị xóa.
+                        <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">
+                            Bạn có chắc muốn xóa tài khoản <span className="font-medium text-slate-700 dark:text-slate-300">"{accountToDelete.name}"</span>? Tất cả nhóm liên kết sẽ bị xóa.
                         </p>
                         <div className="flex gap-3">
                             <button
                                 onClick={() => { setShowDeleteModal(false); setAccountToDelete(null); }}
-                                className="flex-1 py-3 border border-slate-200 text-slate-700 rounded-xl font-medium text-sm hover:bg-slate-50 transition-colors"
+                                className="flex-1 py-3 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-xl font-medium text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                             >
                                 Hủy
                             </button>

@@ -9,6 +9,7 @@ import {
     BriefcaseIcon, CalendarIcon, ClockIcon, DocumentTextIcon,
     PencilIcon, ClipboardDocumentListIcon, DocumentIcon, RocketLaunchIcon
 } from '../../../components/ui/icons';
+import { Input, Select, Textarea } from '../../../components/ui';
 
 interface Shift {
     id: string;
@@ -129,6 +130,8 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
             benefits: formData.benefits.map(b => b.label).join(', '),
             // Parse salary
             salary_min: formData.salaryAmount ? parseInt(formData.salaryAmount.replace(/[,.\s]/g, '')) : null,
+            // Tạo tin luôn với status open (không cần nháp)
+            status: 'open',
         };
         onSubmit(apiData as any);
     };
@@ -137,15 +140,6 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
         { id: 'info' as const, label: 'Thông tin công việc', icon: <BriefcaseIcon className="w-4 h-4" /> },
         { id: 'schedule' as const, label: 'Ca làm & Lịch hẹn', icon: <CalendarIcon className="w-4 h-4" /> },
     ];
-
-    const inputClass = `
-        w-full px-4 py-2.5 rounded-lg text-sm
-        ${isDark
-            ? 'bg-slate-800 border-slate-700 text-white placeholder:text-slate-500'
-            : 'bg-white border-slate-200 text-slate-800 placeholder:text-slate-400'
-        }
-        border focus:ring-2 focus:ring-emerald-500/30 focus:outline-none
-    `;
 
     const labelClass = `block text-sm font-medium mb-1.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`;
 
@@ -197,11 +191,10 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
                                 <label className={labelClass}>
                                     Tên công việc <span className="text-red-500">*</span>
                                 </label>
-                                <input
+                                <Input
                                     type="text"
                                     value={formData.title}
                                     onChange={(e) => updateField('title', e.target.value)}
-                                    className={inputClass}
                                     placeholder="VD: Nhân viên phục vụ, PG/PB, Nhân viên kho..."
                                     required
                                 />
@@ -211,25 +204,20 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className={labelClass}>Ngành nghề</label>
-                                    <select
+                                    <Select
                                         value={formData.category}
                                         onChange={(e) => updateField('category', e.target.value)}
-                                        className={inputClass}
-                                    >
-                                        {jobCategories.map(cat => (
-                                            <option key={cat.value} value={cat.value}>{cat.label}</option>
-                                        ))}
-                                    </select>
+                                        options={jobCategories.map(cat => ({ value: cat.value, label: cat.label }))}
+                                    />
                                 </div>
                                 <div>
                                     <label className={labelClass}>
                                         Địa chỉ làm việc <span className="text-red-500">*</span>
                                     </label>
-                                    <input
+                                    <Input
                                         type="text"
                                         value={formData.location}
                                         onChange={(e) => updateField('location', e.target.value)}
-                                        className={inputClass}
                                         placeholder="VD: 123 Nguyễn Huệ, Q.1, TP.HCM"
                                         required
                                     />
@@ -243,12 +231,11 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
                                         Số lượng cần tuyển <span className="text-red-500">*</span>
                                     </label>
                                     <div className="flex items-center gap-2">
-                                        <input
+                                        <Input
                                             type="number"
                                             min={1}
                                             value={formData.headcount}
                                             onChange={(e) => updateField('headcount', parseInt(e.target.value) || 1)}
-                                            className={inputClass}
                                         />
                                         <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>người</span>
                                     </div>
@@ -257,22 +244,22 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
                                     <label className={labelClass}>Mức lương</label>
                                     <div className="flex items-center gap-2">
                                         <div className="flex-1 min-w-0">
-                                            <input
+                                            <Input
                                                 type="text"
                                                 value={formData.salaryAmount}
                                                 onChange={(e) => updateField('salaryAmount', e.target.value)}
-                                                className={inputClass}
                                                 placeholder="VD: 200,000"
                                             />
                                         </div>
-                                        <select
+                                        <Select
                                             value={formData.salaryType}
                                             onChange={(e) => updateField('salaryType', e.target.value as 'per_shift' | 'per_hour')}
-                                            className={`${inputClass} !w-auto shrink-0`}
-                                        >
-                                            <option value="per_shift">/ca</option>
-                                            <option value="per_hour">/giờ</option>
-                                        </select>
+                                            className="!w-auto shrink-0"
+                                            options={[
+                                                { value: 'per_shift', label: '/ca' },
+                                                { value: 'per_hour', label: '/giờ' },
+                                            ]}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -311,11 +298,10 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
                             {/* Mô tả công việc */}
                             <div>
                                 <label className={labelClass}>Mô tả công việc</label>
-                                <textarea
+                                <Textarea
                                     value={formData.description}
                                     onChange={(e) => updateField('description', e.target.value)}
                                     rows={3}
-                                    className={inputClass}
                                     placeholder="Mô tả chi tiết về công việc, nhiệm vụ..."
                                 />
                             </div>
@@ -323,11 +309,10 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
                             {/* Yêu cầu */}
                             <div>
                                 <label className={labelClass}>Yêu cầu ứng viên</label>
-                                <textarea
+                                <Textarea
                                     value={formData.requirements}
                                     onChange={(e) => updateField('requirements', e.target.value)}
                                     rows={3}
-                                    className={inputClass}
                                     placeholder="VD: Ngoại hình khá, giao tiếp tốt, có kinh nghiệm ưu tiên..."
                                 />
                             </div>
@@ -384,11 +369,10 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
                                         <ClockIcon className="w-4 h-4 text-emerald-500" />
                                         Ngày bắt đầu
                                     </label>
-                                    <input
+                                    <Input
                                         type="date"
                                         value={formData.startDate}
                                         onChange={(e) => updateField('startDate', e.target.value)}
-                                        className={inputClass}
                                     />
                                 </div>
                                 <div>
@@ -396,11 +380,10 @@ export function JobForm({ job, onSubmit, onCancel, isLoading }: JobFormProps) {
                                         <ClockIcon className="w-4 h-4 text-emerald-500" />
                                         Ngày kết thúc
                                     </label>
-                                    <input
+                                    <Input
                                         type="date"
                                         value={formData.endDate}
                                         onChange={(e) => updateField('endDate', e.target.value)}
-                                        className={inputClass}
                                     />
                                 </div>
                             </div>

@@ -1,6 +1,6 @@
-import { useState } from 'react';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { PlusIcon, TrashIcon, ClockIcon } from '../../../components/ui/icons';
+import { Input } from '../../../components/ui';
 
 interface Shift {
     id: string;
@@ -83,47 +83,25 @@ export function ShiftPicker({ shifts, onChange }: ShiftPickerProps) {
                             ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'}
                         `}
                     >
-                        <input
+                        <Input
                             type="text"
                             value={shift.name}
                             onChange={(e) => updateShift(shift.id, 'name', e.target.value)}
                             placeholder="Tên ca"
-                            className={`
-                                flex-1 px-3 py-2 rounded-lg text-sm
-                                ${isDark
-                                    ? 'bg-slate-900 border-slate-700 text-white'
-                                    : 'bg-white border-slate-200 text-slate-800'
-                                }
-                                border focus:ring-2 focus:ring-emerald-500/30 focus:outline-none
-                            `}
                         />
                         <div className="flex items-center gap-2">
-                            <input
+                            <Input
                                 type="time"
                                 value={shift.startTime}
                                 onChange={(e) => updateShift(shift.id, 'startTime', e.target.value)}
-                                className={`
-                                    px-3 py-2 rounded-lg text-sm w-28
-                                    ${isDark
-                                        ? 'bg-slate-900 border-slate-700 text-white'
-                                        : 'bg-white border-slate-200 text-slate-800'
-                                    }
-                                    border focus:ring-2 focus:ring-emerald-500/30 focus:outline-none
-                                `}
+                                className="w-28"
                             />
                             <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>đến</span>
-                            <input
+                            <Input
                                 type="time"
                                 value={shift.endTime}
                                 onChange={(e) => updateShift(shift.id, 'endTime', e.target.value)}
-                                className={`
-                                    px-3 py-2 rounded-lg text-sm w-28
-                                    ${isDark
-                                        ? 'bg-slate-900 border-slate-700 text-white'
-                                        : 'bg-white border-slate-200 text-slate-800'
-                                    }
-                                    border focus:ring-2 focus:ring-emerald-500/30 focus:outline-none
-                                `}
+                                className="w-28"
                             />
                         </div>
                         <button

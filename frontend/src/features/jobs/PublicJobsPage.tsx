@@ -4,6 +4,7 @@ import { PublicJobCard } from './components/PublicJobCard';
 import { publicJobsApi } from './services/publicJobsApi';
 import type { PublicJob, PublicJobsParams } from './services/publicJobsApi';
 import { SEOHead } from '../../components/SEOHead';
+import { Select, Button } from '../../components/ui';
 
 const JOB_CATEGORIES = [
     { value: '', label: 'Tất cả ngành nghề' },
@@ -226,12 +227,18 @@ export function PublicJobsPage() {
                             <span className="text-slate-300">/</span>
                             <span className="text-slate-800 font-medium">Việc làm</span>
                         </nav>
-                        <button className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors font-medium">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                            </svg>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            icon={
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                            }
+                            className="hidden sm:inline-flex"
+                        >
                             Tạo thông báo việc làm
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -367,11 +374,14 @@ export function PublicJobsPage() {
                                 </p>
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs text-slate-400 hidden sm:inline">Sắp xếp:</span>
-                                    <select className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white cursor-pointer">
-                                        <option>Mới nhất</option>
-                                        <option>Lương cao nhất</option>
-                                        <option>Phù hợp nhất</option>
-                                    </select>
+                                    <Select
+                                        options={[
+                                            { value: 'newest', label: 'Mới nhất' },
+                                            { value: 'highest_salary', label: 'Lương cao nhất' },
+                                            { value: 'most_relevant', label: 'Phù hợp nhất' },
+                                        ]}
+                                        className="!py-1.5 !text-sm"
+                                    />
                                 </div>
                             </div>
 

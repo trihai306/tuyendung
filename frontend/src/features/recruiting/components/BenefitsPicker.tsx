@@ -15,6 +15,7 @@ import {
     SparklesIcon,
     CheckIcon,
 } from '../../../components/ui/icons';
+import { Input, Button } from '../../../components/ui';
 
 export interface Benefit {
     id: string;
@@ -162,37 +163,21 @@ export function BenefitsPicker({ benefits, onChange }: BenefitsPickerProps) {
                             <label className={`block text-xs font-medium mb-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                                 Điểm đón
                             </label>
-                            <input
+                            <Input
                                 type="text"
                                 value={shuttleDetails.pickupPoint}
                                 onChange={(e) => updateShuttleDetails('pickupPoint', e.target.value)}
                                 placeholder="VD: Bến xe Miền Đông, Q.9"
-                                className={`
-                                    w-full px-3 py-2 rounded-lg text-sm
-                                    ${isDark
-                                        ? 'bg-slate-800 border-slate-700 text-white placeholder:text-slate-500'
-                                        : 'bg-white border-slate-200 text-slate-800 placeholder:text-slate-400'
-                                    }
-                                    border focus:ring-2 focus:ring-emerald-500/30 focus:outline-none
-                                `}
                             />
                         </div>
                         <div>
                             <label className={`block text-xs font-medium mb-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                                 Giờ đón
                             </label>
-                            <input
+                            <Input
                                 type="time"
                                 value={shuttleDetails.pickupTime}
                                 onChange={(e) => updateShuttleDetails('pickupTime', e.target.value)}
-                                className={`
-                                    w-full px-3 py-2 rounded-lg text-sm
-                                    ${isDark
-                                        ? 'bg-slate-800 border-slate-700 text-white'
-                                        : 'bg-white border-slate-200 text-slate-800'
-                                    }
-                                    border focus:ring-2 focus:ring-emerald-500/30 focus:outline-none
-                                `}
                             />
                         </div>
                     </div>
@@ -201,37 +186,22 @@ export function BenefitsPicker({ benefits, onChange }: BenefitsPickerProps) {
 
             {/* Add Custom Benefit */}
             <div className="flex gap-2">
-                <input
+                <Input
                     type="text"
                     value={customBenefit}
                     onChange={(e) => setCustomBenefit(e.target.value)}
                     placeholder="Thêm phúc lợi khác..."
                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomBenefit())}
-                    className={`
-                        flex-1 px-3 py-2 rounded-lg text-sm
-                        ${isDark
-                            ? 'bg-slate-800 border-slate-700 text-white placeholder:text-slate-500'
-                            : 'bg-white border-slate-200 text-slate-800 placeholder:text-slate-400'
-                        }
-                        border focus:ring-2 focus:ring-emerald-500/30 focus:outline-none
-                    `}
+                    className="flex-1"
                 />
-                <button
+                <Button
                     type="button"
+                    size="sm"
                     onClick={addCustomBenefit}
                     disabled={!customBenefit.trim()}
-                    className={`
-                        px-4 py-2 rounded-lg text-sm font-medium transition-colors
-                        ${customBenefit.trim()
-                            ? 'bg-emerald-500 text-white hover:bg-emerald-600'
-                            : isDark
-                                ? 'bg-slate-800 text-slate-600 cursor-not-allowed'
-                                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                        }
-                    `}
                 >
                     + Thêm
-                </button>
+                </Button>
             </div>
         </div>
     );

@@ -2,16 +2,17 @@ import { useState, useEffect } from 'react';
 import { useScheduling, useZaloGroups } from './useScheduling';
 import type { ScheduledGroupPost, CreateScheduledPostData } from './schedulingApi';
 import apiClient from '../../services/apiClient';
+import { useToast, ConfirmModal } from '../../components/ui';
 
 // Status badge component
 function StatusBadge({ status }: { status: string }) {
     const statusStyles: Record<string, string> = {
-        pending: 'bg-amber-100 text-amber-800',
-        approved: 'bg-blue-100 text-blue-800',
-        processing: 'bg-purple-100 text-purple-800',
-        completed: 'bg-emerald-100 text-emerald-800',
-        failed: 'bg-red-100 text-red-800',
-        cancelled: 'bg-gray-100 text-gray-600',
+        pending: 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300',
+        approved: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300',
+        processing: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300',
+        completed: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300',
+        failed: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300',
+        cancelled: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400',
     };
 
     const statusLabels: Record<string, string> = {
@@ -24,7 +25,7 @@ function StatusBadge({ status }: { status: string }) {
     };
 
     return (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusStyles[status] || 'bg-gray-100 text-gray-600'}`}>
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusStyles[status] || 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}>
             {statusLabels[status] || status}
         </span>
     );
@@ -100,15 +101,15 @@ function CreatePostModal({
             <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
                 <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={onClose} />
 
-                <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                <div className="relative transform overflow-hidden rounded-lg bg-white dark:bg-slate-800 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
                     <form onSubmit={handleSubmit}>
-                        <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                            <h3 className="text-lg font-semibold leading-6 text-gray-900 mb-4">
+                        <div className="bg-white dark:bg-slate-800 px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                            <h3 className="text-lg font-semibold leading-6 text-gray-900 dark:text-white mb-4">
                                 Lên lịch đăng bài Zalo Group
                             </h3>
 
                             {error && (
-                                <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+                                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg text-sm">
                                     {error}
                                 </div>
                             )}
@@ -116,7 +117,7 @@ function CreatePostModal({
                             <div className="space-y-4">
                                 {/* Zalo Account Selection */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         Tài khoản Zalo
                                     </label>
                                     <select
@@ -127,7 +128,7 @@ function CreatePostModal({
                                             zalo_account_id: Number(e.target.value),
                                             target_groups: [],
                                         }))}
-                                        className="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                        className="w-full rounded-lg border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                     >
                                         <option value={0}>-- Chọn tài khoản --</option>
                                         {zaloAccounts.map(acc => (
@@ -140,7 +141,7 @@ function CreatePostModal({
 
                                 {/* Target Groups */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         Nhóm đích
                                     </label>
                                     <div className="space-y-2">
@@ -155,15 +156,15 @@ function CreatePostModal({
                                                 }))}
                                                 className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                                             />
-                                            <span className="ml-2 text-sm text-gray-600">Tất cả các nhóm</span>
+                                            <span className="ml-2 text-sm text-gray-600 dark:text-gray-300">Tất cả các nhóm</span>
                                         </label>
 
                                         {!formData.select_all_groups && (
-                                            <div className="max-h-40 overflow-y-auto border rounded-lg p-2">
+                                            <div className="max-h-40 overflow-y-auto border dark:border-slate-600 rounded-lg p-2">
                                                 {groupsLoading ? (
-                                                    <p className="text-sm text-gray-500 text-center py-2">Đang tải...</p>
+                                                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-2">Đang tải...</p>
                                                 ) : groups.length === 0 ? (
-                                                    <p className="text-sm text-gray-500 text-center py-2">Chưa có nhóm nào</p>
+                                                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-2">Chưa có nhóm nào</p>
                                                 ) : (
                                                     groups.map(group => (
                                                         <label key={group.group_id} className="flex items-center py-1">
@@ -186,7 +187,7 @@ function CreatePostModal({
                                                                 className="rounded border-gray-300 text-emerald-600"
                                                             />
                                                             <span className="ml-2 text-sm">{group.name}</span>
-                                                            <span className="ml-auto text-xs text-gray-400">{group.member_count} thành viên</span>
+                                                            <span className="ml-auto text-xs text-gray-400 dark:text-gray-500">{group.member_count} thành viên</span>
                                                         </label>
                                                     ))
                                                 )}
@@ -197,7 +198,7 @@ function CreatePostModal({
 
                                 {/* Content */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         Nội dung bài đăng
                                     </label>
                                     <textarea
@@ -206,13 +207,13 @@ function CreatePostModal({
                                         value={formData.content}
                                         onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
                                         placeholder="Nhập nội dung bài đăng..."
-                                        className="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                        className="w-full rounded-lg border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                     />
                                 </div>
 
                                 {/* Schedule Time */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         Thời gian đăng
                                     </label>
                                     <input
@@ -220,13 +221,13 @@ function CreatePostModal({
                                         required
                                         value={formData.scheduled_at}
                                         onChange={(e) => setFormData(prev => ({ ...prev, scheduled_at: e.target.value }))}
-                                        className="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                        className="w-full rounded-lg border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                     />
                                 </div>
 
                                 {/* Repeat Type */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         Lặp lại
                                     </label>
                                     <select
@@ -235,7 +236,7 @@ function CreatePostModal({
                                             ...prev,
                                             repeat_type: e.target.value as 'once' | 'daily' | 'weekly' | 'custom',
                                         }))}
-                                        className="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                        className="w-full rounded-lg border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                     >
                                         <option value="once">Một lần</option>
                                         <option value="daily">Hàng ngày</option>
@@ -245,7 +246,7 @@ function CreatePostModal({
                             </div>
                         </div>
 
-                        <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
+                        <div className="bg-gray-50 dark:bg-slate-700/50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
                             <button
                                 type="submit"
                                 disabled={submitting || !formData.zalo_account_id || !formData.content || !formData.scheduled_at}
@@ -256,7 +257,7 @@ function CreatePostModal({
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                                className="mt-3 inline-flex w-full justify-center rounded-lg bg-white dark:bg-slate-600 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-slate-500 hover:bg-gray-50 dark:hover:bg-slate-500 sm:mt-0 sm:w-auto"
                             >
                                 Hủy
                             </button>
@@ -284,7 +285,7 @@ function PostCard({
     const isOverdue = scheduledDate < new Date() && post.status === 'approved';
 
     return (
-        <div className={`bg-white rounded-xl border ${isOverdue ? 'border-amber-300 bg-amber-50' : 'border-gray-200'} p-4 hover:shadow-md transition-shadow`}>
+        <div className={`bg-white dark:bg-slate-800 rounded-xl border ${isOverdue ? 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20' : 'border-gray-200 dark:border-slate-700'} p-4 hover:shadow-md transition-shadow`}>
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
                     <StatusBadge status={post.status} />
@@ -292,7 +293,7 @@ function PostCard({
                         <span className="text-xs text-amber-600 font-medium">Quá hạn</span>
                     )}
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-gray-500 dark:text-gray-400">
                     {scheduledDate.toLocaleDateString('vi-VN', {
                         day: '2-digit',
                         month: '2-digit',
@@ -304,12 +305,12 @@ function PostCard({
             </div>
 
             {/* Content Preview */}
-            <p className="text-gray-800 text-sm mb-3 line-clamp-3">
+            <p className="text-gray-800 dark:text-gray-200 text-sm mb-3 line-clamp-3">
                 {post.content}
             </p>
 
             {/* Meta Info */}
-            <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
+            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mb-3">
                 <span className="flex items-center gap-1">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -347,18 +348,18 @@ function PostCard({
             )}
 
             {/* Actions */}
-            <div className="flex gap-2 pt-2 border-t border-gray-100">
+            <div className="flex gap-2 pt-2 border-t border-gray-100 dark:border-slate-700">
                 {post.status === 'pending' && (
                     <>
                         <button
                             onClick={onApprove}
-                            className="text-xs px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+                            className="text-xs px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
                         >
                             Duyệt
                         </button>
                         <button
                             onClick={onCancel}
-                            className="text-xs px-3 py-1.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="text-xs px-3 py-1.5 bg-gray-50 dark:bg-slate-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
                         >
                             Hủy
                         </button>
@@ -368,13 +369,13 @@ function PostCard({
                     <>
                         <button
                             onClick={onExecute}
-                            className="text-xs px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors"
+                            className="text-xs px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
                         >
                             Thực thi ngay
                         </button>
                         <button
                             onClick={onCancel}
-                            className="text-xs px-3 py-1.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="text-xs px-3 py-1.5 bg-gray-50 dark:bg-slate-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
                         >
                             Hủy
                         </button>
@@ -391,6 +392,8 @@ export function ScheduledPostsPage() {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [zaloAccounts, setZaloAccounts] = useState<{ id: number; name: string; phone?: string }[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>('');
+    const { toast } = useToast();
+    const [confirmAction, setConfirmAction] = useState<{ show: boolean; id: number; type: 'execute' | 'cancel'; title: string; message: string }>({ show: false, id: 0, type: 'execute', title: '', message: '' });
 
     // Fetch Zalo accounts
     useEffect(() => {
@@ -423,25 +426,37 @@ export function ScheduledPostsPage() {
     const handleApprove = async (id: number) => {
         const result = await approvePost(id);
         if (!result.success) {
-            alert(result.error || 'Không thể duyệt bài đăng');
-        }
-    };
-
-    const handleExecute = async (id: number) => {
-        if (!confirm('Bạn có chắc muốn thực thi bài đăng này ngay bây giờ?')) return;
-        const result = await executeNow(id);
-        if (!result.success) {
-            alert(result.error || 'Không thể thực thi bài đăng');
+            toast.error('Không thể duyệt bài đăng', result.error || '');
         } else {
-            alert('Đã gửi bài đăng thành công!');
+            toast.success('Đã duyệt bài đăng');
         }
     };
 
-    const handleCancel = async (id: number) => {
-        if (!confirm('Bạn có chắc muốn hủy bài đăng này?')) return;
-        const result = await cancelPost(id);
-        if (!result.success) {
-            alert(result.error || 'Không thể hủy bài đăng');
+    const handleExecute = (id: number) => {
+        setConfirmAction({ show: true, id, type: 'execute', title: 'Thực thi bài đăng', message: 'Bạn có chắc muốn thực thi bài đăng này ngay bây giờ?' });
+    };
+
+    const handleCancel = (id: number) => {
+        setConfirmAction({ show: true, id, type: 'cancel', title: 'Hủy bài đăng', message: 'Bạn có chắc muốn hủy bài đăng này?' });
+    };
+
+    const handleConfirmAction = async () => {
+        const { id, type } = confirmAction;
+        setConfirmAction(prev => ({ ...prev, show: false }));
+        if (type === 'execute') {
+            const result = await executeNow(id);
+            if (!result.success) {
+                toast.error('Không thể thực thi bài đăng', result.error || '');
+            } else {
+                toast.success('Đã gửi bài đăng thành công!');
+            }
+        } else {
+            const result = await cancelPost(id);
+            if (!result.success) {
+                toast.error('Không thể hủy bài đăng', result.error || '');
+            } else {
+                toast.success('Đã hủy bài đăng');
+            }
         }
     };
 
@@ -450,8 +465,8 @@ export function ScheduledPostsPage() {
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Lịch đăng bài Zalo Group</h1>
-                    <p className="text-gray-500 mt-1">Lên lịch và quản lý bài đăng tự động đến các nhóm Zalo</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Lịch đăng bài Zalo Group</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">Lên lịch và quản lý bài đăng tự động đến các nhóm Zalo</p>
                 </div>
                 <button
                     onClick={() => setShowCreateModal(true)}
@@ -525,28 +540,28 @@ export function ScheduledPostsPage() {
             <div className="flex gap-2 mb-6">
                 <button
                     onClick={() => setStatusFilter('')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === '' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === '' ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
                         }`}
                 >
                     Tất cả
                 </button>
                 <button
                     onClick={() => setStatusFilter('pending')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === 'pending' ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === 'pending' ? 'bg-amber-600 text-white' : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
                         }`}
                 >
                     Chờ duyệt
                 </button>
                 <button
                     onClick={() => setStatusFilter('approved')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === 'approved' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === 'approved' ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
                         }`}
                 >
                     Đã duyệt
                 </button>
                 <button
                     onClick={() => setStatusFilter('completed')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === 'completed' ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === 'completed' ? 'bg-emerald-600 text-white' : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
                         }`}
                 >
                     Hoàn thành
@@ -559,16 +574,16 @@ export function ScheduledPostsPage() {
                     <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
                 </div>
             ) : error ? (
-                <div className="bg-red-50 text-red-700 p-4 rounded-xl text-center">
+                <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 p-4 rounded-xl text-center">
                     {error}
                 </div>
             ) : filteredPosts.length === 0 ? (
-                <div className="text-center py-16 bg-gray-50 rounded-xl">
-                    <svg className="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="text-center py-16 bg-gray-50 dark:bg-slate-800 rounded-xl">
+                    <svg className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <h3 className="text-lg font-medium text-gray-900 mb-1">Chưa có bài đăng lịch nào</h3>
-                    <p className="text-gray-500 mb-4">Bắt đầu lên lịch đăng bài đến các nhóm Zalo của bạn</p>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">Chưa có bài đăng lịch nào</h3>
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">Bắt đầu lên lịch đăng bài đến các nhóm Zalo của bạn</p>
                     <button
                         onClick={() => setShowCreateModal(true)}
                         disabled={zaloAccounts.length === 0}
@@ -597,6 +612,17 @@ export function ScheduledPostsPage() {
                 onClose={() => setShowCreateModal(false)}
                 onSubmit={createPost}
                 zaloAccounts={zaloAccounts}
+            />
+
+            {/* Confirm Action Modal */}
+            <ConfirmModal
+                isOpen={confirmAction.show}
+                onClose={() => setConfirmAction(prev => ({ ...prev, show: false }))}
+                onConfirm={handleConfirmAction}
+                title={confirmAction.title}
+                message={confirmAction.message}
+                variant={confirmAction.type === 'cancel' ? 'danger' : 'warning'}
+                confirmText={confirmAction.type === 'execute' ? 'Thực thi' : 'Hủy bài'}
             />
         </div>
     );

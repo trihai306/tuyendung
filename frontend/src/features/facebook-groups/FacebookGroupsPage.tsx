@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { facebookGroupsApi } from './facebookGroupsApi';
 import type { FacebookGroup } from './facebookGroupsApi';
 import apiClient from '../../services/apiClient';
+import { useToast } from '../../components/ui';
 
 interface PlatformAccount {
     id: number;
@@ -15,6 +16,7 @@ function GroupCard({ group }: { group: FacebookGroup }) {
     const [showPostModal, setShowPostModal] = useState(false);
     const [postContent, setPostContent] = useState('');
     const [posting, setPosting] = useState(false);
+    const { toast } = useToast();
 
     const handlePost = async () => {
         if (!postContent.trim()) return;
@@ -22,24 +24,24 @@ function GroupCard({ group }: { group: FacebookGroup }) {
         try {
             const result = await facebookGroupsApi.postToGroup(group.id, postContent);
             if (result.success) {
-                alert('Đã đăng bài thành công!');
+                toast.success('Đã đăng bài thành công!');
                 setShowPostModal(false);
                 setPostContent('');
             } else {
-                alert(result.error?.message || 'Có lỗi xảy ra');
+                toast.error('Lỗi đăng bài', result.error?.message || 'Có lỗi xảy ra');
             }
         } catch (err: any) {
-            alert(err.message || 'Có lỗi xảy ra');
+            toast.error('Lỗi đăng bài', err.message || 'Có lỗi xảy ra');
         } finally {
             setPosting(false);
         }
     };
 
     return (
-        <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 hover:shadow-md transition-shadow">
             <div className="flex items-start gap-3">
                 {/* Group Avatar */}
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
                     <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                     </svg>
@@ -47,32 +49,32 @@ function GroupCard({ group }: { group: FacebookGroup }) {
 
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-gray-900 truncate">{group.name}</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-white truncate">{group.name}</h3>
                         {group.is_admin && (
-                            <span className="text-xs px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded-full">
+                            <span className="text-xs px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full">
                                 Admin
                             </span>
                         )}
                     </div>
 
-                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                    <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
                         <span className="flex items-center gap-1">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                             {group.member_count?.toLocaleString() || '?'} thành viên
                         </span>
-                        <span className="text-gray-400">•</span>
+                        <span className="text-gray-400 dark:text-gray-500">•</span>
                         <span className="capitalize">{group.privacy || 'Công khai'}</span>
                     </div>
                 </div>
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+            <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-slate-700">
                 <button
                     onClick={() => setShowPostModal(true)}
-                    className="flex-1 text-xs px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+                    className="flex-1 text-xs px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
                 >
                     Đăng bài
                 </button>
@@ -80,7 +82,7 @@ function GroupCard({ group }: { group: FacebookGroup }) {
                     href={group.group_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs px-3 py-1.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="text-xs px-3 py-1.5 bg-gray-50 dark:bg-slate-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
                 >
                     Mở nhóm
                 </a>
@@ -89,14 +91,14 @@ function GroupCard({ group }: { group: FacebookGroup }) {
             {/* Post Modal */}
             {showPostModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-                    <div className="bg-white rounded-xl p-4 max-w-md w-full">
-                        <h3 className="font-semibold text-gray-900 mb-3">Đăng bài đến {group.name}</h3>
+                    <div className="bg-white dark:bg-slate-800 rounded-xl p-4 max-w-md w-full">
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Đăng bài đến {group.name}</h3>
                         <textarea
                             value={postContent}
                             onChange={(e) => setPostContent(e.target.value)}
                             rows={4}
                             placeholder="Nhập nội dung bài đăng..."
-                            className="w-full rounded-lg border border-gray-300 p-2.5 text-sm"
+                            className="w-full rounded-lg border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2.5 text-sm"
                         />
                         <div className="flex gap-2 mt-3">
                             <button
@@ -108,7 +110,7 @@ function GroupCard({ group }: { group: FacebookGroup }) {
                             </button>
                             <button
                                 onClick={() => setShowPostModal(false)}
-                                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm"
+                                className="px-4 py-2 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm"
                             >
                                 Hủy
                             </button>
@@ -127,6 +129,7 @@ export function FacebookGroupsPage() {
     const [syncing, setSyncing] = useState(false);
     const [facebookAccounts, setFacebookAccounts] = useState<PlatformAccount[]>([]);
     const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
+    const { toast } = useToast();
 
     // Fetch Facebook accounts
     useEffect(() => {
@@ -168,13 +171,13 @@ export function FacebookGroupsPage() {
         try {
             const result = await facebookGroupsApi.syncGroups(selectedAccountId);
             if (result.success) {
-                alert(`Đã đồng bộ ${result.synced_count} nhóm!`);
+                toast.success(`Đã đồng bộ ${result.synced_count} nhóm!`);
                 fetchGroups();
             } else {
-                alert(result.error?.message || 'Có lỗi xảy ra khi đồng bộ');
+                toast.error('Lỗi đồng bộ', result.error?.message || 'Có lỗi xảy ra khi đồng bộ');
             }
         } catch (err: any) {
-            alert(err.message || 'Có lỗi xảy ra');
+            toast.error('Lỗi đồng bộ', err.message || 'Có lỗi xảy ra');
         } finally {
             setSyncing(false);
         }
@@ -185,8 +188,8 @@ export function FacebookGroupsPage() {
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Nhóm Facebook</h1>
-                    <p className="text-gray-500 mt-1">Quản lý và đăng bài đến các nhóm Facebook</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Nhóm Facebook</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">Quản lý và đăng bài đến các nhóm Facebook</p>
                 </div>
                 <div className="flex items-center gap-3">
                     {/* Account selector */}
@@ -194,7 +197,7 @@ export function FacebookGroupsPage() {
                         <select
                             value={selectedAccountId || ''}
                             onChange={(e) => setSelectedAccountId(Number(e.target.value) || null)}
-                            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                            className="rounded-lg border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white px-3 py-2 text-sm"
                         >
                             {facebookAccounts.map(acc => (
                                 <option key={acc.id} value={acc.id}>
@@ -286,12 +289,12 @@ export function FacebookGroupsPage() {
                     <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
                 </div>
             ) : groups.length === 0 ? (
-                <div className="text-center py-16 bg-gray-50 rounded-xl">
-                    <svg className="w-16 h-16 mx-auto text-gray-300 mb-4" fill="currentColor" viewBox="0 0 24 24">
+                <div className="text-center py-16 bg-gray-50 dark:bg-slate-800 rounded-xl">
+                    <svg className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                     </svg>
-                    <h3 className="text-lg font-medium text-gray-900 mb-1">Chưa có nhóm nào</h3>
-                    <p className="text-gray-500 mb-4">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">Chưa có nhóm nào</h3>
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">
                         {facebookAccounts.length === 0
                             ? 'Vui lòng thêm tài khoản Facebook trước'
                             : 'Nhấn "Đồng bộ nhóm" để lấy danh sách nhóm từ tài khoản Facebook'}

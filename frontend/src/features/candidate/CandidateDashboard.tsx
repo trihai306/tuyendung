@@ -37,7 +37,7 @@ export function CandidateDashboard() {
                 {quickStats.map((stat) => (
                     <div
                         key={stat.label}
-                        className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow"
+                        className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm hover:shadow-md transition-shadow"
                     >
                         <div className={`w-10 h-10 rounded-lg bg-${stat.color}-50 flex items-center justify-center mb-3`}>
                             {stat.icon === 'document' && (
@@ -61,8 +61,8 @@ export function CandidateDashboard() {
                                 </svg>
                             )}
                         </div>
-                        <p className="text-2xl font-bold text-slate-800">{stat.value}</p>
-                        <p className="text-sm text-slate-500">{stat.label}</p>
+                        <p className="text-2xl font-bold text-slate-800 dark:text-white">{stat.value}</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{stat.label}</p>
                     </div>
                 ))}
             </div>
@@ -70,25 +70,25 @@ export function CandidateDashboard() {
             {/* Quick Actions */}
             <div className="grid md:grid-cols-2 gap-6">
                 {/* Recent Applications */}
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-slate-800">Đơn ứng tuyển gần đây</h2>
+                        <h2 className="text-lg font-semibold text-slate-800 dark:text-white">Đơn ứng tuyển gần đây</h2>
                         <Link to="/candidate/applications" className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
                             Xem tất cả
                         </Link>
                     </div>
                     <div className="space-y-3">
-                        <div className="p-4 rounded-lg bg-slate-50 border border-slate-100">
-                            <p className="font-medium text-slate-800 mb-1">Nhân viên kho Shopee</p>
-                            <p className="text-sm text-slate-500">Đã ứng tuyển 2 ngày trước</p>
-                            <span className="inline-block mt-2 px-2.5 py-1 bg-amber-50 text-amber-600 text-xs font-medium rounded-full">
+                        <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-600">
+                            <p className="font-medium text-slate-800 dark:text-white mb-1">Nhân viên kho Shopee</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Đã ứng tuyển 2 ngày trước</p>
+                            <span className="inline-block mt-2 px-2.5 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-xs font-medium rounded-full">
                                 Đang xem xét
                             </span>
                         </div>
-                        <div className="p-4 rounded-lg bg-slate-50 border border-slate-100">
-                            <p className="font-medium text-slate-800 mb-1">PG activation siêu thị</p>
-                            <p className="text-sm text-slate-500">Đã ứng tuyển 5 ngày trước</p>
-                            <span className="inline-block mt-2 px-2.5 py-1 bg-blue-50 text-blue-600 text-xs font-medium rounded-full">
+                        <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-600">
+                            <p className="font-medium text-slate-800 dark:text-white mb-1">PG activation siêu thị</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Đã ứng tuyển 5 ngày trước</p>
+                            <span className="inline-block mt-2 px-2.5 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-medium rounded-full">
                                 Được mời phỏng vấn
                             </span>
                         </div>
@@ -96,14 +96,14 @@ export function CandidateDashboard() {
                 </div>
 
                 {/* Profile Completion */}
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-                    <h2 className="text-lg font-semibold text-slate-800 mb-4">Hoàn thiện hồ sơ</h2>
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+                    <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Hoàn thiện hồ sơ</h2>
                     <div className="mb-4">
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm text-slate-600">Tiến độ hoàn thiện</span>
+                            <span className="text-sm text-slate-600 dark:text-slate-400">Tiến độ hoàn thiện</span>
                             <span className="text-sm font-semibold text-emerald-600">60%</span>
                         </div>
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                             <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full" style={{ width: '60%' }} />
                         </div>
                     </div>
@@ -112,13 +112,13 @@ export function CandidateDashboard() {
                             <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
-                            <span className="text-slate-600">Thông tin cơ bản</span>
+                            <span className="text-slate-600 dark:text-slate-300">Thông tin cơ bản</span>
                         </div>
                         <div className="flex items-center gap-3 text-sm">
                             <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
-                            <span className="text-slate-600">Thông tin liên hệ</span>
+                            <span className="text-slate-600 dark:text-slate-300">Thông tin liên hệ</span>
                         </div>
                         <div className="flex items-center gap-3 text-sm">
                             <svg className="w-5 h-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -135,7 +135,7 @@ export function CandidateDashboard() {
                     </div>
                     <Link
                         to="/candidate/profile"
-                        className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-50 text-emerald-600 font-medium rounded-lg hover:bg-emerald-100 transition-colors"
+                        className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 font-medium rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
                     >
                         Cập nhật hồ sơ
                     </Link>

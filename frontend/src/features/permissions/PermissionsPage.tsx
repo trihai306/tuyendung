@@ -9,6 +9,7 @@ interface Member {
     email: string;
     company_role: 'owner' | 'admin' | 'member';
     permissions?: string[];
+    commission_rate?: number;
 }
 
 interface PermissionGroup {
@@ -150,6 +151,7 @@ export function PermissionsPage() {
     const [members, setMembers] = useState<Member[]>([]);
     const [selectedMember, setSelectedMember] = useState<Member | null>(null);
     const [memberPermissions, setMemberPermissions] = useState<Record<number, string[]>>({});
+    const [memberCommissions, setMemberCommissions] = useState<Record<number, number>>({});
     const [expandedGroups, setExpandedGroups] = useState<string[]>(['recruiting', 'candidates', 'inbox']);
     const [search, setSearch] = useState('');
     const [isLoading, setIsLoading] = useState(true);
@@ -169,12 +171,15 @@ export function PermissionsPage() {
             }));
             setMembers(membersData);
 
-            // Initialize permissions map
+            // Initialize permissions map and commission map
             const permMap: Record<number, string[]> = {};
+            const commMap: Record<number, number> = {};
             membersData.forEach((m: Member) => {
                 permMap[m.id] = m.permissions || DEFAULT_PERMISSIONS[m.company_role] || [];
+                commMap[m.id] = m.commission_rate ?? 0;
             });
             setMemberPermissions(permMap);
+            setMemberCommissions(commMap);
 
             if (membersData.length > 0) {
                 setSelectedMember(membersData[0]);
@@ -204,16 +209,34 @@ export function PermissionsPage() {
         );
     };
 
+    const handleCommissionChange = (value: string) => {
+        if (!selectedMember || selectedMember.company_role === 'owner') return;
+        const numVal = Math.min(100, Math.max(0, parseFloat(value) || 0));
+        setMemberCommissions({ ...memberCommissions, [selectedMember.id]: numVal });
+        setHasChanges(true);
+    };
+
     const handleSave = async () => {
         if (!selectedMember) return;
         setIsSaving(true);
         try {
+            // Save commission rate
+            await apiClient.put(`/company/members/${selectedMember.id}`, {
+                commission_rate: memberCommissions[selectedMember.id] ?? 0,
+            });
+            // Save permissions
             await apiClient.put(`/company/members/${selectedMember.id}/permissions`, {
                 permissions: memberPermissions[selectedMember.id],
             });
+            // Update local member data
+            setMembers(prev => prev.map(m =>
+                m.id === selectedMember.id
+                    ? { ...m, commission_rate: memberCommissions[selectedMember.id] ?? 0 }
+                    : m
+            ));
             setHasChanges(false);
         } catch (err) {
-            console.error('Failed to save permissions:', err);
+            console.error('Failed to save:', err);
         } finally {
             setIsSaving(false);
         }
@@ -226,6 +249,10 @@ export function PermissionsPage() {
                 setMemberPermissions({
                     ...memberPermissions,
                     [selectedMember.id]: original.permissions || DEFAULT_PERMISSIONS[original.company_role] || [],
+                });
+                setMemberCommissions({
+                    ...memberCommissions,
+                    [selectedMember.id]: original.commission_rate ?? 0,
                 });
             }
         }
@@ -316,9 +343,16 @@ export function PermissionsPage() {
                                             <p className={`font-medium truncate ${isDark ? 'text-white' : 'text-slate-800'}`}>
                                                 {member.name}
                                             </p>
-                                            <p className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                                                {member.email}
-                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <p className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                                    {member.email}
+                                                </p>
+                                                {(memberCommissions[member.id] ?? member.commission_rate ?? 0) > 0 && (
+                                                    <span className={`text-xs px-1.5 py-0.5 rounded-md font-medium ${isDark ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-100 text-amber-700'}`}>
+                                                        {memberCommissions[member.id] ?? member.commission_rate ?? 0}%
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${role.color}`}>
                                             {role.label}
@@ -432,6 +466,43 @@ export function PermissionsPage() {
                                             </div>
                                         );
                                     })}
+                                </div>
+
+                                {/* Commission Rate Section */}
+                                <div className={`mx-4 mb-4 rounded-lg border ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+                                    <div className={`flex items-center justify-between p-4`}>
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDark ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-100 text-amber-600'}`}>
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                                                    Hoa hồng
+                                                </span>
+                                                <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                                                    Tỷ lệ hoa hồng cho nhân viên
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                step="0.5"
+                                                value={memberCommissions[selectedMember.id] ?? 0}
+                                                onChange={(e) => handleCommissionChange(e.target.value)}
+                                                disabled={selectedMember.company_role === 'owner'}
+                                                className={`w-20 px-3 py-1.5 rounded-lg text-sm text-right border focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 ${selectedMember.company_role === 'owner' ? 'opacity-50 cursor-not-allowed' : ''} ${isDark
+                                                    ? 'bg-slate-800 border-slate-600 text-white'
+                                                    : 'bg-white border-slate-300 text-slate-800'
+                                                    }`}
+                                            />
+                                            <span className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>%</span>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {/* Footer Actions */}

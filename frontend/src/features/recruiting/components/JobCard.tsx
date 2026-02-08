@@ -39,9 +39,14 @@ interface JobCardProps {
     onToggleStatus?: (job: Job) => void;
     onAssign?: (job: Job) => void;
     onRepost?: (job: Job) => void;
+    onRestore?: (job: any) => void;
+    onForceDelete?: (job: any) => void;
+    onRenew?: (job: any) => void;
+    isTrashed?: boolean;
+    isExpired?: boolean;
 }
 
-export function JobCard({ job, onEdit, onDelete, onToggleStatus, onRepost }: JobCardProps) {
+export function JobCard({ job, onEdit, onDelete, onToggleStatus, onRepost, onRestore, onForceDelete, onRenew, isTrashed, isExpired }: JobCardProps) {
     const { resolvedTheme } = useTheme();
     const isDark = resolvedTheme === 'dark';
     const { isOwner, isAdmin } = useCompanyRole();
@@ -115,12 +120,12 @@ export function JobCard({ job, onEdit, onDelete, onToggleStatus, onRepost }: Job
         >
             {/* Gradient accent top */}
             <div className={`h-1 rounded-t-2xl ${job.status === 'open'
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
-                    : job.status === 'paused'
-                        ? 'bg-gradient-to-r from-amber-500 to-orange-500'
-                        : job.status === 'closed'
-                            ? 'bg-gradient-to-r from-red-500 to-rose-500'
-                            : 'bg-gradient-to-r from-slate-400 to-slate-500'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                : job.status === 'paused'
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500'
+                    : job.status === 'closed'
+                        ? 'bg-gradient-to-r from-red-500 to-rose-500'
+                        : 'bg-gradient-to-r from-slate-400 to-slate-500'
                 }`} />
 
             <div className="p-5">
@@ -175,8 +180,8 @@ export function JobCard({ job, onEdit, onDelete, onToggleStatus, onRepost }: Job
                     )}
                     {expiryDays !== null && expiryDays > 0 && expiryDays <= 7 && (
                         <span className={`px-2.5 py-1 rounded-lg text-xs font-medium ${expiryDays <= 3
-                                ? isDark ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-600'
-                                : isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600'
+                            ? isDark ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-600'
+                            : isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600'
                             }`}>
                             ⏰ Còn {expiryDays} ngày
                         </span>
@@ -220,107 +225,170 @@ export function JobCard({ job, onEdit, onDelete, onToggleStatus, onRepost }: Job
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 mt-4">
-                    <Link
-                        to={`/recruiting/${job.id}`}
-                        className={`
-                            flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl transition-all
-                            ${isDark
-                                ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
-                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800'
-                            }
-                        `}
-                    >
-                        <EyeIcon className="w-4 h-4" />
-                        Chi tiết
-                    </Link>
-
-                    {/* Manager Actions Menu */}
-                    {isManager && (
-                        <div className="relative">
+                    {/* Trashed Actions */}
+                    {isTrashed ? (
+                        <>
                             <button
-                                onClick={() => setShowMenu(!showMenu)}
+                                onClick={() => onRestore?.(job)}
                                 className={`
-                                    p-2.5 rounded-xl transition-colors
+                                    flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl transition-all
                                     ${isDark
-                                        ? 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+                                        ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 ring-1 ring-emerald-500/20'
+                                        : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 ring-1 ring-emerald-200'
                                     }
                                 `}
                             >
-                                <EllipsisVerticalIcon className="w-5 h-5" />
+                                <ArrowPathIcon className="w-4 h-4" />
+                                Khôi phục
                             </button>
+                            <button
+                                onClick={() => onForceDelete?.(job)}
+                                className={`
+                                    flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl transition-all
+                                    ${isDark
+                                        ? 'bg-red-500/15 text-red-400 hover:bg-red-500/25 ring-1 ring-red-500/20'
+                                        : 'bg-red-50 text-red-700 hover:bg-red-100 ring-1 ring-red-200'
+                                    }
+                                `}
+                            >
+                                <TrashIcon className="w-4 h-4" />
+                                Xóa vĩnh viễn
+                            </button>
+                        </>
+                    ) : isExpired ? (
+                        <>
+                            <button
+                                onClick={() => onRenew?.(job)}
+                                className={`
+                                    flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl transition-all
+                                    ${isDark
+                                        ? 'bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 ring-1 ring-blue-500/20'
+                                        : 'bg-blue-50 text-blue-700 hover:bg-blue-100 ring-1 ring-blue-200'
+                                    }
+                                `}
+                            >
+                                <CalendarIcon className="w-4 h-4" />
+                                Gia hạn 30 ngày
+                            </button>
+                            <button
+                                onClick={() => onDelete?.(job)}
+                                className={`
+                                    flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl transition-all
+                                    ${isDark
+                                        ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                                        : 'bg-red-50 text-red-600 hover:bg-red-100'
+                                    }
+                                `}
+                            >
+                                <TrashIcon className="w-4 h-4" />
+                                Xóa
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <Link
+                                to={`/recruiting/${job.id}`}
+                                className={`
+                            flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl transition-all
+                            ${isDark
+                                        ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800'
+                                    }
+                        `}
+                            >
+                                <EyeIcon className="w-4 h-4" />
+                                Chi tiết
+                            </Link>
 
-                            {showMenu && (
-                                <>
-                                    <div
-                                        className="fixed inset-0 z-10"
-                                        onClick={() => setShowMenu(false)}
-                                    />
-                                    <div className={`
+                            {/* Manager Actions Menu */}
+                            {isManager && (
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowMenu(!showMenu)}
+                                        className={`
+                                    p-2.5 rounded-xl transition-colors
+                                    ${isDark
+                                                ? 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                                                : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+                                            }
+                                `}
+                                    >
+                                        <EllipsisVerticalIcon className="w-5 h-5" />
+                                    </button>
+
+                                    {showMenu && (
+                                        <>
+                                            <div
+                                                className="fixed inset-0 z-10"
+                                                onClick={() => setShowMenu(false)}
+                                            />
+                                            <div className={`
                                         absolute right-0 top-full mt-2 w-48 py-2 rounded-xl shadow-xl z-20
                                         ${isDark ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-200'}
                                     `}>
-                                        <button
-                                            onClick={() => { onEdit?.(job); setShowMenu(false); }}
-                                            className={`
+                                                <button
+                                                    onClick={() => { onEdit?.(job); setShowMenu(false); }}
+                                                    className={`
                                                 w-full px-4 py-2.5 text-sm text-left flex items-center gap-3
                                                 ${isDark ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-50'}
                                             `}
-                                        >
-                                            <PencilIcon className="w-4 h-4" />
-                                            Chỉnh sửa
-                                        </button>
-                                        <button
-                                            onClick={() => { onToggleStatus?.(job); setShowMenu(false); }}
-                                            className={`
+                                                >
+                                                    <PencilIcon className="w-4 h-4" />
+                                                    Chỉnh sửa
+                                                </button>
+                                                <button
+                                                    onClick={() => { onToggleStatus?.(job); setShowMenu(false); }}
+                                                    className={`
                                                 w-full px-4 py-2.5 text-sm text-left flex items-center gap-3
                                                 ${isDark ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-50'}
                                             `}
-                                        >
-                                            {job.status === 'open' ? (
-                                                <>
-                                                    <PauseIcon className="w-4 h-4" />
-                                                    Tạm dừng
-                                                </>
-                                            ) : job.status === 'closed' ? (
-                                                <>
-                                                    <ArrowPathIcon className="w-4 h-4" />
-                                                    Mở lại
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <PlayIcon className="w-4 h-4" />
-                                                    Kích hoạt
-                                                </>
-                                            )}
-                                        </button>
-                                        {job.status === 'closed' && onRepost && (
-                                            <button
-                                                onClick={() => { onRepost(job); setShowMenu(false); }}
-                                                className={`
+                                                >
+                                                    {job.status === 'open' ? (
+                                                        <>
+                                                            <PauseIcon className="w-4 h-4" />
+                                                            Tạm dừng
+                                                        </>
+                                                    ) : job.status === 'closed' ? (
+                                                        <>
+                                                            <ArrowPathIcon className="w-4 h-4" />
+                                                            Mở lại
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <PlayIcon className="w-4 h-4" />
+                                                            Kích hoạt
+                                                        </>
+                                                    )}
+                                                </button>
+                                                {job.status === 'closed' && onRepost && (
+                                                    <button
+                                                        onClick={() => { onRepost(job); setShowMenu(false); }}
+                                                        className={`
                                                     w-full px-4 py-2.5 text-sm text-left flex items-center gap-3
                                                     ${isDark ? 'text-emerald-400 hover:bg-slate-700' : 'text-emerald-600 hover:bg-emerald-50'}
                                                 `}
-                                            >
-                                                <ArrowPathIcon className="w-4 h-4" />
-                                                Tạo tin mới từ đây
-                                            </button>
-                                        )}
-                                        <div className={`my-1 border-t ${isDark ? 'border-slate-700' : 'border-slate-100'}`} />
-                                        <button
-                                            onClick={() => { onDelete?.(job); setShowMenu(false); }}
-                                            className={`
+                                                    >
+                                                        <ArrowPathIcon className="w-4 h-4" />
+                                                        Tạo tin mới từ đây
+                                                    </button>
+                                                )}
+                                                <div className={`my-1 border-t ${isDark ? 'border-slate-700' : 'border-slate-100'}`} />
+                                                <button
+                                                    onClick={() => { onDelete?.(job); setShowMenu(false); }}
+                                                    className={`
                                                 w-full px-4 py-2.5 text-sm text-left flex items-center gap-3
                                                 ${isDark ? 'text-red-400 hover:bg-slate-700' : 'text-red-600 hover:bg-red-50'}
                                             `}
-                                        >
-                                            <TrashIcon className="w-4 h-4" />
-                                            Xóa tin
-                                        </button>
-                                    </div>
-                                </>
+                                                >
+                                                    <TrashIcon className="w-4 h-4" />
+                                                    Xóa tin
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             )}
-                        </div>
+                        </>
                     )}
                 </div>
             </div>

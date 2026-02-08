@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { setActiveConversation, setFilters } from './inboxSlice';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useZaloMessages } from './useZaloMessages';
+import { Button } from '../../components/ui';
 
 // Account type for tabs
 interface AccountTab {
@@ -187,12 +188,12 @@ export function InboxPage() {
                         <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Thông tin ứng viên</h3>
                     </div>
                     <div className="p-4 space-y-3">
-                        <button className="w-full py-2.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors">
+                        <Button size="sm" fullWidth>
                             Tạo hồ sơ ứng viên
-                        </button>
-                        <button className={`w-full py-2.5 px-4 text-sm font-medium rounded-lg transition-colors border ${isDark ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}>
+                        </Button>
+                        <Button variant="outline" size="sm" fullWidth>
                             Gán cho nhân viên
-                        </button>
+                        </Button>
                     </div>
                 </div>
             )}

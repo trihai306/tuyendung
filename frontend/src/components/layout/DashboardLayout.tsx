@@ -1,9 +1,10 @@
 import { useState, createContext, useContext } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../../app/hooks';
 import { logout } from '../../features/auth/authSlice';
 import { useTheme, ThemeToggle } from '../../contexts/ThemeContext';
 import { NotificationDropdown } from '../../features/notifications';
+import { Input, Button } from '../../components/ui';
 
 // ==================== SIDEBAR CONTEXT ====================
 interface SidebarContextType {
@@ -409,10 +410,13 @@ function Sidebar() {
 // ==================== HEADER COMPONENT ====================
 function Header() {
     const location = useLocation();
+    const navigate = useNavigate();
     const { collapsed } = useSidebar();
     const user = useAppSelector((state) => state.auth.user);
+    const dispatch = useAppDispatch();
     const { resolvedTheme } = useTheme();
     const isDark = resolvedTheme === 'dark';
+    const [showUserMenu, setShowUserMenu] = useState(false);
 
     // Get current page name for breadcrumb
     const currentPageName = pageNameMap[location.pathname] || 'Trang';
@@ -449,14 +453,10 @@ function Header() {
                         fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                     </svg>
-                    <input
+                    <Input
                         type="text"
                         placeholder="Tìm kiếm..."
-                        className={`w-full pl-10 pr-10 py-2 rounded-xl text-sm transition-all duration-200 focus:outline-none
-                            ${isDark
-                                ? 'bg-slate-800/50 text-white placeholder:text-slate-500 border border-slate-700/40 focus:border-emerald-500/40 focus:ring-2 focus:ring-emerald-500/15 focus:bg-slate-800/80'
-                                : 'bg-slate-100/80 text-slate-800 placeholder:text-slate-400 border border-transparent focus:bg-white focus:border-emerald-500/30 focus:ring-2 focus:ring-emerald-500/10 focus:shadow-sm'
-                            }`}
+                        className="pl-10 pr-10"
                     />
                     <kbd className={`absolute right-3 top-1/2 -translate-y-1/2 hidden lg:inline-flex text-[10px] px-1.5 py-0.5 rounded-md font-mono
                         ${isDark ? 'bg-slate-700/60 text-slate-400' : 'bg-slate-200/80 text-slate-500'}`}>
@@ -468,16 +468,17 @@ function Header() {
             {/* Right: Action Buttons */}
             <div className="flex items-center gap-1.5">
                 {/* Create New Button */}
-                <button className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200
-                    bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600
-                    text-white shadow-md hover:shadow-lg hover:-translate-y-0.5
-                    ${isDark ? 'shadow-emerald-500/20 hover:shadow-emerald-500/30' : 'shadow-emerald-500/25 hover:shadow-emerald-500/35'}`}
+                <Button
+                    size="sm"
+                    icon={
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                    }
+                    className="hover:-translate-y-0.5"
                 >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
                     <span className="hidden sm:inline">Tạo mới</span>
-                </button>
+                </Button>
 
                 {/* Divider */}
                 <div className={`w-px h-7 mx-1.5 ${isDark ? 'bg-slate-700/50' : 'bg-slate-200/80'}`} />
@@ -500,15 +501,95 @@ function Header() {
                 <div className={`w-px h-7 mx-1.5 ${isDark ? 'bg-slate-700/50' : 'bg-slate-200/80'}`} />
 
                 {/* User Avatar */}
-                <button className={`flex items-center gap-2 p-1 pr-2.5 rounded-xl transition-all duration-200
-                    ${isDark ? 'hover:bg-slate-800/60' : 'hover:bg-slate-100'}`}>
-                    <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white font-semibold text-sm shadow-md shadow-emerald-500/20">
-                        {user?.name?.charAt(0) || 'U'}
-                    </div>
-                    <svg className={`w-3.5 h-3.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                    </svg>
-                </button>
+                <div className="relative">
+                    <button
+                        onClick={() => setShowUserMenu(!showUserMenu)}
+                        className={`flex items-center gap-2 p-1 pr-2.5 rounded-xl transition-all duration-200
+                        ${isDark ? 'hover:bg-slate-800/60' : 'hover:bg-slate-100'}`}
+                    >
+                        <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white font-semibold text-sm shadow-md shadow-emerald-500/20">
+                            {user?.name?.charAt(0) || 'U'}
+                        </div>
+                        <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${showUserMenu ? 'rotate-180' : ''} ${isDark ? 'text-slate-500' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </button>
+
+                    {showUserMenu && (
+                        <>
+                            <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
+                            <div
+                                className={`absolute right-0 top-full mt-2 w-64 rounded-xl shadow-2xl z-50 overflow-hidden
+                                    ${isDark ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-200'}`}
+                                style={{ animation: 'dropdownIn 0.15s ease-out' }}
+                            >
+                                {/* User Info */}
+                                <div className={`px-4 py-3.5 border-b ${isDark ? 'border-slate-700' : 'border-slate-100'}`}>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white font-semibold text-sm shadow-md">
+                                            {user?.name?.charAt(0) || 'U'}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                                                {user?.name || 'User'}
+                                            </p>
+                                            <p className={`text-xs truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                                {user?.email || ''}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Menu Items */}
+                                <div className="py-1.5">
+                                    <Link
+                                        to="/employer/settings"
+                                        onClick={() => setShowUserMenu(false)}
+                                        className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors
+                                            ${isDark ? 'text-slate-300 hover:bg-slate-700/60' : 'text-slate-700 hover:bg-slate-50'}`}
+                                    >
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                        </svg>
+                                        Hồ sơ cá nhân
+                                    </Link>
+                                    <Link
+                                        to="/employer/settings"
+                                        onClick={() => setShowUserMenu(false)}
+                                        className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors
+                                            ${isDark ? 'text-slate-300 hover:bg-slate-700/60' : 'text-slate-700 hover:bg-slate-50'}`}
+                                    >
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        Cài đặt
+                                    </Link>
+                                </div>
+
+                                {/* Logout */}
+                                <div className={`border-t py-1.5 ${isDark ? 'border-slate-700' : 'border-slate-100'}`}>
+                                    <button
+                                        onClick={() => {
+                                            setShowUserMenu(false);
+                                            dispatch(logout());
+                                            navigate('/login');
+                                        }}
+                                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors
+                                            ${isDark ? 'text-red-400 hover:bg-slate-700/60' : 'text-red-600 hover:bg-red-50'}`}
+                                    >
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                                        </svg>
+                                        Đăng xuất
+                                    </button>
+                                </div>
+
+                                <style>{`@keyframes dropdownIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
         </header>
     );

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useUpdateAssignmentProgressMutation } from '../recruitingApi';
+import { Input, Textarea, Button } from '../../../components/ui';
 
 interface UpdateProgressModalProps {
     isOpen: boolean;
@@ -85,24 +86,22 @@ export function UpdateProgressModal({ isOpen, onClose, assignment }: UpdateProgr
                             <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                                 Đã tìm được
                             </label>
-                            <input
+                            <Input
                                 type="number"
                                 min="0"
                                 value={foundCount}
                                 onChange={(e) => setFoundCount(e.target.value)}
-                                className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
                             />
                         </div>
                         <div>
                             <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                                 Đã xác nhận
                             </label>
-                            <input
+                            <Input
                                 type="number"
                                 min="0"
                                 value={confirmedCount}
                                 onChange={(e) => setConfirmedCount(e.target.value)}
-                                className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
                             />
                         </div>
                     </div>
@@ -111,12 +110,11 @@ export function UpdateProgressModal({ isOpen, onClose, assignment }: UpdateProgr
                         <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                             Ghi chú
                         </label>
-                        <textarea
+                        <Textarea
                             rows={3}
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             placeholder="VD: Đã liên hệ 30 người, 15 đồng ý..."
-                            className={`w-full px-3 py-2 rounded-lg border resize-none ${isDark ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
                         />
                     </div>
 
@@ -125,20 +123,22 @@ export function UpdateProgressModal({ isOpen, onClose, assignment }: UpdateProgr
                     )}
 
                     <div className="flex gap-3 pt-2">
-                        <button
+                        <Button
                             type="button"
+                            variant="secondary"
                             onClick={onClose}
-                            className={`flex-1 px-4 py-2 rounded-lg ${isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                            fullWidth
                         >
                             Huỷ
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="submit"
                             disabled={isLoading}
-                            className="flex-1 px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50"
+                            loading={isLoading}
+                            fullWidth
                         >
                             {isLoading ? 'Đang lưu...' : 'Cập nhật'}
-                        </button>
+                        </Button>
                     </div>
                 </form>
             </div>

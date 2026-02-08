@@ -27,6 +27,7 @@ class User extends Authenticatable implements FilamentUser
         'password',
         'company_id',
         'company_role',
+        'commission_rate',
     ];
 
     /**
@@ -49,6 +50,7 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'commission_rate' => 'decimal:2',
         ];
     }
 

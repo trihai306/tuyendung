@@ -174,7 +174,7 @@ class CompanyController extends Controller
         }
 
         $members = $company->members()
-            ->select('id', 'name', 'email', 'company_role', 'created_at')
+            ->select('id', 'name', 'email', 'company_role', 'commission_rate', 'created_at')
             ->orderByRaw("FIELD(company_role, 'owner', 'admin', 'recruiter')")
             ->get();
 
@@ -188,6 +188,7 @@ class CompanyController extends Controller
                 'name' => $member->name,
                 'email' => $member->email,
                 'company_role' => $member->company_role,
+                'commission_rate' => (float) ($member->commission_rate ?? 0),
                 'created_at' => $member->created_at,
                 'stats' => $memberStats[$member->id] ?? [
                     'hired_count' => 0,
@@ -292,14 +293,25 @@ class CompanyController extends Controller
         }
 
         $validated = $request->validate([
-            'role' => ['required', Rule::in(['admin', 'recruiter'])],
+            'role' => ['sometimes', 'required', Rule::in(['admin', 'recruiter'])],
+            'commission_rate' => ['sometimes', 'numeric', 'min:0', 'max:100'],
         ]);
 
-        $member->update(['company_role' => $validated['role']]);
+        $updateData = [];
+        if (isset($validated['role'])) {
+            $updateData['company_role'] = $validated['role'];
+        }
+        if (isset($validated['commission_rate'])) {
+            $updateData['commission_rate'] = $validated['commission_rate'];
+        }
+
+        if (!empty($updateData)) {
+            $member->update($updateData);
+        }
 
         return response()->json([
             'message' => 'Cập nhật quyền thành công',
-            'data' => $member->only(['id', 'name', 'email', 'company_role']),
+            'data' => $member->only(['id', 'name', 'email', 'company_role', 'commission_rate']),
         ]);
     }
 

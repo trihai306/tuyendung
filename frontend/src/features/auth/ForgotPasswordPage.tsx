@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
+import { Input } from '../../components/ui';
 
 export function ForgotPasswordPage() {
     const { forgotPassword, isLoading } = useAuth();
@@ -67,11 +68,11 @@ export function ForgotPasswordPage() {
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                             </svg>
                                         </div>
-                                        <input
+                                        <Input
                                             type="email"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all"
+                                            className="pl-12"
                                             placeholder="you@company.com"
                                             required
                                         />

@@ -95,6 +95,70 @@ class JobController extends Controller
         return response()->json(['data' => $job->fresh()]);
     }
 
+    /**
+     * List soft-deleted (trashed) jobs
+     */
+    public function trashed(Request $request): JsonResponse
+    {
+        $jobs = RecruitmentJob::onlyTrashed()
+            ->where('user_id', $request->user()->id)
+            ->withCount('applications')
+            ->orderByDesc('deleted_at')
+            ->get();
+
+        return response()->json(['data' => $jobs]);
+    }
+
+    /**
+     * List expired jobs (expires_at < now)
+     */
+    public function expired(Request $request): JsonResponse
+    {
+        $jobs = RecruitmentJob::where('user_id', $request->user()->id)
+            ->expired()
+            ->withCount('applications')
+            ->orderBy('expires_at')
+            ->get();
+
+        return response()->json(['data' => $jobs]);
+    }
+
+    /**
+     * Restore a soft-deleted job
+     */
+    public function restore(int $id): JsonResponse
+    {
+        $job = RecruitmentJob::onlyTrashed()->findOrFail($id);
+        $job->restore();
+
+        return response()->json(['data' => $job->fresh()]);
+    }
+
+    /**
+     * Permanently delete a job
+     */
+    public function forceDelete(int $id): JsonResponse
+    {
+        $job = RecruitmentJob::onlyTrashed()->findOrFail($id);
+        $job->forceDelete();
+
+        return response()->json(null, 204);
+    }
+
+    /**
+     * Renew an expired job (extend expires_at by 30 days)
+     */
+    public function renewJob(RecruitmentJob $job): JsonResponse
+    {
+        $job->update([
+            'expires_at' => now()->addDays(30),
+            'status' => 'open',
+            'published_at' => $job->published_at ?? now(),
+        ]);
+
+        return response()->json(['data' => $job->fresh()]);
+    }
+
     public function pipeline(RecruitmentJob $job): JsonResponse
     {
         $pipeline = $this->recruitingService->getPipelineBoard($job);
