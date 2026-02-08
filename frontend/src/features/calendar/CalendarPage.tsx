@@ -49,43 +49,7 @@ interface CalendarEventsResponse {
     };
 }
 
-// Generate demo events for the current month so the calendar is never empty
-function generateDemoEvents(year: number, month: number): CalendarEvent[] {
-    const demos: CalendarEvent[] = [];
-    let id = 9000;
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-    const interviewNames = ['Nguyễn Văn Bình', 'Trần Thị Mai', 'Lê Hoàng Nam', 'Phạm Thanh Hà', 'Vũ Minh Đức'];
-    const taskNames = ['Review CV ứng viên', 'Cập nhật JD Backend', 'Đăng tin lên TopCV', 'Gọi phỏng vấn sàng lọc', 'Soạn offer letter'];
-    const jobTitles = ['Senior Laravel Dev', 'React Native Dev', 'UI/UX Designer', 'HR Manager', 'Frontend Engineer'];
-    const postTitles = ['Tuyển Backend Developer', 'Tuyển Mobile Dev', 'Tuyển Designer', 'Tuyển HR Manager'];
-
-    // Interviews - scatter across month
-    for (let i = 0; i < 5; i++) {
-        const day = Math.min(3 + i * 5 + Math.floor(i * 1.3), daysInMonth);
-        demos.push({ id: id++, type: 'interview', title: `PV: ${interviewNames[i]}`, subtitle: jobTitles[i % jobTitles.length], date: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`, color: EVENT_TYPES.interview.color });
-    }
-
-    // Tasks
-    for (let i = 0; i < 5; i++) {
-        const day = Math.min(2 + i * 6, daysInMonth);
-        demos.push({ id: id++, type: 'task', title: taskNames[i], date: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`, color: EVENT_TYPES.task.color });
-    }
-
-    // Job expirations
-    for (let i = 0; i < 3; i++) {
-        const day = Math.min(10 + i * 8, daysInMonth);
-        demos.push({ id: id++, type: 'job_expiration', title: `Hết hạn: ${jobTitles[i]}`, date: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`, color: EVENT_TYPES.job_expiration.color });
-    }
-
-    // Scheduled posts
-    for (let i = 0; i < 4; i++) {
-        const day = Math.min(5 + i * 7, daysInMonth);
-        demos.push({ id: id++, type: 'scheduled_post', title: postTitles[i], subtitle: 'Zalo + Facebook', date: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`, color: EVENT_TYPES.scheduled_post.color });
-    }
-
-    return demos;
-}
 
 export default function CalendarPage() {
     const { resolvedTheme } = useTheme();
@@ -94,7 +58,7 @@ export default function CalendarPage() {
     const [events, setEvents] = useState<CalendarEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
-    const [useDemoData, setUseDemoData] = useState(false);
+
 
     // Filter states
     const [filters, setFilters] = useState<Record<EventType, boolean>>({
@@ -126,19 +90,12 @@ export default function CalendarPage() {
                     ...response.data.data.job_expirations,
                     ...response.data.data.scheduled_posts,
                 ];
-                if (allEvents.length > 0) {
-                    setEvents(allEvents);
-                    setUseDemoData(false);
-                } else {
-                    // Fallback to demo data
-                    setEvents(generateDemoEvents(currentDate.getFullYear(), currentDate.getMonth()));
-                    setUseDemoData(true);
-                }
+                setEvents(allEvents);
+            } else {
+                setEvents([]);
             }
         } catch {
-            // On error, show demo data so the page is never empty
-            setEvents(generateDemoEvents(currentDate.getFullYear(), currentDate.getMonth()));
-            setUseDemoData(true);
+            setEvents([]);
         } finally {
             setLoading(false);
         }
@@ -324,16 +281,7 @@ export default function CalendarPage() {
                 </div>
             </div>
 
-            {/* Demo Data Banner */}
-            {useDemoData && (
-                <div className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm ${isDark
-                    ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400'
-                    : 'bg-amber-50 border border-amber-200 text-amber-700'
-                    }`}>
-                    <SparklesIcon className="w-4 h-4 flex-shrink-0" />
-                    <span>Đang hiển thị dữ liệu mẫu. Tạo phỏng vấn, task hoặc đăng bài để thay thế bằng dữ liệu thật.</span>
-                </div>
-            )}
+
 
             {/* Event Type Filters */}
             <div className={`rounded-xl border p-4 ${isDark ? 'bg-slate-800/50 border-slate-700/50' : 'bg-white border-slate-200'}`}>
@@ -361,8 +309,8 @@ export default function CalendarPage() {
                             />
                             {config.label}
                             <span className={`ml-1 px-1.5 py-0.5 rounded text-[10px] ${filters[type]
-                                    ? isDark ? 'bg-white/10' : 'bg-black/5'
-                                    : isDark ? 'bg-slate-700' : 'bg-slate-200'
+                                ? isDark ? 'bg-white/10' : 'bg-black/5'
+                                : isDark ? 'bg-slate-700' : 'bg-slate-200'
                                 }`}>
                                 {filteredEvents.filter(e => e.type === type).length}
                             </span>

@@ -3,7 +3,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server as SocketIO } from 'socket.io';
 import { Browser, BrowserContext, Page, CDPSession } from 'playwright';
-import { launchStealthBrowser, createStealthPage, StealthLaunchOptions } from './stealth/browser-launcher.js';
+import { launchStealthBrowser, createStealthPage, getDetectedBrowsers, StealthLaunchOptions } from './stealth/browser-launcher.js';
 import { HumanBehavior } from './stealth/human-behavior.js';
 import { ProxyRotator, ProxyConfig } from './stealth/proxy-rotator.js';
 import { profileManager, BrowserProfile, ProfileCreateInput } from './profile-manager.js';
@@ -325,6 +325,9 @@ app.post('/api/browser/screencast/start', async (req, res) => {
         // Create CDP session
         cdpSession = await activePage.context().newCDPSession(activePage);
 
+        // Disable Debugger domain to prevent debugger; pauses
+        try { await cdpSession.send('Debugger.disable'); } catch (e) { }
+
         // Listen for screencast frames
         cdpSession.on('Page.screencastFrame', async (frame: any) => {
             // Emit frame to all connected clients
@@ -572,6 +575,13 @@ app.get('/api/proxy/count', (req, res) => {
     res.json({ success: true, count: proxyRotator.count });
 });
 
+// ============ Detected Real Browsers ============
+
+app.get('/api/detected-browsers', (req, res) => {
+    const browsers = getDetectedBrowsers();
+    res.json({ success: true, browsers });
+});
+
 // ============ Session-based Multi-Browser API ============
 
 // Launch new session with profile
@@ -688,6 +698,12 @@ app.post('/api/sessions/:sessionId/screencast/start', async (req, res) => {
 
         // Create CDP session for this page
         session.cdpSession = await session.context.newCDPSession(session.page);
+
+        // CRITICAL: Disable Debugger domain so `debugger;` statements don't pause execution
+        // This prevents isDevtoolOpen detection via debugger-timing trick
+        try {
+            await session.cdpSession.send('Debugger.disable');
+        } catch (e) { /* May not be enabled */ }
 
         // Listen for screencast frames
         session.cdpSession.on('Page.screencastFrame', async (frame: any) => {

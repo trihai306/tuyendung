@@ -265,9 +265,7 @@ function AppRoutes() {
         path="/employer/poster"
         element={
           <ProtectedRoute>
-            <DashboardLayout>
-              <PosterCreatorPage />
-            </DashboardLayout>
+            <PosterCreatorPage />
           </ProtectedRoute>
         }
       />
