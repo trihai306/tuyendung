@@ -8,7 +8,7 @@ interface PaginationProps {
 }
 
 export default function Pagination({ meta }: PaginationProps) {
-    if (meta.last_page <= 1) return null;
+    if (!meta || meta.last_page <= 1) return null;
 
     return (
         <div className="flex items-center justify-between px-2 py-4">
