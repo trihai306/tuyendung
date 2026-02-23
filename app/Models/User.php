@@ -110,4 +110,31 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->hasMany(TenantContract::class, 'tenant_id');
     }
+
+    public function companyMemberships(): HasMany
+    {
+        return $this->hasMany(CompanyMember::class);
+    }
+
+    public function assignedTasks(): HasMany
+    {
+        return $this->hasMany(RecruitmentTask::class, 'assigned_to');
+    }
+
+    /**
+     * Get the company (EmployerProfile) that this user belongs to.
+     * Returns own EmployerProfile if owner, or the company they are a member of.
+     */
+    public function getCompany(): ?EmployerProfile
+    {
+        // If user has their own employer profile, return it
+        if ($this->employerProfile) {
+            return $this->employerProfile;
+        }
+
+        // Otherwise check if they are a member of a company
+        $membership = $this->companyMemberships()->active()->with('employerProfile')->first();
+
+        return $membership?->employerProfile;
+    }
 }

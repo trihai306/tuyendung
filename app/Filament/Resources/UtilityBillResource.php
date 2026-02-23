@@ -18,30 +18,35 @@ class UtilityBillResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-bolt';
 
-    protected static ?string $navigationGroup = 'Phòng trọ';
+    protected static ?string $navigationGroup = 'Phong tro';
 
-    protected static ?string $navigationLabel = 'Hóa đơn điện nước';
+    protected static ?string $navigationLabel = 'Hoa don dien nuoc';
 
-    protected static ?string $modelLabel = 'Hóa đơn';
+    protected static ?string $modelLabel = 'Hoa don';
 
-    protected static ?string $pluralModelLabel = 'Hóa đơn điện nước';
+    protected static ?string $pluralModelLabel = 'Hoa don dien nuoc';
 
     protected static ?int $navigationSort = 4;
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['contract.id'];
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make()
+                Forms\Components\Section::make('Thong tin hoa don')
                     ->schema([
                         Forms\Components\Select::make('contract_id')
-                            ->label('Hợp đồng')
+                            ->label('Hop dong')
                             ->relationship('contract', 'id')
                             ->searchable()
                             ->preload()
                             ->required(),
                         Forms\Components\Select::make('type')
-                            ->label('Loại')
+                            ->label('Loai')
                             ->options([
                                 'electricity' => 'Dien',
                                 'water' => 'Nuoc',
@@ -61,17 +66,17 @@ class UtilityBillResource extends Resource
                             ->prefix('VND')
                             ->required(),
                         Forms\Components\TextInput::make('period_month')
-                            ->label('Tháng')
+                            ->label('Thang')
                             ->numeric()
                             ->required()
                             ->minValue(1)
                             ->maxValue(12),
                         Forms\Components\TextInput::make('period_year')
-                            ->label('Năm')
+                            ->label('Nam')
                             ->numeric()
                             ->required(),
                         Forms\Components\Select::make('status')
-                            ->label('Trạng thái')
+                            ->label('Trang thai')
                             ->options([
                                 'pending' => 'Chua thanh toan',
                                 'paid' => 'Da thanh toan',
@@ -88,10 +93,10 @@ class UtilityBillResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('contract.id')
-                    ->label('Mã HĐ')
+                    ->label('Ma HD')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('type')
-                    ->label('Loại')
+                    ->label('Loai')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'electricity' => 'warning',
@@ -115,25 +120,32 @@ class UtilityBillResource extends Resource
                     ->suffix(' VND')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('period_month')
-                    ->label('Tháng'),
+                    ->label('Thang'),
                 Tables\Columns\TextColumn::make('period_year')
-                    ->label('Năm'),
+                    ->label('Nam'),
                 Tables\Columns\TextColumn::make('status')
-                    ->label('Trạng thái')
+                    ->label('Trang thai')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'paid' => 'success',
                         default => 'warning',
+                    })
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                        'pending' => 'Chua TT',
+                        'paid' => 'Da TT',
+                        default => $state,
                     }),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('type')
+                    ->label('Loai')
                     ->options([
                         'electricity' => 'Dien',
                         'water' => 'Nuoc',
                     ]),
                 Tables\Filters\SelectFilter::make('status')
+                    ->label('Trang thai')
                     ->options([
                         'pending' => 'Chua thanh toan',
                         'paid' => 'Da thanh toan',

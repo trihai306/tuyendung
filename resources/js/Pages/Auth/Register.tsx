@@ -5,7 +5,7 @@ import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler, useState } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Lock, Eye, EyeOff, Building2, Search, ArrowRight, ArrowLeft, Check } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, Building2, Search, ArrowRight, ArrowLeft, Check, Phone, Users } from 'lucide-react';
 
 type AccountType = 'employer' | 'candidate' | null;
 
@@ -13,9 +13,11 @@ export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         email: '',
+        phone: '',
         password: '',
         password_confirmation: '',
         account_type: '' as string,
+        company_name: '',
     });
 
     const [showPassword, setShowPassword] = useState(false);
@@ -52,7 +54,7 @@ export default function Register() {
 
     return (
         <GuestLayout>
-            <Head title="Dang ky" />
+            <Head title="Đăng ký" />
 
             <div className="space-y-6">
                 {/* Step 1: Role Selection */}
@@ -65,9 +67,9 @@ export default function Register() {
                             custom={0}
                             className="space-y-2"
                         >
-                            <h2 className="text-2xl font-bold tracking-tight">Ban la ai?</h2>
+                            <h2 className="text-2xl font-bold tracking-tight">Bạn là ai?</h2>
                             <p className="text-sm text-muted-foreground">
-                                Chon loai tai khoan phu hop voi ban
+                                Chọn loại tài khoản phù hợp với bạn
                             </p>
                         </motion.div>
 
@@ -81,27 +83,31 @@ export default function Register() {
                                 custom={1}
                                 onClick={() => handleSelectType('employer')}
                                 className={`w-full group relative overflow-hidden rounded-2xl border-2 p-5 text-left transition-all duration-300 ${selectedType === 'employer'
-                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 shadow-lg shadow-blue-500/10'
-                                        : 'border-border/50 bg-card hover:border-blue-500/30 hover:bg-blue-50/50 dark:hover:bg-blue-500/5'
+                                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 shadow-lg shadow-blue-500/10'
+                                    : 'border-border/50 bg-card hover:border-blue-500/30 hover:bg-blue-50/50 dark:hover:bg-blue-500/5'
                                     }`}
                             >
                                 <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-blue-500/5 to-transparent rounded-bl-full" />
                                 <div className="relative flex items-center gap-4">
                                     <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl transition-all ${selectedType === 'employer'
-                                            ? 'bg-blue-500 text-white shadow-md shadow-blue-500/25'
-                                            : 'bg-blue-500/10 text-blue-500'
+                                        ? 'bg-blue-500 text-white shadow-md shadow-blue-500/25'
+                                        : 'bg-blue-500/10 text-blue-500'
                                         }`}>
                                         <Building2 className="h-7 w-7" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="text-[15px] font-bold">Nha tuyen dung</h3>
+                                        <h3 className="text-[15px] font-bold">Nhà tuyển dụng</h3>
                                         <p className="text-[12px] text-muted-foreground mt-0.5">
-                                            Dang tin tuyen dung, quan ly ung vien, to chuc phong van
+                                            Đăng tin tuyển dụng, quản lý đội ngũ, giao việc cho nhân viên
                                         </p>
+                                        <div className="flex items-center gap-3 mt-2">
+                                            <span className="flex items-center gap-1 text-[10px] text-blue-500 font-medium"><Users className="h-3 w-3" /> Quản lý nhóm</span>
+                                            <span className="flex items-center gap-1 text-[10px] text-blue-500 font-medium"><Building2 className="h-3 w-3" /> Hồ sơ công ty</span>
+                                        </div>
                                     </div>
                                     <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all ${selectedType === 'employer'
-                                            ? 'border-blue-500 bg-blue-500 text-white'
-                                            : 'border-border'
+                                        ? 'border-blue-500 bg-blue-500 text-white'
+                                        : 'border-border'
                                         }`}>
                                         {selectedType === 'employer' && <Check className="h-3.5 w-3.5" />}
                                     </div>
@@ -117,27 +123,27 @@ export default function Register() {
                                 custom={2}
                                 onClick={() => handleSelectType('candidate')}
                                 className={`w-full group relative overflow-hidden rounded-2xl border-2 p-5 text-left transition-all duration-300 ${selectedType === 'candidate'
-                                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 shadow-lg shadow-emerald-500/10'
-                                        : 'border-border/50 bg-card hover:border-emerald-500/30 hover:bg-emerald-50/50 dark:hover:bg-emerald-500/5'
+                                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 shadow-lg shadow-emerald-500/10'
+                                    : 'border-border/50 bg-card hover:border-emerald-500/30 hover:bg-emerald-50/50 dark:hover:bg-emerald-500/5'
                                     }`}
                             >
                                 <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-emerald-500/5 to-transparent rounded-bl-full" />
                                 <div className="relative flex items-center gap-4">
                                     <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl transition-all ${selectedType === 'candidate'
-                                            ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25'
-                                            : 'bg-emerald-500/10 text-emerald-500'
+                                        ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25'
+                                        : 'bg-emerald-500/10 text-emerald-500'
                                         }`}>
                                         <Search className="h-7 w-7" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="text-[15px] font-bold">Nguoi tim viec</h3>
+                                        <h3 className="text-[15px] font-bold">Người tìm việc</h3>
                                         <p className="text-[12px] text-muted-foreground mt-0.5">
-                                            Tim viec lam, ung tuyen, quan ly ho so ca nhan
+                                            Tìm việc làm, ứng tuyển, quản lý hồ sơ cá nhân
                                         </p>
                                     </div>
                                     <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all ${selectedType === 'candidate'
-                                            ? 'border-emerald-500 bg-emerald-500 text-white'
-                                            : 'border-border'
+                                        ? 'border-emerald-500 bg-emerald-500 text-white'
+                                        : 'border-border'
                                         }`}>
                                         {selectedType === 'candidate' && <Check className="h-3.5 w-3.5" />}
                                     </div>
@@ -158,13 +164,13 @@ export default function Register() {
                                 onClick={goToStep2}
                                 disabled={!selectedType}
                                 className={`w-full h-11 font-semibold shadow-md transition-all ${selectedType === 'employer'
-                                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-blue-600/20'
-                                        : selectedType === 'candidate'
-                                            ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-emerald-600/20'
-                                            : 'bg-muted text-muted-foreground'
+                                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-blue-600/20'
+                                    : selectedType === 'candidate'
+                                        ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-emerald-600/20'
+                                        : 'bg-muted text-muted-foreground'
                                     } text-white`}
                             >
-                                Tiep tuc
+                                Tiếp tục
                                 <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                         </motion.div>
@@ -177,13 +183,11 @@ export default function Register() {
                             custom={4}
                             className="text-center text-sm text-muted-foreground"
                         >
-                            Da co tai khoan?{' '}
+                            Da co tài khoản?{' '}
                             <Link
                                 href={route('login')}
                                 className="font-semibold text-primary hover:text-primary/80 transition-colors"
-                            >
-                                Dang nhap
-                            </Link>
+                            >Đăng nhập</Link>
                         </motion.p>
                     </>
                 )}
@@ -203,13 +207,11 @@ export default function Register() {
                                 onClick={() => setStep(1)}
                                 className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-1"
                             >
-                                <ArrowLeft className="h-3.5 w-3.5" />
-                                Quay lai
-                            </button>
+                                <ArrowLeft className="h-3.5 w-3.5" />Quay lại</button>
                             <div className="flex items-center gap-3">
                                 <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${selectedType === 'employer'
-                                        ? 'bg-blue-500 text-white'
-                                        : 'bg-emerald-500 text-white'
+                                    ? 'bg-blue-500 text-white'
+                                    : 'bg-emerald-500 text-white'
                                     }`}>
                                     {selectedType === 'employer' ? (
                                         <Building2 className="h-5 w-5" />
@@ -219,30 +221,51 @@ export default function Register() {
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-bold tracking-tight">
-                                        {selectedType === 'employer' ? 'Dang ky nha tuyen dung' : 'Dang ky nguoi tim viec'}
+                                        {selectedType === 'employer' ? 'Đăng ký nhà tuyển dụng' : 'Đăng ký người tìm việc'}
                                     </h2>
                                     <p className="text-xs text-muted-foreground">
                                         {selectedType === 'employer'
-                                            ? 'Tao tai khoan de dang tin va quan ly tuyen dung'
-                                            : 'Tao tai khoan de tim viec va ung tuyen'}
+                                            ? 'Tạo tài khoản doanh nghiệp - quản lý đội ngũ tuyển dụng'
+                                            : 'Tạo tài khoản để tìm việc và ứng tuyển'}
                                     </p>
                                 </div>
                             </div>
                         </motion.div>
 
                         <form onSubmit={submit} className="space-y-4">
+                            {/* Employer: Company Name */}
+                            {selectedType === 'employer' && (
+                                <motion.div variants={stagger} initial="hidden" animate="show" custom={0.5} className="space-y-2">
+                                    <Label htmlFor="company_name">Ten công ty *</Label>
+                                    <div className="relative">
+                                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            id="company_name"
+                                            name="company_name"
+                                            value={data.company_name}
+                                            placeholder="Công ty TNHH ABC"
+                                            autoFocus
+                                            className="pl-10 h-11"
+                                            onChange={(e) => setData('company_name', e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    {errors.company_name && <p className="text-sm text-destructive">{errors.company_name}</p>}
+                                </motion.div>
+                            )}
+
                             {/* Name */}
                             <motion.div variants={stagger} initial="hidden" animate="show" custom={1} className="space-y-2">
-                                <Label htmlFor="name">Ho va ten</Label>
+                                <Label htmlFor="name">{selectedType === 'employer' ? 'Họ và tên người đại diện' : 'Họ và tên'}</Label>
                                 <div className="relative">
                                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     <Input
                                         id="name"
                                         name="name"
                                         value={data.name}
-                                        placeholder="Nguyen Van A"
+                                        placeholder={selectedType === 'employer' ? 'Người đại diện công ty' : 'Nguyen Van A'}
                                         autoComplete="name"
-                                        autoFocus
+                                        autoFocus={selectedType !== 'employer'}
                                         className="pl-10 h-11"
                                         onChange={(e) => setData('name', e.target.value)}
                                         required
@@ -271,9 +294,29 @@ export default function Register() {
                                 {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                             </motion.div>
 
+                            {/* Employer: Phone */}
+                            {selectedType === 'employer' && (
+                                <motion.div variants={stagger} initial="hidden" animate="show" custom={2.5} className="space-y-2">
+                                    <Label htmlFor="phone">So điện thoại liên hệ</Label>
+                                    <div className="relative">
+                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            id="phone"
+                                            name="phone"
+                                            value={data.phone}
+                                            placeholder="0912 345 678"
+                                            autoComplete="tel"
+                                            className="pl-10 h-11"
+                                            onChange={(e) => setData('phone', e.target.value)}
+                                        />
+                                    </div>
+                                    {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+                                </motion.div>
+                            )}
+
                             {/* Password */}
                             <motion.div variants={stagger} initial="hidden" animate="show" custom={3} className="space-y-2">
-                                <Label htmlFor="password">Mat khau</Label>
+                                <Label htmlFor="password">Mật khẩu</Label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     <Input
@@ -281,7 +324,7 @@ export default function Register() {
                                         type={showPassword ? 'text' : 'password'}
                                         name="password"
                                         value={data.password}
-                                        placeholder="Toi thieu 8 ky tu"
+                                        placeholder="Tối thiểu 8 ký tự"
                                         autoComplete="new-password"
                                         className="pl-10 pr-10 h-11"
                                         onChange={(e) => setData('password', e.target.value)}
@@ -301,7 +344,7 @@ export default function Register() {
 
                             {/* Confirm Password */}
                             <motion.div variants={stagger} initial="hidden" animate="show" custom={4} className="space-y-2">
-                                <Label htmlFor="password_confirmation">Xac nhan mat khau</Label>
+                                <Label htmlFor="password_confirmation">Xác nhận mật khẩu</Label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     <Input
@@ -309,7 +352,7 @@ export default function Register() {
                                         type={showConfirm ? 'text' : 'password'}
                                         name="password_confirmation"
                                         value={data.password_confirmation}
-                                        placeholder="Nhap lai mat khau"
+                                        placeholder="Nhập lại mật khẩu"
                                         autoComplete="new-password"
                                         className="pl-10 pr-10 h-11"
                                         onChange={(e) => setData('password_confirmation', e.target.value)}
@@ -335,11 +378,11 @@ export default function Register() {
                                     type="submit"
                                     disabled={processing}
                                     className={`w-full h-11 font-semibold shadow-md transition-all text-white ${selectedType === 'employer'
-                                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-blue-600/20'
-                                            : 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-emerald-600/20'
+                                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-blue-600/20'
+                                        : 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-emerald-600/20'
                                         }`}
                                 >
-                                    {processing ? 'Dang xu ly...' : 'Tao tai khoan'}
+                                    {processing ? 'Đang xử lý...' : 'Tạo tài khoản'}
                                 </Button>
                             </motion.div>
 
@@ -361,13 +404,11 @@ export default function Register() {
                                 custom={7}
                                 className="text-center text-sm text-muted-foreground"
                             >
-                                Da co tai khoan?{' '}
+                                Da co tài khoản?{' '}
                                 <Link
                                     href={route('login')}
                                     className="font-semibold text-primary hover:text-primary/80 transition-colors"
-                                >
-                                    Dang nhap
-                                </Link>
+                                >Đăng nhập</Link>
                             </motion.p>
                         </form>
                     </>

@@ -18,15 +18,25 @@ class UserResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
-    protected static ?string $navigationGroup = 'Người dùng';
+    protected static ?string $navigationGroup = 'Nguoi dung';
 
-    protected static ?string $navigationLabel = 'Người dùng';
+    protected static ?string $navigationLabel = 'Nguoi dung';
 
-    protected static ?string $modelLabel = 'Người dùng';
+    protected static ?string $modelLabel = 'Nguoi dung';
 
-    protected static ?string $pluralModelLabel = 'Người dùng';
+    protected static ?string $pluralModelLabel = 'Nguoi dung';
 
     protected static ?int $navigationSort = 1;
+
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) static::getModel()::count();
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'email', 'phone'];
+    }
 
     public static function form(Form $form): Form
     {
@@ -45,7 +55,7 @@ class UserResource extends Resource
                             ->maxLength(255)
                             ->unique(ignoreRecord: true),
                         Forms\Components\TextInput::make('phone')
-                            ->label('Số điện thoại')
+                            ->label('So dien thoai')
                             ->tel()
                             ->maxLength(20),
                         Forms\Components\FileUpload::make('avatar')
@@ -59,12 +69,12 @@ class UserResource extends Resource
                             ->dehydrated(fn(?string $state): bool => filled($state))
                             ->required(fn(string $operation): bool => $operation === 'create'),
                         Forms\Components\CheckboxList::make('roles')
-                            ->label('Vai trò')
+                            ->label('Vai tro')
                             ->options([
                                 'admin' => 'Admin',
-                                'employer' => 'Nhà tuyển dụng',
-                                'candidate' => 'Ứng viên',
-                                'landlord' => 'Chủ trọ',
+                                'employer' => 'Nha tuyen dung',
+                                'candidate' => 'Ung vien',
+                                'landlord' => 'Chu tro',
                             ])
                             ->columns(2),
                     ])
@@ -91,11 +101,11 @@ class UserResource extends Resource
                     ->label('SDT')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('roles')
-                    ->label('Vai trò')
+                    ->label('Vai tro')
                     ->badge()
                     ->separator(','),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Ngày tạo')
+                    ->label('Ngay tao')
                     ->dateTime('d/m/Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

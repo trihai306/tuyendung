@@ -18,47 +18,63 @@ class RentPaymentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
 
-    protected static ?string $navigationGroup = 'Phòng trọ';
+    protected static ?string $navigationGroup = 'Phong tro';
 
-    protected static ?string $navigationLabel = 'Thanh toán';
+    protected static ?string $navigationLabel = 'Thanh toan';
 
-    protected static ?string $modelLabel = 'Thanh toán';
+    protected static ?string $modelLabel = 'Thanh toan';
 
-    protected static ?string $pluralModelLabel = 'Thanh toán';
+    protected static ?string $pluralModelLabel = 'Thanh toan';
 
     protected static ?int $navigationSort = 3;
+
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) static::getModel()::where('status', 'pending')->count();
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        $count = static::getModel()::where('status', 'pending')->count();
+        return $count > 0 ? 'danger' : 'gray';
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['contract.id'];
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make()
+                Forms\Components\Section::make('Thong tin thanh toan')
                     ->schema([
                         Forms\Components\Select::make('contract_id')
-                            ->label('Hợp đồng')
+                            ->label('Hop dong')
                             ->relationship('contract', 'id')
                             ->searchable()
                             ->preload()
                             ->required(),
                         Forms\Components\TextInput::make('amount')
-                            ->label('Số tiền')
+                            ->label('So tien')
                             ->numeric()
                             ->prefix('VND')
                             ->required(),
                         Forms\Components\TextInput::make('period_month')
-                            ->label('Tháng')
+                            ->label('Thang')
                             ->numeric()
                             ->required()
                             ->minValue(1)
                             ->maxValue(12),
                         Forms\Components\TextInput::make('period_year')
-                            ->label('Năm')
+                            ->label('Nam')
                             ->numeric()
                             ->required(),
                         Forms\Components\DateTimePicker::make('paid_at')
-                            ->label('Ngày thanh toán'),
+                            ->label('Ngay thanh toan'),
                         Forms\Components\Select::make('payment_method')
-                            ->label('Phương thức')
+                            ->label('Phuong thuc')
                             ->options([
                                 'cash' => 'Tien mat',
                                 'transfer' => 'Chuyen khoan',
@@ -66,7 +82,7 @@ class RentPaymentResource extends Resource
                                 'zalopay' => 'ZaloPay',
                             ]),
                         Forms\Components\Select::make('status')
-                            ->label('Trạng thái')
+                            ->label('Trang thai')
                             ->options([
                                 'pending' => 'Chua thanh toan',
                                 'paid' => 'Da thanh toan',
@@ -75,7 +91,7 @@ class RentPaymentResource extends Resource
                             ->default('pending')
                             ->required(),
                         Forms\Components\Textarea::make('notes')
-                            ->label('Ghi chú')
+                            ->label('Ghi chu')
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
@@ -87,42 +103,64 @@ class RentPaymentResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('contract.id')
-                    ->label('Mã HĐ')
+                    ->label('Ma HD')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('amount')
-                    ->label('Số tiền')
+                    ->label('So tien')
                     ->numeric()
                     ->suffix(' VND')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('period_month')
-                    ->label('Tháng')
+                    ->label('Thang')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('period_year')
-                    ->label('Năm')
+                    ->label('Nam')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('payment_method')
-                    ->label('Phương thức')
-                    ->badge(),
+                    ->label('Phuong thuc')
+                    ->badge()
+                    ->formatStateUsing(fn(?string $state): string => match ($state) {
+                        'cash' => 'Tien mat',
+                        'transfer' => 'CK',
+                        'momo' => 'MoMo',
+                        'zalopay' => 'ZaloPay',
+                        default => $state ?? '-',
+                    }),
                 Tables\Columns\TextColumn::make('status')
-                    ->label('Trạng thái')
+                    ->label('Trang thai')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'paid' => 'success',
                         'overdue' => 'danger',
                         default => 'warning',
+                    })
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                        'pending' => 'Chua TT',
+                        'paid' => 'Da TT',
+                        'overdue' => 'Qua han',
+                        default => $state,
                     }),
                 Tables\Columns\TextColumn::make('paid_at')
-                    ->label('Ngày TT')
+                    ->label('Ngay TT')
                     ->dateTime('d/m/Y')
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
+                    ->label('Trang thai')
                     ->options([
                         'pending' => 'Chua thanh toan',
                         'paid' => 'Da thanh toan',
                         'overdue' => 'Qua han',
+                    ]),
+                Tables\Filters\SelectFilter::make('payment_method')
+                    ->label('Phuong thuc')
+                    ->options([
+                        'cash' => 'Tien mat',
+                        'transfer' => 'Chuyen khoan',
+                        'momo' => 'MoMo',
+                        'zalopay' => 'ZaloPay',
                     ]),
             ])
             ->actions([

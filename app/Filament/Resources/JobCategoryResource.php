@@ -18,15 +18,20 @@ class JobCategoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
 
-    protected static ?string $navigationGroup = 'Tuyển dụng';
+    protected static ?string $navigationGroup = 'Tuyen dung';
 
-    protected static ?string $navigationLabel = 'Danh mục';
+    protected static ?string $navigationLabel = 'Danh muc';
 
-    protected static ?string $modelLabel = 'Danh mục';
+    protected static ?string $modelLabel = 'Danh muc';
 
-    protected static ?string $pluralModelLabel = 'Danh mục';
+    protected static ?string $pluralModelLabel = 'Danh muc';
 
     protected static ?int $navigationSort = 1;
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'slug'];
+    }
 
     public static function form(Form $form): Form
     {
@@ -35,7 +40,7 @@ class JobCategoryResource extends Resource
                 Forms\Components\Section::make()
                     ->schema([
                         Forms\Components\TextInput::make('name')
-                            ->label('Tên danh mục')
+                            ->label('Ten danh muc')
                             ->required()
                             ->maxLength(255),
                         Forms\Components\TextInput::make('slug')
@@ -47,13 +52,13 @@ class JobCategoryResource extends Resource
                             ->label('Icon')
                             ->maxLength(100),
                         Forms\Components\Select::make('parent_id')
-                            ->label('Danh mục cha')
+                            ->label('Danh muc cha')
                             ->relationship('parent', 'name')
                             ->searchable()
                             ->preload()
                             ->nullable(),
                         Forms\Components\TextInput::make('sort_order')
-                            ->label('Thứ tự')
+                            ->label('Thu tu')
                             ->numeric()
                             ->default(0),
                     ])
@@ -66,22 +71,22 @@ class JobCategoryResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Tên')
+                    ->label('Ten')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('slug')
                     ->label('Slug')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('parent.name')
-                    ->label('Danh mục cha')
+                    ->label('Danh muc cha')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('icon')
                     ->label('Icon'),
                 Tables\Columns\TextColumn::make('sort_order')
-                    ->label('Thứ tự')
+                    ->label('Thu tu')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('job_posts_count')
-                    ->label('Số tin')
+                    ->label('So tin')
                     ->counts('jobPosts')
                     ->sortable(),
             ])

@@ -199,7 +199,7 @@ export default function JobShow({ jobPost, relatedJobs, hasApplied, isSaved }: J
                                                 <Clock className="h-5 w-5 text-red-600 dark:text-red-400" />
                                             </div>
                                             <div>
-                                                <p className="text-sm text-muted-foreground">Han nop</p>
+                                                <p className="text-sm text-muted-foreground">Hạn nộp</p>
                                                 <p className="font-medium">{formatDate(jobPost.deadline)}</p>
                                             </div>
                                         </div>
@@ -231,7 +231,7 @@ export default function JobShow({ jobPost, relatedJobs, hasApplied, isSaved }: J
                         {/* Description */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>Mô tả cong viec</CardTitle>
+                                <CardTitle>Mô tả công việc</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div
@@ -260,7 +260,7 @@ export default function JobShow({ jobPost, relatedJobs, hasApplied, isSaved }: J
                         {jobPost.benefits && (
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Quyen loi</CardTitle>
+                                    <CardTitle>Quyền lợi</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div
@@ -282,7 +282,7 @@ export default function JobShow({ jobPost, relatedJobs, hasApplied, isSaved }: J
                                         {hasApplied ? (
                                             <Button className="w-full" disabled>
                                                 <Send className="mr-2 h-4 w-4" />
-                                                Da ung tuyen
+                                                Da ứng tuyển
                                             </Button>
                                         ) : (
                                             <Button className="w-full" onClick={handleApply}>
@@ -292,26 +292,26 @@ export default function JobShow({ jobPost, relatedJobs, hasApplied, isSaved }: J
                                         )}
                                         <p className="text-xs text-center text-muted-foreground">
                                             {hasApplied
-                                                ? 'Ban da ung tuyen vao vi tri nay.'
-                                                : 'Nhan nut de gui ho so ung tuyen.'}
+                                                ? 'Bạn đã ứng tuyển vào vị trí này.'
+                                                : 'Nhan nut de gui hồ sơ ứng tuyển.'}
                                         </p>
                                     </div>
                                 ) : auth.user ? (
                                     <div className="text-center space-y-2">
                                         <p className="text-sm text-muted-foreground">
-                                            Chi tai khoan ung vien moi co the ung tuyen.
+                                            Chi tài khoản ứng viên moi co the ứng tuyển.
                                         </p>
                                     </div>
                                 ) : (
                                     <div className="text-center space-y-3">
                                         <p className="text-sm text-muted-foreground">
-                                            Đăng nhập de ung tuyen viec lam nay.
+                                            Đăng nhập de ứng tuyển việc làm nay.
                                         </p>
                                         <Button className="w-full" asChild>
                                             <Link href="/login">Đăng nhập</Link>
                                         </Button>
                                         <p className="text-xs text-muted-foreground">
-                                            Chưa có tai khoan?{' '}
+                                            Chưa có tài khoản?{' '}
                                             <Link href="/register" className="text-primary underline">
                                                 Đăng ký ngay
                                             </Link>

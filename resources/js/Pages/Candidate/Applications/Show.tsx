@@ -18,7 +18,7 @@ export default function Show({ application }: Props) {
     const interviews = application.interviews || [];
 
     return (
-        <CandidateLayout title="Chi tiet don ung tuyen">
+        <CandidateLayout title="Chi tiết đơn ứng tuyển">
             <Head title="Chi tiết đơn ứng tuyển" />
 
             <div className="max-w-3xl mx-auto space-y-6">
@@ -82,7 +82,7 @@ export default function Show({ application }: Props) {
                 {/* Application Details */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Thông tin ung tuyen</CardTitle>
+                        <CardTitle>Thông tin ứng tuyển</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex items-center gap-2 text-sm">

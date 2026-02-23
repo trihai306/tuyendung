@@ -61,7 +61,7 @@ export default function Edit({ room }: Props) {
                             <CardHeader>
                                 <CardTitle>Thông tin co ban</CardTitle>
                                 <CardDescription>
-                                    Cập nhật thong tin phong tro
+                                    Cập nhật thông tin phòng trọ
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -85,7 +85,7 @@ export default function Edit({ room }: Props) {
                                         value={data.description}
                                         onChange={(e) => setData('description', e.target.value)}
                                         rows={4}
-                                        placeholder="Mô tả chi tiet ve phong tro..."
+                                        placeholder="Mô tả chi tiet ve phòng trọ..."
                                     />
                                     {errors.description && (
                                         <p className="text-sm text-destructive">{errors.description}</p>
@@ -256,7 +256,7 @@ export default function Edit({ room }: Props) {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="address">Địa chỉ cu the</Label>
+                                    <Label htmlFor="address">Địa chỉ cụ thể</Label>
                                     <Input
                                         id="address"
                                         value={data.address}
@@ -298,7 +298,7 @@ export default function Edit({ room }: Props) {
 
                                 <div className="flex justify-end gap-2">
                                     <Button type="button" variant="outline" asChild>
-                                        <Link href={route('landlord.rooms.index')}>Huy</Link>
+                                        <Link href={route('landlord.rooms.index')}>Huỷ</Link>
                                     </Button>
                                     <Button type="submit" disabled={processing}>
                                         {processing ? 'Đang lưu...' : 'Cập nhật phòng trọ'}

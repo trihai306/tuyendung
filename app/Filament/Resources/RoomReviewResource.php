@@ -18,46 +18,51 @@ class RoomReviewResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-star';
 
-    protected static ?string $navigationGroup = 'Phòng trọ';
+    protected static ?string $navigationGroup = 'Phong tro';
 
-    protected static ?string $navigationLabel = 'Đánh giá';
+    protected static ?string $navigationLabel = 'Danh gia';
 
-    protected static ?string $modelLabel = 'Đánh giá';
+    protected static ?string $modelLabel = 'Danh gia';
 
-    protected static ?string $pluralModelLabel = 'Đánh giá';
+    protected static ?string $pluralModelLabel = 'Danh gia';
 
     protected static ?int $navigationSort = 5;
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['room.title', 'user.name', 'comment'];
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make()
+                Forms\Components\Section::make('Thong tin danh gia')
                     ->schema([
                         Forms\Components\Select::make('room_id')
-                            ->label('Phòng')
+                            ->label('Phong')
                             ->relationship('room', 'title')
                             ->searchable()
                             ->preload()
                             ->required(),
                         Forms\Components\Select::make('user_id')
-                            ->label('Người đánh giá')
+                            ->label('Nguoi danh gia')
                             ->relationship('user', 'name')
                             ->searchable()
                             ->preload()
                             ->required(),
                         Forms\Components\Select::make('rating')
-                            ->label('Số sao')
+                            ->label('So sao')
                             ->options([
-                                1 => '1',
-                                2 => '2',
-                                3 => '3',
-                                4 => '4',
-                                5 => '5',
+                                1 => '1 sao',
+                                2 => '2 sao',
+                                3 => '3 sao',
+                                4 => '4 sao',
+                                5 => '5 sao',
                             ])
                             ->required(),
                         Forms\Components\Textarea::make('comment')
-                            ->label('Nhận xét')
+                            ->label('Nhan xet')
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
@@ -69,12 +74,12 @@ class RoomReviewResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('room.title')
-                    ->label('Phòng')
+                    ->label('Phong')
                     ->searchable()
                     ->sortable()
                     ->limit(30),
                 Tables\Columns\TextColumn::make('user.name')
-                    ->label('Người đánh giá')
+                    ->label('Nguoi danh gia')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('rating')
@@ -85,17 +90,28 @@ class RoomReviewResource extends Resource
                         $state >= 4 => 'success',
                         $state >= 3 => 'warning',
                         default => 'danger',
-                    }),
+                    })
+                    ->formatStateUsing(fn(int $state): string => $state . ' sao'),
                 Tables\Columns\TextColumn::make('comment')
-                    ->label('Nhận xét')
+                    ->label('Nhan xet')
                     ->limit(50),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Ngày')
+                    ->label('Ngay')
                     ->dateTime('d/m/Y')
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
-            ->filters([])
+            ->filters([
+                Tables\Filters\SelectFilter::make('rating')
+                    ->label('So sao')
+                    ->options([
+                        1 => '1 sao',
+                        2 => '2 sao',
+                        3 => '3 sao',
+                        4 => '4 sao',
+                        5 => '5 sao',
+                    ]),
+            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),

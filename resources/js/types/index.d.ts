@@ -87,10 +87,22 @@ export interface JobPost {
     is_saved?: boolean;
 }
 
+export interface SocialLink {
+    platform: 'facebook' | 'zalo' | 'tiktok' | 'linkedin' | 'other';
+    url: string;
+}
+
 export interface Application {
     id: number;
     job_post_id: number;
-    candidate_id: number;
+    candidate_id: number | null;
+    candidate_name?: string;
+    candidate_email?: string;
+    candidate_phone?: string;
+    source: 'system' | 'facebook' | 'zalo' | 'tiktok' | 'linkedin' | 'referral' | 'other';
+    source_note?: string;
+    social_links?: SocialLink[];
+    added_by?: number;
     cover_letter?: string;
     resume_url?: string;
     status: 'pending' | 'reviewing' | 'shortlisted' | 'accepted' | 'rejected';
@@ -99,6 +111,7 @@ export interface Application {
     reviewed_at?: string;
     job_post?: JobPost;
     candidate?: User;
+    added_by_user?: User;
     interviews?: Interview[];
 }
 
@@ -113,6 +126,54 @@ export interface Interview {
     status: 'scheduled' | 'completed' | 'cancelled';
     result?: string;
     application?: Application;
+}
+
+export interface CompanyMember {
+    id: number;
+    employer_profile_id: number;
+    user_id: number;
+    role: 'owner' | 'manager' | 'member';
+    status: 'pending' | 'active' | 'inactive';
+    invited_at: string;
+    joined_at?: string;
+    user?: User;
+    invited_by_user?: User;
+}
+
+export interface RecruitmentTask {
+    id: number;
+    employer_profile_id: number;
+    assigned_to: number;
+    assigned_by: number;
+    title: string;
+    type: 'chinh_thuc' | 'thoi_vu';
+    description?: string;
+    priority: 'low' | 'medium' | 'high' | 'urgent';
+    target_quantity: number;
+    status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+    due_date?: string;
+    completed_at?: string;
+    notes?: string;
+    completion_report?: string;
+    created_at: string;
+    updated_at: string;
+    assignee?: User;
+    assigner?: User;
+    candidates?: TaskCandidate[];
+}
+
+export interface TaskCandidate {
+    id: number;
+    recruitment_task_id: number;
+    application_id?: number;
+    candidate_name: string;
+    candidate_phone?: string;
+    candidate_email?: string;
+    status: 'hired' | 'trial' | 'rejected';
+    notes?: string;
+    hired_date?: string;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface SavedJob {
@@ -204,8 +265,23 @@ export interface FlashMessages {
     info?: string;
 }
 
+export type CompanyRole = 'owner' | 'manager' | 'member';
+
+export type PermissionKey =
+    | 'team.view' | 'team.invite' | 'team.change_role' | 'team.remove' | 'team.regenerate_code'
+    | 'jobs.view' | 'jobs.create' | 'jobs.edit' | 'jobs.delete'
+    | 'applications.view' | 'applications.update' | 'applications.add_external'
+    | 'interviews.create' | 'interviews.update'
+    | 'tasks.view_all' | 'tasks.create' | 'tasks.assign' | 'tasks.update_any'
+    | 'company.view' | 'company.edit'
+    | 'reports.view';
+
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
-    auth: { user: User };
+    auth: {
+        user: User;
+        companyRole: CompanyRole | null;
+        permissions: Record<PermissionKey, boolean>;
+    };
     flash: FlashMessages;
     ziggy: { url: string; port: number | null; defaults: Record<string, unknown>; location: string };
 };

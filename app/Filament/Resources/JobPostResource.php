@@ -18,15 +18,30 @@ class JobPostResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-briefcase';
 
-    protected static ?string $navigationGroup = 'Tuyển dụng';
+    protected static ?string $navigationGroup = 'Tuyen dung';
 
-    protected static ?string $navigationLabel = 'Tin tuyển dụng';
+    protected static ?string $navigationLabel = 'Tin tuyen dung';
 
-    protected static ?string $modelLabel = 'Tin tuyển dụng';
+    protected static ?string $modelLabel = 'Tin tuyen dung';
 
-    protected static ?string $pluralModelLabel = 'Tin tuyển dụng';
+    protected static ?string $pluralModelLabel = 'Tin tuyen dung';
 
     protected static ?int $navigationSort = 2;
+
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) static::getModel()::where('status', 'active')->count();
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'success';
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['title', 'city', 'employer.name'];
+    }
 
     public static function form(Form $form): Form
     {
@@ -35,7 +50,7 @@ class JobPostResource extends Resource
                 Forms\Components\Section::make('Thong tin co ban')
                     ->schema([
                         Forms\Components\TextInput::make('title')
-                            ->label('Tiêu đề')
+                            ->label('Tieu de')
                             ->required()
                             ->maxLength(255),
                         Forms\Components\TextInput::make('slug')
@@ -44,19 +59,19 @@ class JobPostResource extends Resource
                             ->maxLength(255)
                             ->unique(ignoreRecord: true),
                         Forms\Components\Select::make('employer_id')
-                            ->label('Nhà tuyển dụng')
+                            ->label('Nha tuyen dung')
                             ->relationship('employer', 'name')
                             ->searchable()
                             ->preload()
                             ->required(),
                         Forms\Components\Select::make('category_id')
-                            ->label('Danh mục')
+                            ->label('Danh muc')
                             ->relationship('category', 'name')
                             ->searchable()
                             ->preload()
                             ->required(),
                         Forms\Components\Select::make('job_type')
-                            ->label('Loại công việc')
+                            ->label('Loai cong viec')
                             ->options([
                                 'full_time' => 'Toan thoi gian',
                                 'part_time' => 'Ban thoi gian',
@@ -66,7 +81,7 @@ class JobPostResource extends Resource
                             ])
                             ->required(),
                         Forms\Components\Select::make('status')
-                            ->label('Trạng thái')
+                            ->label('Trang thai')
                             ->options([
                                 'draft' => 'Nhap',
                                 'active' => 'Dang tuyen',
@@ -78,32 +93,32 @@ class JobPostResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Luong & Vi tri')
+                Forms\Components\Section::make('Luong va vi tri')
                     ->schema([
                         Forms\Components\TextInput::make('salary_min')
-                            ->label('Lương tối thiểu')
+                            ->label('Luong toi thieu')
                             ->numeric()
                             ->prefix('VND'),
                         Forms\Components\TextInput::make('salary_max')
-                            ->label('Lương tối đa')
+                            ->label('Luong toi da')
                             ->numeric()
                             ->prefix('VND'),
                         Forms\Components\Select::make('salary_type')
-                            ->label('Hình thức trả')
+                            ->label('Hinh thuc tra')
                             ->options([
-                                'monthly' => 'Tháng',
+                                'monthly' => 'Thang',
                                 'hourly' => 'Gio',
-                                'daily' => 'Ngày',
+                                'daily' => 'Ngay',
                                 'project' => 'Du an',
                             ]),
                         Forms\Components\TextInput::make('location')
-                            ->label('Địa chỉ')
+                            ->label('Dia chi')
                             ->maxLength(255),
                         Forms\Components\TextInput::make('district')
-                            ->label('Quận/Huyện')
+                            ->label('Quan/Huyen')
                             ->maxLength(100),
                         Forms\Components\TextInput::make('city')
-                            ->label('Thành phố')
+                            ->label('Thanh pho')
                             ->maxLength(100),
                     ])
                     ->columns(3),
@@ -111,29 +126,29 @@ class JobPostResource extends Resource
                 Forms\Components\Section::make('Mo ta chi tiet')
                     ->schema([
                         Forms\Components\RichEditor::make('description')
-                            ->label('Mô tả công việc')
+                            ->label('Mo ta cong viec')
                             ->columnSpanFull(),
                         Forms\Components\RichEditor::make('requirements')
-                            ->label('Yêu cầu')
+                            ->label('Yeu cau')
                             ->columnSpanFull(),
                         Forms\Components\RichEditor::make('benefits')
-                            ->label('Quyền lợi')
+                            ->label('Quyen loi')
                             ->columnSpanFull(),
                     ]),
 
                 Forms\Components\Section::make('Thong tin them')
                     ->schema([
                         Forms\Components\TextInput::make('slots')
-                            ->label('Số lượng tuyển')
+                            ->label('So luong tuyen')
                             ->numeric()
                             ->default(1),
                         Forms\Components\DatePicker::make('deadline')
-                            ->label('Hạn nộp'),
+                            ->label('Han nop'),
                         Forms\Components\TextInput::make('work_schedule')
-                            ->label('Lịch làm việc')
+                            ->label('Lich lam viec')
                             ->maxLength(255),
                         Forms\Components\Select::make('experience_level')
-                            ->label('Kinh nghiệm')
+                            ->label('Kinh nghiem')
                             ->options([
                                 'no_experience' => 'Khong yeu cau',
                                 'fresher' => 'Fresher',
@@ -151,22 +166,22 @@ class JobPostResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title')
-                    ->label('Tiêu đề')
+                    ->label('Tieu de')
                     ->searchable()
                     ->sortable()
                     ->limit(40),
                 Tables\Columns\TextColumn::make('employer.name')
-                    ->label('Nhà tuyển dụng')
+                    ->label('Nha tuyen dung')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('category.name')
-                    ->label('Danh mục')
+                    ->label('Danh muc')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('job_type')
-                    ->label('Loại')
+                    ->label('Loai')
                     ->badge(),
                 Tables\Columns\TextColumn::make('status')
-                    ->label('Trạng thái')
+                    ->label('Trang thai')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'active' => 'success',
@@ -176,18 +191,18 @@ class JobPostResource extends Resource
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('city')
-                    ->label('Thành phố')
+                    ->label('Thanh pho')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('views_count')
-                    ->label('Lượt xem')
+                    ->label('Luot xem')
                     ->sortable()
                     ->numeric(),
                 Tables\Columns\TextColumn::make('deadline')
-                    ->label('Hạn nộp')
+                    ->label('Han nop')
                     ->date('d/m/Y')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Ngày tạo')
+                    ->label('Ngay tao')
                     ->dateTime('d/m/Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -195,7 +210,7 @@ class JobPostResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->label('Trạng thái')
+                    ->label('Trang thai')
                     ->options([
                         'draft' => 'Nhap',
                         'active' => 'Dang tuyen',
@@ -203,7 +218,7 @@ class JobPostResource extends Resource
                         'closed' => 'Da dong',
                     ]),
                 Tables\Filters\SelectFilter::make('job_type')
-                    ->label('Loại')
+                    ->label('Loai')
                     ->options([
                         'full_time' => 'Toan thoi gian',
                         'part_time' => 'Ban thoi gian',

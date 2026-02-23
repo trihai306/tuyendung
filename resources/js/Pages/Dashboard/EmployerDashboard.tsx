@@ -45,16 +45,16 @@ interface EmployerDashboardProps {
 const STAT_CARDS = [
     {
         key: 'totalJobPosts',
-        label: 'Tong tin tuyen dung',
-        description: 'Bai dang da tao',
+        label: 'Tong tin tuyển dụng',
+        description: 'Bài đăng đã tạo',
         icon: Briefcase,
         gradient: 'from-blue-500 to-blue-600',
         bgLight: 'bg-blue-50 dark:bg-blue-950/30',
     },
     {
         key: 'activeJobs',
-        label: 'Dang tuyen dung',
-        description: 'Tin dang hoat dong',
+        label: 'Dang tuyển dụng',
+        description: 'Tin dang hoạt động',
         icon: Eye,
         gradient: 'from-indigo-500 to-indigo-600',
         bgLight: 'bg-indigo-50 dark:bg-indigo-950/30',
@@ -62,7 +62,7 @@ const STAT_CARDS = [
     {
         key: 'totalApplications',
         label: 'Đơn ứng tuyển',
-        description: 'Ung vien da nop don',
+        description: 'Ứng viên đã nộp đơn',
         icon: ClipboardList,
         gradient: 'from-violet-500 to-violet-600',
         bgLight: 'bg-violet-50 dark:bg-violet-950/30',
@@ -81,8 +81,8 @@ const PIPELINE_STAGES: { key: keyof ApplicationStats; label: string; color: stri
     { key: 'pending', label: 'Chờ xử lý', color: 'bg-amber-500', bgColor: 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300' },
     { key: 'reviewing', label: 'Đang xem xét', color: 'bg-blue-500', bgColor: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300' },
     { key: 'shortlisted', label: 'Danh sách ngắn', color: 'bg-indigo-500', bgColor: 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300' },
-    { key: 'accepted', label: 'Da chap nhan', color: 'bg-emerald-500', bgColor: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300' },
-    { key: 'rejected', label: 'Da tu choi', color: 'bg-rose-500', bgColor: 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300' },
+    { key: 'accepted', label: 'Đã chấp nhận', color: 'bg-emerald-500', bgColor: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300' },
+    { key: 'rejected', label: 'Đã từ chối', color: 'bg-rose-500', bgColor: 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300' },
 ];
 
 export default function EmployerDashboard({ data, user }: EmployerDashboardProps) {
@@ -156,8 +156,8 @@ export default function EmployerDashboard({ data, user }: EmployerDashboardProps
                 <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle className="text-base md:text-lg">Quy trinh tuyen dung</CardTitle>
-                            <CardDescription>Tổng quan trang thai don ung tuyen</CardDescription>
+                            <CardTitle className="text-base md:text-lg">Quy trinh tuyển dụng</CardTitle>
+                            <CardDescription>Tổng quan trạng thái don ứng tuyển</CardDescription>
                         </div>
                         <Badge variant="outline" className="text-xs">
                             {totalPipeline} don
@@ -207,7 +207,7 @@ export default function EmployerDashboard({ data, user }: EmployerDashboardProps
                             <div>
                                 <CardTitle className="text-base md:text-lg flex items-center gap-2">
                                     <Users className="h-4 w-4 text-indigo-500" />
-                                    Ung vien moi nhat
+                                    Ứng viên mới nhất
                                 </CardTitle>
                                 <CardDescription>Đơn ứng tuyển vừa nhận</CardDescription>
                             </div>
@@ -234,7 +234,7 @@ export default function EmployerDashboard({ data, user }: EmployerDashboardProps
                                         </Avatar>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium truncate">
-                                                {app.candidate?.name || 'Ung vien'}
+                                                {app.candidate?.name || 'Ứng viên'}
                                             </p>
                                             <p className="text-xs text-muted-foreground truncate">
                                                 {app.job_post?.title || 'N/A'}
@@ -266,9 +266,9 @@ export default function EmployerDashboard({ data, user }: EmployerDashboardProps
                             <div>
                                 <CardTitle className="text-base md:text-lg flex items-center gap-2">
                                     <Briefcase className="h-4 w-4 text-blue-500" />
-                                    Tin tuyen dung gan day
+                                    Tin tuyển dụng gần đây
                                 </CardTitle>
-                                <CardDescription>Cac bai dang moi nhat</CardDescription>
+                                <CardDescription>Các bài đăng mới nhất</CardDescription>
                             </div>
                             <Link href="/employer/jobs/create">
                                 <Button variant="ghost" size="sm" className="text-xs">

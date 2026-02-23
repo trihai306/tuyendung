@@ -39,9 +39,10 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::Amber,
             ])
             ->navigationGroups([
-                NavigationGroup::make('Tuy\u1ec3n d\u1ee5ng'),
-                NavigationGroup::make('Ph\u00f2ng tr\u1ecd'),
-                NavigationGroup::make('Ng\u01b0\u1eddi d\u00f9ng'),
+                NavigationGroup::make('Tuyen dung'),
+                NavigationGroup::make('Doi nhom'),
+                NavigationGroup::make('Phong tro'),
+                NavigationGroup::make('Nguoi dung'),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

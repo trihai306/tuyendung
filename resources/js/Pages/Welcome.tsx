@@ -35,11 +35,24 @@ import {
     GraduationCap,
     Paintbrush,
     Wrench,
+    Bot,
+    Car,
+    MessageCircle,
+    Cpu,
+    HeartHandshake,
+    Target,
+    Globe,
+    PhoneCall,
+    Brain,
+    Rocket,
+    Quote,
 } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { motion, useInView } from 'framer-motion';
 import HeroAnimation from '@/Components/HeroAnimation';
 import type { JobPost, Room, JobCategory } from '@/types';
+
+const AIVisualization = lazy(() => import('@/Components/AIVisualization'));
 
 interface WelcomeProps {
     featuredJobs: JobPost[];
@@ -376,6 +389,303 @@ export default function Welcome({ featuredJobs = [], featuredRooms = [], categor
                     </motion.div>
                 </div>
             </section>
+
+            {/* ============================================ */}
+            {/* AI-POWERED SERVICES SECTION */}
+            {/* ============================================ */}
+            <motion.section
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: '-100px' }}
+                variants={sectionVariants}
+                className="relative py-24 md:py-32 bg-stone-950 overflow-hidden"
+            >
+                {/* Decorative gradient orbs */}
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute -top-32 left-1/4 w-[700px] h-[700px] bg-violet-500/[0.06] rounded-full blur-[200px]" />
+                    <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-cyan-500/[0.04] rounded-full blur-[180px]" />
+                    <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-amber-500/[0.03] rounded-full blur-[160px]" />
+                </div>
+
+                {/* Top separator */}
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-violet-500/30 to-transparent" />
+
+                <div className="container relative z-10">
+                    {/* Section Header */}
+                    <div className="text-center mb-20">
+                        <motion.div
+                            initial={{ opacity: 0, y: 12 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5 }}
+                            className="inline-flex items-center gap-2.5 rounded-full border border-violet-500/20 bg-violet-500/[0.08] px-5 py-2 text-xs font-medium text-violet-400 mb-6"
+                        >
+                            <motion.div
+                                className="w-2 h-2 rounded-full bg-violet-400"
+                                animate={{ opacity: [1, 0.4, 1], scale: [1, 1.2, 1] }}
+                                transition={{ duration: 2.5, repeat: Infinity }}
+                            />
+                            <span>Công nghệ AI tiên tiến</span>
+                        </motion.div>
+
+                        <motion.h2
+                            initial={{ opacity: 0, y: 16 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6, delay: 0.08 }}
+                            className="text-3xl md:text-[2.75rem] lg:text-5xl font-extrabold mb-5 text-white leading-tight"
+                        >
+                            Nền tảng{' '}
+                            <span className="bg-gradient-to-r from-violet-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                                thông minh
+                            </span>
+                            <br className="hidden sm:block" />
+                            <span className="text-stone-300"> - Trợ lý AI của bạn</span>
+                        </motion.h2>
+
+                        <motion.p
+                            initial={{ opacity: 0, y: 12 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: 0.12 }}
+                            className="text-stone-400 max-w-2xl mx-auto text-base md:text-lg leading-relaxed"
+                        >
+                            Ứng dụng trí tuệ nhân tạo để tự động hỗ trợ tìm việc, tìm phòng trọ và
+                            dịch vụ đưa đón nhân viên - tất cả trong một nền tảng duy nhất.
+                        </motion.p>
+                    </div>
+
+                    {/* 3D AI Neural Network Visualization */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true, margin: '-50px' }}
+                        transition={{ duration: 0.8, delay: 0.2 }}
+                        className="mb-20"
+                    >
+                        <Suspense fallback={
+                            <div className="w-full h-[400px] md:h-[500px] lg:h-[550px] flex items-center justify-center">
+                                <div className="w-16 h-16 rounded-full border-2 border-violet-500/30 border-t-violet-500 animate-spin" />
+                            </div>
+                        }>
+                            <AIVisualization />
+                        </Suspense>
+                    </motion.div>
+
+                    {/* Feature Cards Grid */}
+                    <motion.div
+                        variants={staggerContainer}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, margin: '-50px' }}
+                        className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto mb-20"
+                    >
+                        {/* Card 1: AI Job Search */}
+                        <motion.div variants={staggerItem} className="group">
+                            <div className="relative h-full p-8 lg:p-10 rounded-3xl border border-violet-500/10 bg-stone-900/40 backdrop-blur-sm overflow-hidden transition-all duration-700 hover:-translate-y-2 hover:shadow-[0_30px_80px_rgba(139,92,246,0.12)] hover:border-violet-500/25 hover:bg-stone-900/60">
+                                {/* Gradient accent top */}
+                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-blue-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                                {/* Background pattern */}
+                                <div className="absolute top-4 right-4 w-32 h-32 bg-gradient-to-br from-violet-500/[0.06] to-transparent rounded-full blur-2xl group-hover:w-48 group-hover:h-48 transition-all duration-700" />
+
+                                <div className="relative">
+                                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/20 to-blue-500/10 border border-violet-500/15 mb-6 shadow-lg shadow-violet-500/5 group-hover:shadow-violet-500/20 transition-all duration-500">
+                                        <Brain className="h-8 w-8 text-violet-400" />
+                                    </div>
+
+                                    <h3 className="text-xl font-bold text-white mb-3 group-hover:text-violet-300 transition-colors">
+                                        AI Tự Động Tìm Việc
+                                    </h3>
+                                    <p className="text-sm text-stone-400 leading-relaxed mb-6">
+                                        Trí tuệ nhân tạo phân tích hồ sơ, kỹ năng và mong muốn của bạn
+                                        để gợi ý những công việc phù hợp nhất. Hỗ trợ viết CV chuyên nghiệp
+                                        và chuẩn bị phỏng vấn tự động.
+                                    </p>
+
+                                    {/* Feature list */}
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3 text-sm">
+                                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-violet-500/10 border border-violet-500/10">
+                                                <Target className="h-3.5 w-3.5 text-violet-400" />
+                                            </div>
+                                            <span className="text-stone-300">Gợi ý việc làm chính xác</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-sm">
+                                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 border border-blue-500/10">
+                                                <MessageCircle className="h-3.5 w-3.5 text-blue-400" />
+                                            </div>
+                                            <span className="text-stone-300">Tư vấn nghề nghiệp 24/7</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-sm">
+                                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-cyan-500/10 border border-cyan-500/10">
+                                                <Cpu className="h-3.5 w-3.5 text-cyan-400" />
+                                            </div>
+                                            <span className="text-stone-300">Viết CV tự động bằng AI</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        {/* Card 2: AI Room Finder */}
+                        <motion.div variants={staggerItem} className="group">
+                            <div className="relative h-full p-8 lg:p-10 rounded-3xl border border-emerald-500/10 bg-stone-900/40 backdrop-blur-sm overflow-hidden transition-all duration-700 hover:-translate-y-2 hover:shadow-[0_30px_80px_rgba(16,185,129,0.12)] hover:border-emerald-500/25 hover:bg-stone-900/60">
+                                {/* Gradient accent top */}
+                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-green-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                                {/* Background pattern */}
+                                <div className="absolute top-4 right-4 w-32 h-32 bg-gradient-to-br from-emerald-500/[0.06] to-transparent rounded-full blur-2xl group-hover:w-48 group-hover:h-48 transition-all duration-700" />
+
+                                <div className="relative">
+                                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-500/15 mb-6 shadow-lg shadow-emerald-500/5 group-hover:shadow-emerald-500/20 transition-all duration-500">
+                                        <Home className="h-8 w-8 text-emerald-400" />
+                                    </div>
+
+                                    <h3 className="text-xl font-bold text-white mb-3 group-hover:text-emerald-300 transition-colors">
+                                        AI Hỗ Trợ Tìm Phòng Trọ
+                                    </h3>
+                                    <p className="text-sm text-stone-400 leading-relaxed mb-6">
+                                        AI tự động tìm phòng trọ gần nơi làm việc, phù hợp ngân sách.
+                                        Kiểm tra uy tín chủ trọ, so sánh giá và tiện ích xung quanh
+                                        để bạn chọn nơi ở tốt nhất.
+                                    </p>
+
+                                    {/* Feature list */}
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3 text-sm">
+                                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/10">
+                                                <MapPin className="h-3.5 w-3.5 text-emerald-400" />
+                                            </div>
+                                            <span className="text-stone-300">Tìm phòng gần nơi làm</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-sm">
+                                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-teal-500/10 border border-teal-500/10">
+                                                <Shield className="h-3.5 w-3.5 text-teal-400" />
+                                            </div>
+                                            <span className="text-stone-300">Xác minh chủ trọ uy tín</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-sm">
+                                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-green-500/10 border border-green-500/10">
+                                                <DollarSign className="h-3.5 w-3.5 text-green-400" />
+                                            </div>
+                                            <span className="text-stone-300">So sánh giá tốt nhất</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        {/* Card 3: Employee Transportation */}
+                        <motion.div variants={staggerItem} className="group">
+                            <div className="relative h-full p-8 lg:p-10 rounded-3xl border border-amber-500/10 bg-stone-900/40 backdrop-blur-sm overflow-hidden transition-all duration-700 hover:-translate-y-2 hover:shadow-[0_30px_80px_rgba(245,158,11,0.12)] hover:border-amber-500/25 hover:bg-stone-900/60">
+                                {/* Gradient accent top */}
+                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                                {/* Background pattern */}
+                                <div className="absolute top-4 right-4 w-32 h-32 bg-gradient-to-br from-amber-500/[0.06] to-transparent rounded-full blur-2xl group-hover:w-48 group-hover:h-48 transition-all duration-700" />
+
+                                <div className="relative">
+                                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/15 mb-6 shadow-lg shadow-amber-500/5 group-hover:shadow-amber-500/20 transition-all duration-500">
+                                        <Car className="h-8 w-8 text-amber-400" />
+                                    </div>
+
+                                    <h3 className="text-xl font-bold text-white mb-3 group-hover:text-amber-300 transition-colors">
+                                        Đưa Đón Nhân Viên
+                                    </h3>
+                                    <p className="text-sm text-stone-400 leading-relaxed mb-6">
+                                        Dịch vụ đưa đón nhân viên hàng ngày, kết hợp với tuyển dụng.
+                                        Tiết kiệm chi phí di lại, đảm bảo an toàn và đúng giờ
+                                        cho đội ngũ của bạn.
+                                    </p>
+
+                                    {/* Feature list */}
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3 text-sm">
+                                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/10">
+                                                <Globe className="h-3.5 w-3.5 text-amber-400" />
+                                            </div>
+                                            <span className="text-stone-300">Lộ trình thông minh</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-sm">
+                                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-orange-500/10 border border-orange-500/10">
+                                                <Shield className="h-3.5 w-3.5 text-orange-400" />
+                                            </div>
+                                            <span className="text-stone-300">An toàn, đúng giờ</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-sm">
+                                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-yellow-500/10 border border-yellow-500/10">
+                                                <HeartHandshake className="h-3.5 w-3.5 text-yellow-400" />
+                                            </div>
+                                            <span className="text-stone-300">Tiết kiệm chi phí</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+
+                    {/* CEO Quote Banner */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.7, delay: 0.2 }}
+                        className="relative max-w-4xl mx-auto"
+                    >
+                        <div className="relative p-8 md:p-12 rounded-3xl border border-white/[0.06] bg-gradient-to-br from-stone-900/80 via-stone-900/60 to-stone-950/80 backdrop-blur-xl overflow-hidden">
+                            {/* Decorative gradient line */}
+                            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-violet-500/40 to-transparent" />
+                            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
+
+                            {/* Background decoration */}
+                            <div className="absolute right-0 top-0 w-64 h-64 bg-gradient-to-bl from-violet-500/[0.05] to-transparent rounded-full blur-3xl" />
+                            <div className="absolute left-0 bottom-0 w-48 h-48 bg-gradient-to-tr from-amber-500/[0.04] to-transparent rounded-full blur-3xl" />
+
+                            <div className="relative flex flex-col md:flex-row items-start gap-6 md:gap-10">
+                                {/* Quote icon */}
+                                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/20 to-amber-500/10 border border-violet-500/15">
+                                    <Quote className="h-7 w-7 text-violet-400" />
+                                </div>
+
+                                <div className="flex-1">
+                                    <blockquote className="text-lg md:text-xl text-stone-200 leading-relaxed mb-6 font-medium italic">
+                                        "Chúng tôi xây dựng nền tảng này với một tầm nhìn duy nhất: mọi người lao động
+                                        đều xứng đáng có một công việc tốt, một nơi ở an toàn và hành trình đi làm
+                                        thuận tiện. AI là cầu nối để biến điều đó thành hiện thực."
+                                    </blockquote>
+
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-amber-500 text-white font-bold text-lg shadow-lg shadow-violet-500/20">
+                                            CEO
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-white">Đội ngũ TuyểnDụng</p>
+                                            <p className="text-sm text-stone-500">Nền tảng tuyển dụng & phòng trọ thông minh</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Stats mini column */}
+                                <div className="flex md:flex-col gap-6 md:gap-4 shrink-0">
+                                    <div className="text-center">
+                                        <p className="text-2xl font-extrabold bg-gradient-to-b from-violet-400 to-violet-500 bg-clip-text text-transparent">24/7</p>
+                                        <p className="text-xs text-stone-500 mt-0.5">AI hỗ trợ</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-2xl font-extrabold bg-gradient-to-b from-amber-400 to-amber-500 bg-clip-text text-transparent">100%</p>
+                                        <p className="text-xs text-stone-500 mt-0.5">Miễn phí</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-2xl font-extrabold bg-gradient-to-b from-emerald-400 to-emerald-500 bg-clip-text text-transparent">3in1</p>
+                                        <p className="text-xs text-stone-500 mt-0.5">Trọn gói</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            </motion.section>
 
             {/* ============================================ */}
             {/* HOW IT WORKS SECTION */}

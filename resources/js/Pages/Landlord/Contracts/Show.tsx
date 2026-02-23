@@ -100,7 +100,7 @@ export default function Show({ contract }: Props) {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <User className="h-5 w-5" />
-                            Thông tin nguoi thue
+                            Thông tin người thuê
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -184,7 +184,7 @@ export default function Show({ contract }: Props) {
                             <>
                                 <Separator className="my-4" />
                                 <div>
-                                    <p className="text-sm font-medium mb-2">Ghi chu</p>
+                                    <p className="text-sm font-medium mb-2">Ghi chú</p>
                                     <div className="whitespace-pre-wrap text-sm text-muted-foreground bg-muted p-4 rounded-md">
                                         {contract.notes}
                                     </div>

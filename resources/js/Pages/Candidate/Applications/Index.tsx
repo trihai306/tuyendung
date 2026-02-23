@@ -15,7 +15,7 @@ export default function Index({ applications }: Props) {
     const columns: Column<Application>[] = [
         {
             key: 'job_title',
-            label: 'Vị trí ung tuyen',
+            label: 'Vị trí ứng tuyển',
             render: (item) => (
                 <Link
                     href={`/jobs/${item.job_post?.slug || item.job_post_id}`}
@@ -46,7 +46,7 @@ export default function Index({ applications }: Props) {
     ];
 
     return (
-        <CandidateLayout title="Don ung tuyen">
+        <CandidateLayout title="Đơn ứng tuyển">
             <Head title="Đơn ứng tuyển" />
 
             <Card>
@@ -57,8 +57,8 @@ export default function Index({ applications }: Props) {
                     <DataTable
                         columns={columns}
                         data={applications.data}
-                        emptyMessage="Chưa có don ung tuyen nao"
-                        emptyDescription="Hay tim viec va ung tuyen ngay"
+                        emptyMessage="Chưa có don ứng tuyển nao"
+                        emptyDescription="Hay tim viec va ứng tuyển ngay"
                     />
                     <Pagination meta={applications.meta} />
                 </CardContent>

@@ -57,7 +57,7 @@ export default function Create() {
                             <CardHeader>
                                 <CardTitle>Thông tin co ban</CardTitle>
                                 <CardDescription>
-                                    Nhap thong tin co ban cua phong tro
+                                    Nhap thông tin co ban cua phòng trọ
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -81,7 +81,7 @@ export default function Create() {
                                         value={data.description}
                                         onChange={(e) => setData('description', e.target.value)}
                                         rows={4}
-                                        placeholder="Mô tả chi tiet ve phong tro..."
+                                        placeholder="Mô tả chi tiet ve phòng trọ..."
                                     />
                                     {errors.description && (
                                         <p className="text-sm text-destructive">{errors.description}</p>
@@ -252,7 +252,7 @@ export default function Create() {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="address">Địa chỉ cu the</Label>
+                                    <Label htmlFor="address">Địa chỉ cụ thể</Label>
                                     <Input
                                         id="address"
                                         value={data.address}
@@ -294,7 +294,7 @@ export default function Create() {
 
                                 <div className="flex justify-end gap-2">
                                     <Button type="button" variant="outline" asChild>
-                                        <Link href={route('landlord.rooms.index')}>Huy</Link>
+                                        <Link href={route('landlord.rooms.index')}>Huỷ</Link>
                                     </Button>
                                     <Button type="submit" disabled={processing}>
                                         {processing ? 'Đang tạo...' : 'Đăng phòng trọ'}

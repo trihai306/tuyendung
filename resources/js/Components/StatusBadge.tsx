@@ -24,7 +24,17 @@ const statusConfig: Record<string, { label: string; variant: StatusVariant }> = 
     rented: { label: 'Đã cho thuê', variant: 'secondary' },
     maintenance: { label: 'Bảo trì', variant: 'outline' },
     // Contract statuses
-    terminated: { label: 'Đã chấm dứt', variant: 'destructive' },
+    // Contract statuses
+    terminated: { label: 'Da cham dut', variant: 'destructive' },
+    // Task statuses
+    in_progress: { label: 'Đang thực hiện', variant: 'default' },
+    // Priority levels
+    low: { label: 'Thap', variant: 'secondary' },
+    medium: { label: 'Trung binh', variant: 'outline' },
+    high: { label: 'Cao', variant: 'default' },
+    urgent: { label: 'Khan cap', variant: 'destructive' },
+    // Member statuses
+    inactive: { label: 'Ngừng hoạt động', variant: 'secondary' },
 };
 
 interface StatusBadgeProps {

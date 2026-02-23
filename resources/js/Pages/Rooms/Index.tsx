@@ -135,9 +135,9 @@ export default function RoomsIndex({ rooms, filters: initialFilters }: RoomsInde
                         >
                             Tim{' '}
                             <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-                                phong tro
+                                phòng trọ
                             </span>{' '}
-                            phu hop
+                            phù hợp
                         </motion.h1>
                         <motion.p
                             initial={{ opacity: 0, y: 12 }}
@@ -170,7 +170,7 @@ export default function RoomsIndex({ rooms, filters: initialFilters }: RoomsInde
                                 className="h-12 px-6 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold rounded-xl shadow-lg shadow-emerald-600/20"
                             >
                                 <Search className="h-4 w-4 mr-2" />
-                                Tim kiem
+                                Tìm kiếm
                             </Button>
                         </motion.div>
 
@@ -183,7 +183,7 @@ export default function RoomsIndex({ rooms, filters: initialFilters }: RoomsInde
                         >
                             <div className="flex items-center gap-1.5">
                                 <Home className="h-3.5 w-3.5 text-emerald-400" />
-                                <span>{rooms.total} phong tro</span>
+                                <span>{rooms.total} phòng trọ</span>
                             </div>
                             <div className="flex items-center gap-1.5">
                                 <Shield className="h-3.5 w-3.5 text-blue-400" />
@@ -191,7 +191,7 @@ export default function RoomsIndex({ rooms, filters: initialFilters }: RoomsInde
                             </div>
                             <div className="flex items-center gap-1.5">
                                 <Zap className="h-3.5 w-3.5 text-amber-400" />
-                                <span>Lien he truc tiep</span>
+                                <span>Liên hệ trực tiếp</span>
                             </div>
                         </motion.div>
                     </div>
@@ -231,7 +231,7 @@ export default function RoomsIndex({ rooms, filters: initialFilters }: RoomsInde
                         </div>
 
                         <p className="text-sm text-stone-500 hidden sm:block">
-                            Hien thi <span className="font-semibold text-stone-700 dark:text-stone-300">{rooms.data.length}</span> / {rooms.total} ket qua
+                            Hiển thị <span className="font-semibold text-stone-700 dark:text-stone-300">{rooms.data.length}</span> / {rooms.total} kết quả
                         </p>
                     </div>
 
@@ -297,13 +297,9 @@ export default function RoomsIndex({ rooms, filters: initialFilters }: RoomsInde
                                 <div className="flex items-end">
                                     <div className="flex gap-2 w-full">
                                         <Button variant="ghost" size="sm" onClick={handleReset} className="flex-1">
-                                            <X className="h-3.5 w-3.5 mr-1" />
-                                            Xoa
-                                        </Button>
+                                            <X className="h-3.5 w-3.5 mr-1" />Xoá</Button>
                                         <Button size="sm" onClick={handleApply} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white">
-                                            <Search className="h-3.5 w-3.5 mr-1" />
-                                            Loc
-                                        </Button>
+                                            <Search className="h-3.5 w-3.5 mr-1" />Lọc</Button>
                                     </div>
                                 </div>
                             </div>
@@ -341,7 +337,7 @@ export default function RoomsIndex({ rooms, filters: initialFilters }: RoomsInde
 
                                                     {/* Price badge */}
                                                     <div className="absolute top-3 right-3 bg-emerald-500/90 backdrop-blur-sm text-white rounded-xl px-3 py-1.5 text-sm font-bold shadow-lg shadow-emerald-500/20">
-                                                        {formatCurrency(room.price)}/thang
+                                                        {formatCurrency(room.price)}/tháng
                                                     </div>
 
                                                     {/* Room type badge */}
@@ -416,7 +412,7 @@ export default function RoomsIndex({ rooms, filters: initialFilters }: RoomsInde
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <span>Xem chi tiet</span>
+                                                            <span>Xem chi tiết</span>
                                                             <ArrowRight className="h-3 w-3" />
                                                         </div>
                                                     </div>
@@ -442,14 +438,14 @@ export default function RoomsIndex({ rooms, filters: initialFilters }: RoomsInde
                                 <Home className="h-10 w-10 text-stone-300 dark:text-stone-600" />
                             </div>
                             <h3 className="text-lg font-bold text-stone-700 dark:text-stone-300 mb-2">
-                                Khong tim thay phong tro
+                                Không tìm thấy phòng trọ
                             </h3>
                             <p className="text-sm text-stone-500 mb-6 max-w-sm">
-                                Thu thay doi bo loc de tim kiem ket qua phu hop hon.
+                                Thử thay đổi bộ lọc để tìm kiếm kết quả phù hợp hon.
                             </p>
                             <Button variant="outline" onClick={handleReset} className="rounded-lg">
                                 <X className="h-4 w-4 mr-1.5" />
-                                Xoa bo loc
+                                Xoa bộ lọc
                             </Button>
                         </motion.div>
                     )}

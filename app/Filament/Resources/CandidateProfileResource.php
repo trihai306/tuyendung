@@ -18,31 +18,50 @@ class CandidateProfileResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user';
 
-    protected static ?string $navigationGroup = 'Người dùng';
+    protected static ?string $navigationGroup = 'Nguoi dung';
 
-    protected static ?string $navigationLabel = 'Hồ sơ ứng viên';
+    protected static ?string $navigationLabel = 'Ho so ung vien';
 
-    protected static ?string $modelLabel = 'Hồ sơ ứng viên';
+    protected static ?string $modelLabel = 'Ho so ung vien';
 
-    protected static ?string $pluralModelLabel = 'Hồ sơ ứng viên';
+    protected static ?string $pluralModelLabel = 'Ho so ung vien';
 
     protected static ?int $navigationSort = 2;
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['user.name', 'city'];
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Thong tin')
+                Forms\Components\Section::make('Thong tin ca nhan')
                     ->schema([
                         Forms\Components\Select::make('user_id')
-                            ->label('Người dùng')
+                            ->label('Nguoi dung')
                             ->relationship('user', 'name')
                             ->searchable()
                             ->preload()
                             ->required(),
+                        Forms\Components\Select::make('gender')
+                            ->label('Gioi tinh')
+                            ->options([
+                                'male' => 'Nam',
+                                'female' => 'Nu',
+                                'other' => 'Khac',
+                            ]),
+                        Forms\Components\DatePicker::make('date_of_birth')
+                            ->label('Ngay sinh'),
                         Forms\Components\Textarea::make('bio')
                             ->label('Gioi thieu')
                             ->columnSpanFull(),
+                    ])
+                    ->columns(2),
+
+                Forms\Components\Section::make('Ky nang va kinh nghiem')
+                    ->schema([
                         Forms\Components\TagsInput::make('skills')
                             ->label('Ky nang')
                             ->columnSpanFull(),
@@ -56,6 +75,11 @@ class CandidateProfileResource extends Resource
                             ->label('CV URL')
                             ->url()
                             ->maxLength(255),
+                    ])
+                    ->columns(2),
+
+                Forms\Components\Section::make('Mong muon')
+                    ->schema([
                         Forms\Components\TextInput::make('desired_salary')
                             ->label('Luong mong muon')
                             ->numeric()
@@ -68,23 +92,19 @@ class CandidateProfileResource extends Resource
                                 'seasonal' => 'Thoi vu',
                                 'remote' => 'Tu xa',
                             ]),
-                        Forms\Components\Select::make('gender')
-                            ->label('Giới tính')
-                            ->options([
-                                'male' => 'Năm',
-                                'female' => 'Nu',
-                                'other' => 'Khac',
-                            ]),
-                        Forms\Components\DatePicker::make('date_of_birth')
-                            ->label('Ngày sinh'),
-                        Forms\Components\TextInput::make('current_address')
-                            ->label('Địa chỉ'),
-                        Forms\Components\TextInput::make('district')
-                            ->label('Quận/Huyện'),
-                        Forms\Components\TextInput::make('city')
-                            ->label('Thành phố'),
                     ])
                     ->columns(2),
+
+                Forms\Components\Section::make('Dia chi')
+                    ->schema([
+                        Forms\Components\TextInput::make('current_address')
+                            ->label('Dia chi'),
+                        Forms\Components\TextInput::make('district')
+                            ->label('Quan/Huyen'),
+                        Forms\Components\TextInput::make('city')
+                            ->label('Thanh pho'),
+                    ])
+                    ->columns(3),
             ]);
     }
 
@@ -97,21 +117,26 @@ class CandidateProfileResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('experience_years')
-                    ->label('Kinh nghiệm')
+                    ->label('Kinh nghiem')
                     ->suffix(' nam')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('education')
                     ->label('Hoc van')
                     ->limit(30),
                 Tables\Columns\TextColumn::make('city')
-                    ->label('Thành phố')
+                    ->label('Thanh pho')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('desired_salary')
                     ->label('Luong mong muon')
                     ->numeric()
+                    ->suffix(' VND')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('job_type_preference')
+                    ->label('Loai viec')
+                    ->badge()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Ngày tạo')
+                    ->label('Ngay tao')
                     ->dateTime('d/m/Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

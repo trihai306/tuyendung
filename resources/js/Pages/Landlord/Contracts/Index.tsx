@@ -67,7 +67,7 @@ export default function Index({ contracts }: Props) {
     ];
 
     return (
-        <AuthenticatedLayout title="Hợp đồng thue" header="Quản lý hop dong thue">
+        <AuthenticatedLayout title="Hợp đồng thue" header="Quản lý hợp đồng thue">
             <Head title="Hợp đồng thue" />
 
             <Card>
@@ -78,8 +78,8 @@ export default function Index({ contracts }: Props) {
                     <DataTable
                         columns={columns}
                         data={contracts.data}
-                        emptyMessage="Chưa có hop dong nao"
-                        emptyDescription="Cac hop dong thue phong se hien thi tai day"
+                        emptyMessage="Chưa có hợp đồng nao"
+                        emptyDescription="Các hợp đồng thuê phòng sẽ hiển thị tại đây"
                     />
                     <Pagination meta={contracts.meta} />
                 </CardContent>

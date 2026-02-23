@@ -47,7 +47,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                         <h2 className="text-2xl font-bold tracking-tight">Quên mật khẩu?</h2>
                         <p className="text-sm text-muted-foreground leading-relaxed">
                             Nhập địa chỉ email của bạn, chúng tôi sẽ gửi cho bạn liên kết
-                            de dat lai mat khau.
+                            de dat lai mật khẩu.
                         </p>
                     </div>
                 </motion.div>

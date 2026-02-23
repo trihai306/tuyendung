@@ -13,6 +13,7 @@ class JobPost extends Model
 
     protected $fillable = [
         'employer_id',
+        'created_by',
         'title',
         'slug',
         'description',
@@ -31,6 +32,8 @@ class JobPost extends Model
         'slots',
         'deadline',
         'status',
+        'publish_channels',
+        'published_at',
         'work_schedule',
         'experience_level',
         'views_count',
@@ -44,6 +47,8 @@ class JobPost extends Model
             'lat' => 'decimal:7',
             'lng' => 'decimal:7',
             'deadline' => 'date',
+            'publish_channels' => 'array',
+            'published_at' => 'datetime',
         ];
     }
 
@@ -52,6 +57,11 @@ class JobPost extends Model
     public function employer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'employer_id');
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function category(): BelongsTo

@@ -104,7 +104,7 @@ export default function RoomShow({ room, reviews }: RoomShowProps) {
                                         </div>
                                         <div className="flex items-center gap-2 text-2xl font-bold text-primary">
                                             <DollarSign className="h-6 w-6" />
-                                            {formatCurrency(room.price)}/thang
+                                            {formatCurrency(room.price)}/tháng
                                         </div>
                                     </div>
                                     <Badge variant="outline" className="text-sm">
@@ -332,12 +332,12 @@ export default function RoomShow({ room, reviews }: RoomShowProps) {
                                         {auth.user ? (
                                             <Button className="w-full">
                                                 <Phone className="mr-2 h-4 w-4" />
-                                                Lien he
+                                                Liên hệ
                                             </Button>
                                         ) : (
                                             <div className="text-center space-y-3">
                                                 <p className="text-sm text-muted-foreground">
-                                                    Đăng nhập de lien he voi chu nha.
+                                                    Đăng nhập de liên hệ voi chu nha.
                                                 </p>
                                                 <Button className="w-full" asChild>
                                                     <Link href="/login">Đăng nhập</Link>
@@ -361,7 +361,7 @@ export default function RoomShow({ room, reviews }: RoomShowProps) {
                             <CardContent className="space-y-3">
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-muted-foreground">Giá thuê</span>
-                                    <span className="font-medium">{formatCurrency(room.price)}/thang</span>
+                                    <span className="font-medium">{formatCurrency(room.price)}/tháng</span>
                                 </div>
                                 {room.area_sqm && (
                                     <div className="flex items-center justify-between text-sm">

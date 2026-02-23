@@ -18,33 +18,38 @@ class InterviewResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
 
-    protected static ?string $navigationGroup = 'Tuyển dụng';
+    protected static ?string $navigationGroup = 'Tuyen dung';
 
-    protected static ?string $navigationLabel = 'Phỏng vấn';
+    protected static ?string $navigationLabel = 'Phong van';
 
-    protected static ?string $modelLabel = 'Phỏng vấn';
+    protected static ?string $modelLabel = 'Phong van';
 
-    protected static ?string $pluralModelLabel = 'Phỏng vấn';
+    protected static ?string $pluralModelLabel = 'Phong van';
 
     protected static ?int $navigationSort = 4;
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['location', 'notes'];
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make()
+                Forms\Components\Section::make('Thong tin phong van')
                     ->schema([
                         Forms\Components\Select::make('application_id')
-                            ->label('Đơn ứng tuyển')
+                            ->label('Don ung tuyen')
                             ->relationship('application', 'id')
                             ->searchable()
                             ->preload()
                             ->required(),
                         Forms\Components\DateTimePicker::make('scheduled_at')
-                            ->label('Thời gian')
+                            ->label('Thoi gian')
                             ->required(),
                         Forms\Components\Select::make('type')
-                            ->label('Hình thức')
+                            ->label('Hinh thuc')
                             ->options([
                                 'in_person' => 'Truc tiep',
                                 'online' => 'Truc tuyen',
@@ -52,7 +57,7 @@ class InterviewResource extends Resource
                             ])
                             ->required(),
                         Forms\Components\Select::make('status')
-                            ->label('Trạng thái')
+                            ->label('Trang thai')
                             ->options([
                                 'scheduled' => 'Da len lich',
                                 'completed' => 'Hoan thanh',
@@ -62,14 +67,14 @@ class InterviewResource extends Resource
                             ->default('scheduled')
                             ->required(),
                         Forms\Components\TextInput::make('location')
-                            ->label('Địa điểm')
+                            ->label('Dia diem')
                             ->maxLength(255),
                         Forms\Components\TextInput::make('meeting_url')
                             ->label('Link meeting')
                             ->url()
                             ->maxLength(255),
                         Forms\Components\Select::make('result')
-                            ->label('Kết quả')
+                            ->label('Ket qua')
                             ->options([
                                 'pass' => 'Dat',
                                 'fail' => 'Khong dat',
@@ -77,7 +82,7 @@ class InterviewResource extends Resource
                             ])
                             ->nullable(),
                         Forms\Components\Textarea::make('notes')
-                            ->label('Ghi chú')
+                            ->label('Ghi chu')
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
@@ -89,44 +94,71 @@ class InterviewResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('application.id')
-                    ->label('Mã đơn')
+                    ->label('Ma don')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('scheduled_at')
-                    ->label('Thời gian')
+                    ->label('Thoi gian')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('type')
-                    ->label('Hình thức')
-                    ->badge(),
+                    ->label('Hinh thuc')
+                    ->badge()
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                        'in_person' => 'Truc tiep',
+                        'online' => 'Truc tuyen',
+                        'phone' => 'Dien thoai',
+                        default => $state,
+                    }),
                 Tables\Columns\TextColumn::make('status')
-                    ->label('Trạng thái')
+                    ->label('Trang thai')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'completed' => 'success',
                         'cancelled' => 'danger',
                         'rescheduled' => 'warning',
                         default => 'info',
+                    })
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                        'scheduled' => 'Da len lich',
+                        'completed' => 'Hoan thanh',
+                        'cancelled' => 'Da huy',
+                        'rescheduled' => 'Doi lich',
+                        default => $state,
                     }),
                 Tables\Columns\TextColumn::make('result')
-                    ->label('Kết quả')
+                    ->label('Ket qua')
                     ->badge()
                     ->color(fn(?string $state): string => match ($state) {
                         'pass' => 'success',
                         'fail' => 'danger',
                         default => 'gray',
+                    })
+                    ->formatStateUsing(fn(?string $state): string => match ($state) {
+                        'pass' => 'Dat',
+                        'fail' => 'Khong dat',
+                        'pending' => 'Cho KQ',
+                        default => $state ?? '-',
                     }),
                 Tables\Columns\TextColumn::make('location')
-                    ->label('Địa điểm')
+                    ->label('Dia diem')
                     ->limit(30)
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('scheduled_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
+                    ->label('Trang thai')
                     ->options([
                         'scheduled' => 'Da len lich',
                         'completed' => 'Hoan thanh',
                         'cancelled' => 'Da huy',
+                    ]),
+                Tables\Filters\SelectFilter::make('result')
+                    ->label('Ket qua')
+                    ->options([
+                        'pass' => 'Dat',
+                        'fail' => 'Khong dat',
+                        'pending' => 'Cho ket qua',
                     ]),
             ])
             ->actions([

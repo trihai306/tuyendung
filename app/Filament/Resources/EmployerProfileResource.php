@@ -18,15 +18,25 @@ class EmployerProfileResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office';
 
-    protected static ?string $navigationGroup = 'Người dùng';
+    protected static ?string $navigationGroup = 'Nguoi dung';
 
-    protected static ?string $navigationLabel = 'Nhà tuyển dụng';
+    protected static ?string $navigationLabel = 'Nha tuyen dung';
 
-    protected static ?string $modelLabel = 'Nhà tuyển dụng';
+    protected static ?string $modelLabel = 'Nha tuyen dung';
 
-    protected static ?string $pluralModelLabel = 'Nhà tuyển dụng';
+    protected static ?string $pluralModelLabel = 'Nha tuyen dung';
 
     protected static ?int $navigationSort = 3;
+
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) static::getModel()::count();
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['company_name', 'city', 'user.name'];
+    }
 
     public static function form(Form $form): Form
     {
@@ -41,7 +51,7 @@ class EmployerProfileResource extends Resource
                             ->preload()
                             ->required(),
                         Forms\Components\TextInput::make('company_name')
-                            ->label('Tên công ty')
+                            ->label('Ten cong ty')
                             ->required()
                             ->maxLength(255),
                         Forms\Components\FileUpload::make('company_logo')
@@ -52,11 +62,16 @@ class EmployerProfileResource extends Resource
                             ->label('Nganh nghe')
                             ->maxLength(255),
                         Forms\Components\TextInput::make('company_size')
-                            ->label('Quy mô')
+                            ->label('Quy mo')
                             ->maxLength(50),
                         Forms\Components\TextInput::make('tax_code')
                             ->label('Ma so thue')
                             ->maxLength(50),
+                    ])
+                    ->columns(2),
+
+                Forms\Components\Section::make('Lien he')
+                    ->schema([
                         Forms\Components\TextInput::make('website')
                             ->label('Website')
                             ->url()
@@ -69,17 +84,26 @@ class EmployerProfileResource extends Resource
                             ->label('Email lien he')
                             ->email()
                             ->maxLength(255),
+                    ])
+                    ->columns(3),
+
+                Forms\Components\Section::make('Dia chi')
+                    ->schema([
                         Forms\Components\TextInput::make('address')
-                            ->label('Địa chỉ'),
+                            ->label('Dia chi'),
                         Forms\Components\TextInput::make('district')
-                            ->label('Quận/Huyện'),
+                            ->label('Quan/Huyen'),
                         Forms\Components\TextInput::make('city')
-                            ->label('Thành phố'),
+                            ->label('Thanh pho'),
+                    ])
+                    ->columns(3),
+
+                Forms\Components\Section::make('Gioi thieu')
+                    ->schema([
                         Forms\Components\Textarea::make('description')
                             ->label('Gioi thieu cong ty')
                             ->columnSpanFull(),
-                    ])
-                    ->columns(2),
+                    ]),
             ]);
     }
 
@@ -102,8 +126,13 @@ class EmployerProfileResource extends Resource
                     ->label('Nganh nghe')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('city')
-                    ->label('Thành phố')
+                    ->label('Thanh pho')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('invite_code')
+                    ->label('Ma moi')
+                    ->badge()
+                    ->color('info')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('contact_phone')
                     ->label('SDT')
                     ->toggleable(isToggledHiddenByDefault: true),

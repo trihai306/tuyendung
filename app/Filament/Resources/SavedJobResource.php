@@ -18,28 +18,33 @@ class SavedJobResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-bookmark';
 
-    protected static ?string $navigationGroup = 'Tuyển dụng';
+    protected static ?string $navigationGroup = 'Tuyen dung';
 
-    protected static ?string $navigationLabel = 'Việc đã lưu';
+    protected static ?string $navigationLabel = 'Viec da luu';
 
-    protected static ?string $modelLabel = 'Việc đã lưu';
+    protected static ?string $modelLabel = 'Viec da luu';
 
-    protected static ?string $pluralModelLabel = 'Việc đã lưu';
+    protected static ?string $pluralModelLabel = 'Viec da luu';
 
     protected static ?int $navigationSort = 5;
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['user.name', 'jobPost.title'];
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\Select::make('user_id')
-                    ->label('Người dùng')
+                    ->label('Nguoi dung')
                     ->relationship('user', 'name')
                     ->searchable()
                     ->preload()
                     ->required(),
                 Forms\Components\Select::make('job_post_id')
-                    ->label('Tin tuyển dụng')
+                    ->label('Tin tuyen dung')
                     ->relationship('jobPost', 'title')
                     ->searchable()
                     ->preload()
@@ -52,11 +57,11 @@ class SavedJobResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
-                    ->label('Người dùng')
+                    ->label('Nguoi dung')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('jobPost.title')
-                    ->label('Tin tuyển dụng')
+                    ->label('Tin tuyen dung')
                     ->searchable()
                     ->sortable()
                     ->limit(40),

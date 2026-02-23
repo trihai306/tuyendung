@@ -35,8 +35,10 @@ import {
     LogOut,
     Settings,
     Zap,
+    BarChart3,
 } from 'lucide-react';
-import type { PageProps } from '@/types';
+import type { PageProps, PermissionKey } from '@/types';
+import { usePermission } from '@/hooks/usePermission';
 
 interface NavItem {
     title: string;
@@ -44,6 +46,7 @@ interface NavItem {
     icon: React.ComponentType<{ className?: string }>;
     routeName: string;
     badge?: string;
+    permission?: PermissionKey;
 }
 
 function getRoleConfig(roles: string[]) {
@@ -51,9 +54,13 @@ function getRoleConfig(roles: string[]) {
         return {
             navItems: [
                 { title: 'Tong quan', href: '/dashboard', icon: LayoutDashboard, routeName: 'dashboard' },
-                { title: 'Dang tin moi', href: '/employer/jobs/create', icon: PlusCircle, routeName: 'employer.jobs.create', badge: 'Moi' },
-                { title: 'Ung vien', href: '/employer/applications', icon: Users, routeName: 'employer.applications.index' },
-                { title: 'Ho so cong ty', href: '/employer/profile', icon: Building2, routeName: 'employer.profile.edit' },
+                { title: 'Tin tuyen dung', href: '/employer/jobs', icon: Briefcase, routeName: 'employer.jobs.index', permission: 'jobs.view' },
+                { title: 'Dang tin moi', href: '/employer/jobs/create', icon: PlusCircle, routeName: 'employer.jobs.create', badge: 'Moi', permission: 'jobs.create' },
+                { title: 'Ung vien', href: '/employer/applications', icon: Users, routeName: 'employer.applications.index', permission: 'applications.view' },
+                { title: 'Doi ngu', href: '/employer/team', icon: Users, routeName: 'employer.team.index', permission: 'team.view' },
+                { title: 'Nhiem vu', href: '/employer/tasks', icon: FileText, routeName: 'employer.tasks.index', permission: 'tasks.view_all' },
+                { title: 'Bao cao', href: '/employer/reports', icon: BarChart3, routeName: 'employer.reports.index', permission: 'reports.view' },
+                { title: 'Ho so cong ty', href: '/employer/profile', icon: Building2, routeName: 'employer.profile.edit', permission: 'company.view' },
             ] as NavItem[],
             roleLabel: 'Quan ly',
             accent: '#3b82f6',
@@ -62,30 +69,30 @@ function getRoleConfig(roles: string[]) {
     if (roles.includes('candidate')) {
         return {
             navItems: [
-                { title: 'Tong quan', href: '/dashboard', icon: LayoutDashboard, routeName: 'dashboard' },
+                { title: 'Tổng quan', href: '/dashboard', icon: LayoutDashboard, routeName: 'dashboard' },
                 { title: 'Tim viec', href: '/viec-lam', icon: Search, routeName: 'jobs.index' },
-                { title: 'Don ung tuyen', href: '/candidate/applications', icon: FileText, routeName: 'candidate.applications.index' },
+                { title: 'Đơn ứng tuyển', href: '/candidate/applications', icon: FileText, routeName: 'candidate.applications.index' },
                 { title: 'Viec da luu', href: '/candidate/saved-jobs', icon: Heart, routeName: 'candidate.saved-jobs.index' },
-                { title: 'Ho so', href: '/candidate/profile', icon: UserCircle, routeName: 'candidate.profile.edit' },
+                { title: 'Hồ sơ', href: '/candidate/profile', icon: UserCircle, routeName: 'candidate.profile.edit' },
             ] as NavItem[],
-            roleLabel: 'Ca nhan',
+            roleLabel: 'Cá nhân',
             accent: '#10b981',
         };
     }
     if (roles.includes('landlord')) {
         return {
             navItems: [
-                { title: 'Tong quan', href: '/dashboard', icon: LayoutDashboard, routeName: 'dashboard' },
+                { title: 'Tổng quan', href: '/dashboard', icon: LayoutDashboard, routeName: 'dashboard' },
                 { title: 'Dang phong moi', href: '/landlord/rooms/create', icon: PlusCircle, routeName: 'landlord.rooms.create' },
-                { title: 'Hop dong', href: '/landlord/contracts', icon: FileSignature, routeName: 'landlord.contracts.index' },
+                { title: 'Hợp đồng', href: '/landlord/contracts', icon: FileSignature, routeName: 'landlord.contracts.index' },
             ] as NavItem[],
-            roleLabel: 'Quan ly',
+            roleLabel: 'Quản lý',
             accent: '#f59e0b',
         };
     }
     return {
         navItems: [
-            { title: 'Tong quan', href: '/dashboard', icon: LayoutDashboard, routeName: 'dashboard' },
+            { title: 'Tổng quan', href: '/dashboard', icon: LayoutDashboard, routeName: 'dashboard' },
         ] as NavItem[],
         roleLabel: 'Menu',
         accent: '#6366f1',
@@ -93,15 +100,22 @@ function getRoleConfig(roles: string[]) {
 }
 
 const exploreItems: NavItem[] = [
-    { title: 'Viec lam', href: '/viec-lam', icon: Briefcase, routeName: 'jobs.index' },
-    { title: 'Phong tro', href: '/phong-tro', icon: Home, routeName: 'rooms.index' },
+    { title: 'Việc làm', href: '/viec-lam', icon: Briefcase, routeName: 'jobs.index' },
+    { title: 'Phòng trọ', href: '/phong-tro', icon: Home, routeName: 'rooms.index' },
 ];
 
 export default function AppSidebar() {
     const { auth } = usePage<PageProps>().props;
+    const { can } = usePermission();
     const user = auth.user;
     const roles = user?.roles || [];
     const config = getRoleConfig(roles);
+
+    // Filter nav items by permission
+    const filteredNavItems = config.navItems.filter(item => {
+        if (!item.permission) return true;
+        return can(item.permission);
+    });
 
     const isActive = (routeName: string) => {
         try {
@@ -121,7 +135,7 @@ export default function AppSidebar() {
                     </div>
                     <div className="flex flex-col gap-0.5">
                         <span className="text-[15px] font-bold tracking-tight text-sidebar-foreground leading-none">TuyenDung</span>
-                        <span className="text-[10px] text-sidebar-foreground/35 font-medium leading-none">Tuyen dung thong minh</span>
+                        <span className="text-[10px] text-sidebar-foreground/35 font-medium leading-none">Tuyển dụng thông minh</span>
                     </div>
                 </Link>
             </SidebarHeader>
@@ -134,7 +148,7 @@ export default function AppSidebar() {
                     </SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu className="gap-1">
-                            {config.navItems.map((item) => {
+                            {filteredNavItems.map((item) => {
                                 const active = isActive(item.routeName);
                                 return (
                                     <SidebarMenuItem key={item.routeName}>
@@ -151,15 +165,15 @@ export default function AppSidebar() {
                                                     />
                                                 )}
                                                 <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors duration-150 ${active
-                                                        ? 'bg-sidebar-foreground/[0.12]'
-                                                        : 'bg-sidebar-foreground/[0.05]'
+                                                    ? 'bg-sidebar-foreground/[0.12]'
+                                                    : 'bg-sidebar-foreground/[0.05]'
                                                     }`}>
                                                     <item.icon className={`h-[16px] w-[16px] transition-colors ${active ? 'text-sidebar-foreground' : 'text-sidebar-foreground/45'
                                                         }`} />
                                                 </div>
                                                 <span className={`text-[13px] transition-colors ${active
-                                                        ? 'font-semibold text-sidebar-foreground'
-                                                        : 'font-medium text-sidebar-foreground/60'
+                                                    ? 'font-semibold text-sidebar-foreground'
+                                                    : 'font-medium text-sidebar-foreground/60'
                                                     }`}>
                                                     {item.title}
                                                 </span>
@@ -287,13 +301,13 @@ export default function AppSidebar() {
                         <DropdownMenuItem asChild className="h-9 rounded-lg cursor-pointer gap-2.5">
                             <Link href="/profile">
                                 <UserCircle className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-[13px]">Ho so ca nhan</span>
+                                <span className="text-[13px]">Hồ sơ cá nhân</span>
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild className="h-9 rounded-lg cursor-pointer gap-2.5">
                             <Link href="/profile">
                                 <Settings className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-[13px]">Cai dat</span>
+                                <span className="text-[13px]">Cài đặt</span>
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="mx-0" />
@@ -302,7 +316,7 @@ export default function AppSidebar() {
                             className="h-9 rounded-lg text-red-500 focus:text-red-500 focus:bg-red-500/10 cursor-pointer gap-2.5"
                         >
                             <LogOut className="h-4 w-4" />
-                            <span className="text-[13px]">Dang xuat</span>
+                            <span className="text-[13px]">Đăng xuất</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

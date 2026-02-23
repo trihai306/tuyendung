@@ -7,12 +7,19 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/Components/ui/popover';
 import { Avatar, AvatarFallback, AvatarImage } from '@/Components/ui/avatar';
 import { Separator } from '@/Components/ui/separator';
+
 import FlashToast from '@/Components/FlashToast';
 import {
     Briefcase,
     Bell,
+    BellOff,
     Search,
     FileText,
     Heart,
@@ -23,6 +30,7 @@ import {
     Menu,
     X,
     ChevronRight,
+
 } from 'lucide-react';
 import type { PageProps } from '@/types';
 
@@ -43,6 +51,7 @@ export default function CandidateLayout({ title, children }: CandidateLayoutProp
     const user = auth.user;
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+
     const isActive = (routeName: string) => {
         try {
             return route().current(routeName);
@@ -50,6 +59,7 @@ export default function CandidateLayout({ title, children }: CandidateLayoutProp
             return false;
         }
     };
+
 
     return (
         <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
@@ -78,8 +88,8 @@ export default function CandidateLayout({ title, children }: CandidateLayoutProp
                                         key={item.routeName}
                                         href={item.href}
                                         className={`relative flex items-center gap-2 px-3.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 ${active
-                                                ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10'
-                                                : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                                            ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                                             }`}
                                     >
                                         <item.icon className="h-4 w-4" />
@@ -106,14 +116,29 @@ export default function CandidateLayout({ title, children }: CandidateLayoutProp
                                 </div>
                             </div>
 
-                            {/* Notification */}
-                            <button className="relative flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
-                                <Bell className="h-4 w-4" />
-                                <span className="absolute top-1 right-1 flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                                </span>
-                            </button>
+                            {/* Notification Dropdown */}
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <button className="relative flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
+                                        <Bell className="h-4 w-4" />
+                                        <span className="absolute top-1 right-1 flex h-2 w-2">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                                        </span>
+                                    </button>
+                                </PopoverTrigger>
+                                <PopoverContent align="end" sideOffset={8} className="w-80 rounded-xl p-0 shadow-xl">
+                                    <div className="px-4 py-3 border-b border-border/50">
+                                        <h3 className="text-sm font-semibold">Thong bao</h3>
+                                    </div>
+
+                                    {/* Empty state */}
+                                    <div className="flex flex-col items-center justify-center py-8 px-4">
+                                        <BellOff className="h-8 w-8 text-muted-foreground/30 mb-2" />
+                                        <p className="text-xs text-muted-foreground">Chua co thong bao moi</p>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
 
                             {/* User Dropdown */}
                             <DropdownMenu>
@@ -137,13 +162,13 @@ export default function CandidateLayout({ title, children }: CandidateLayoutProp
                                     <DropdownMenuItem asChild className="h-9 rounded-lg cursor-pointer gap-2.5">
                                         <Link href="/candidate/profile">
                                             <UserCircle className="h-4 w-4 text-muted-foreground" />
-                                            <span className="text-[13px]">Ho so ca nhan</span>
+                                            <span className="text-[13px]">Hồ sơ cá nhân</span>
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem asChild className="h-9 rounded-lg cursor-pointer gap-2.5">
                                         <Link href="/profile">
                                             <Settings className="h-4 w-4 text-muted-foreground" />
-                                            <span className="text-[13px]">Cai dat</span>
+                                            <span className="text-[13px]">Cài đặt</span>
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
@@ -152,7 +177,7 @@ export default function CandidateLayout({ title, children }: CandidateLayoutProp
                                         className="h-9 rounded-lg text-red-500 focus:text-red-500 focus:bg-red-500/10 cursor-pointer gap-2.5"
                                     >
                                         <LogOut className="h-4 w-4" />
-                                        <span className="text-[13px]">Dang xuat</span>
+                                        <span className="text-[13px]">Đăng xuất</span>
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -178,8 +203,8 @@ export default function CandidateLayout({ title, children }: CandidateLayoutProp
                                     key={item.routeName}
                                     href={item.href}
                                     className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-[13px] font-medium transition-colors ${active
-                                            ? 'text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-500/10'
-                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                                        ? 'text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-500/10'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                                         }`}
                                     onClick={() => setMobileMenuOpen(false)}
                                 >
@@ -215,8 +240,8 @@ export default function CandidateLayout({ title, children }: CandidateLayoutProp
                             </span>
                         </div>
                         <div className="flex items-center gap-6 text-[12px] text-muted-foreground">
-                            <Link href="/viec-lam" className="hover:text-foreground transition-colors">Viec lam</Link>
-                            <Link href="/phong-tro" className="hover:text-foreground transition-colors">Phong tro</Link>
+                            <Link href="/viec-lam" className="hover:text-foreground transition-colors">Việc làm</Link>
+                            <Link href="/phong-tro" className="hover:text-foreground transition-colors">Phòng trọ</Link>
                             <span>2025 TuyenDung</span>
                         </div>
                     </div>

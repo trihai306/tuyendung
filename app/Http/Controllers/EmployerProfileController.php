@@ -39,9 +39,19 @@ class EmployerProfileController extends Controller
             'user_id' => $user->id,
         ]);
 
-        $profile->update($request->validated());
+        $validated = $request->validated();
+
+        // Handle logo file upload
+        if ($request->hasFile('company_logo')) {
+            $path = $request->file('company_logo')->store('company-logos', 'public');
+            $validated['company_logo'] = '/storage/' . $path;
+        } else {
+            unset($validated['company_logo']);
+        }
+
+        $profile->update($validated);
 
         return redirect()->back()
-            ->with('success', 'Employer profile updated successfully.');
+            ->with('success', 'Cập nhật hồ sơ công ty thành công.');
     }
 }

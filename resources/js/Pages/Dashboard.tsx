@@ -24,8 +24,8 @@ export default function Dashboard({ candidate, employer, landlord }: DashboardPr
     // Candidate uses CandidateLayout (top navbar)
     if (isCandidate && candidate) {
         return (
-            <CandidateLayout title="Dashboard">
-                <Head title="Dashboard" />
+            <CandidateLayout title="Bảng điều khiển">
+                <Head title="Bảng điều khiển" />
                 <CandidateDashboard data={candidate as any} user={user} />
             </CandidateLayout>
         );
@@ -33,8 +33,8 @@ export default function Dashboard({ candidate, employer, landlord }: DashboardPr
 
     // Employer + fallback uses AuthenticatedLayout (sidebar)
     return (
-        <AuthenticatedLayout title="Dashboard" header="Dashboard">
-            <Head title="Dashboard" />
+        <AuthenticatedLayout title="Bảng điều khiển" header="Bảng điều khiển">
+            <Head title="Bảng điều khiển" />
 
             {isEmployer && employer && (
                 <EmployerDashboard data={employer as any} user={user} />
@@ -56,7 +56,7 @@ export default function Dashboard({ candidate, employer, landlord }: DashboardPr
                         <div className="space-y-3">
                             <h1 className="text-2xl font-bold tracking-tight">Xin chao, {user.name}!</h1>
                             <p className="text-muted-foreground text-[15px] max-w-md mx-auto leading-relaxed">
-                                Chon vai tro cua ban de bat dau su dung nen tang tuyen dung thong minh.
+                                Chon vai tro cua ban de bat dau su dung nen tang tuyển dụng thong minh.
                             </p>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto">
@@ -70,8 +70,8 @@ export default function Dashboard({ candidate, employer, landlord }: DashboardPr
                                         <Building2 className="h-6 w-6 text-blue-500" />
                                     </div>
                                     <div>
-                                        <h3 className="text-[15px] font-semibold">Nha tuyen dung</h3>
-                                        <p className="text-[12px] text-muted-foreground mt-1">Dang tin, quan ly ung vien</p>
+                                        <h3 className="text-[15px] font-semibold">Nhà tuyển dụng</h3>
+                                        <p className="text-[12px] text-muted-foreground mt-1">Dang tin, quản lý ứng viên</p>
                                     </div>
                                     <div className="flex items-center text-[12px] font-medium text-blue-500 gap-1 group-hover:gap-2 transition-all">
                                         Bat dau <ArrowRight className="h-3 w-3" />
@@ -88,8 +88,8 @@ export default function Dashboard({ candidate, employer, landlord }: DashboardPr
                                         <Search className="h-6 w-6 text-emerald-500" />
                                     </div>
                                     <div>
-                                        <h3 className="text-[15px] font-semibold">Ung vien</h3>
-                                        <p className="text-[12px] text-muted-foreground mt-1">Tim viec, ung tuyen nhanh</p>
+                                        <h3 className="text-[15px] font-semibold">Ứng viên</h3>
+                                        <p className="text-[12px] text-muted-foreground mt-1">Tim viec, ứng tuyển nhanh</p>
                                     </div>
                                     <div className="flex items-center text-[12px] font-medium text-emerald-500 gap-1 group-hover:gap-2 transition-all">
                                         Bat dau <ArrowRight className="h-3 w-3" />

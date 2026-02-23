@@ -23,7 +23,7 @@ class UpdateEmployerProfileRequest extends FormRequest
     {
         return [
             'company_name' => ['nullable', 'string', 'max:255'],
-            'company_logo' => ['nullable', 'string'],
+            'company_logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,svg', 'max:2048'],
             'industry' => ['nullable', 'string'],
             'company_size' => ['nullable', 'string'],
             'address' => ['nullable', 'string'],

@@ -20,7 +20,7 @@ export default function Index({ savedJobs }: Props) {
 
     const handleUnsave = (savedJob: SavedJob) => {
         confirm(
-            'Bỏ lưu viec lam',
+            'Bỏ lưu việc làm',
             'Bạn có chắc chắn muốn bỏ lưu việc làm này?',
             () => {
                 router.delete(route('candidate.saved-jobs.destroy', savedJob.id));
@@ -29,14 +29,14 @@ export default function Index({ savedJobs }: Props) {
     };
 
     return (
-        <CandidateLayout title="Viec lam da luu">
+        <CandidateLayout title="Việc làm đã lưu">
             <Head title="Việc làm da luu" />
 
             {savedJobs.data.length === 0 ? (
                 <EmptyState
                     icon={<Bookmark className="h-12 w-12" />}
                     title="Chưa lưu việc làm nào"
-                    description="Hay tim kiem va luu nhung viec lam phu hop voi ban"
+                    description="Hay tìm kiếm và lưu những việc làm phù hợp với bạn"
                     action={
                         <Button asChild>
                             <Link href="/jobs">Tìm việc làm</Link>
@@ -102,9 +102,7 @@ export default function Index({ savedJobs }: Props) {
                                         <div className="flex gap-2 pt-2">
                                             <Button asChild size="sm" className="flex-1">
                                                 <Link href={`/jobs/${job.slug}`}>
-                                                    <Briefcase className="mr-1 h-3 w-3" />
-                                                    Xem chi tiet
-                                                </Link>
+                                                    <Briefcase className="mr-1 h-3 w-3" />Xem chi tiết</Link>
                                             </Button>
                                             <Button
                                                 variant="outline"
