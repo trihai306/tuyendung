@@ -1,4 +1,4 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import CandidateLayout from '@/Layouts/CandidateLayout';
 import { Head, Link } from '@inertiajs/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
@@ -18,7 +18,7 @@ export default function Show({ application }: Props) {
     const interviews = application.interviews || [];
 
     return (
-        <AuthenticatedLayout title="Chi tiết đơn ứng tuyển" header="Chi tiết đơn ứng tuyển">
+        <CandidateLayout title="Chi tiet don ung tuyen">
             <Head title="Chi tiết đơn ứng tuyển" />
 
             <div className="max-w-3xl mx-auto space-y-6">
@@ -71,8 +71,8 @@ export default function Show({ application }: Props) {
                                 {jobPost.salary_min && jobPost.salary_max
                                     ? `${formatCurrency(jobPost.salary_min)} - ${formatCurrency(jobPost.salary_max)}`
                                     : jobPost.salary_min
-                                      ? `Tu ${formatCurrency(jobPost.salary_min)}`
-                                      : `Den ${formatCurrency(jobPost.salary_max!)}`}
+                                        ? `Tu ${formatCurrency(jobPost.salary_min)}`
+                                        : `Den ${formatCurrency(jobPost.salary_max!)}`}
                                 {jobPost.salary_type && ` / ${jobPost.salary_type}`}
                             </div>
                         )}
@@ -182,6 +182,6 @@ export default function Show({ application }: Props) {
                     </Card>
                 )}
             </div>
-        </AuthenticatedLayout>
+        </CandidateLayout>
     );
 }

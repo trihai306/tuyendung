@@ -1,4 +1,4 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import CandidateLayout from '@/Layouts/CandidateLayout';
 import { Head, useForm } from '@inertiajs/react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
@@ -42,7 +42,7 @@ export default function Edit({ profile }: Props) {
     };
 
     return (
-        <AuthenticatedLayout title="Hồ sơ ứng viên" header="Chỉnh sửa hồ sơ ứng viên">
+        <CandidateLayout title="Ho so ung vien">
             <Head title="Hồ sơ ứng viên" />
 
             <div className="max-w-3xl mx-auto">
@@ -259,6 +259,6 @@ export default function Edit({ profile }: Props) {
                     </Card>
                 </form>
             </div>
-        </AuthenticatedLayout>
+        </CandidateLayout>
     );
 }

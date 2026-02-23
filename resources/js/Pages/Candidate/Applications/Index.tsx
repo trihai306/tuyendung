@@ -1,4 +1,4 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import CandidateLayout from '@/Layouts/CandidateLayout';
 import { Head, Link } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import DataTable, { Column } from '@/Components/DataTable';
@@ -46,7 +46,7 @@ export default function Index({ applications }: Props) {
     ];
 
     return (
-        <AuthenticatedLayout title="Đơn ứng tuyển" header="Đơn ứng tuyển của tôi">
+        <CandidateLayout title="Don ung tuyen">
             <Head title="Đơn ứng tuyển" />
 
             <Card>
@@ -63,6 +63,6 @@ export default function Index({ applications }: Props) {
                     <Pagination meta={applications.meta} />
                 </CardContent>
             </Card>
-        </AuthenticatedLayout>
+        </CandidateLayout>
     );
 }

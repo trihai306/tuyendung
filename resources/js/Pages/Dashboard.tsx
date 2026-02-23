@@ -1,9 +1,11 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import type { PageProps } from '@/types';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import CandidateLayout from '@/Layouts/CandidateLayout';
 import EmployerDashboard from '@/Pages/Dashboard/EmployerDashboard';
 import CandidateDashboard from '@/Pages/Dashboard/CandidateDashboard';
-import { Briefcase, Search, Building2, ArrowRight, Sparkles } from 'lucide-react';
+import { Sparkles, Building2, Search, ArrowRight } from 'lucide-react';
+import { Link } from '@inertiajs/react';
 
 interface DashboardProps {
     candidate?: Record<string, unknown>;
@@ -19,6 +21,17 @@ export default function Dashboard({ candidate, employer, landlord }: DashboardPr
     const isCandidate = roles.includes('candidate');
     const isEmployer = roles.includes('employer');
 
+    // Candidate uses CandidateLayout (top navbar)
+    if (isCandidate && candidate) {
+        return (
+            <CandidateLayout title="Dashboard">
+                <Head title="Dashboard" />
+                <CandidateDashboard data={candidate as any} user={user} />
+            </CandidateLayout>
+        );
+    }
+
+    // Employer + fallback uses AuthenticatedLayout (sidebar)
     return (
         <AuthenticatedLayout title="Dashboard" header="Dashboard">
             <Head title="Dashboard" />
@@ -27,14 +40,9 @@ export default function Dashboard({ candidate, employer, landlord }: DashboardPr
                 <EmployerDashboard data={employer as any} user={user} />
             )}
 
-            {isCandidate && candidate && (
-                <CandidateDashboard data={candidate as any} user={user} />
-            )}
-
             {!isEmployer && !isCandidate && (
                 <div className="min-h-[75vh] flex items-center justify-center">
                     <div className="w-full max-w-2xl mx-auto text-center space-y-8">
-                        {/* Welcome Icon */}
                         <div className="relative inline-flex">
                             <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500/10 via-blue-500/10 to-cyan-500/5 border border-indigo-500/10">
                                 <Sparkles className="h-9 w-9 text-indigo-500" />
@@ -45,18 +53,12 @@ export default function Dashboard({ candidate, employer, landlord }: DashboardPr
                                 </svg>
                             </div>
                         </div>
-
-                        {/* Text */}
                         <div className="space-y-3">
-                            <h1 className="text-2xl font-bold tracking-tight">
-                                Xin chao, {user.name}!
-                            </h1>
+                            <h1 className="text-2xl font-bold tracking-tight">Xin chao, {user.name}!</h1>
                             <p className="text-muted-foreground text-[15px] max-w-md mx-auto leading-relaxed">
                                 Chon vai tro cua ban de bat dau su dung nen tang tuyen dung thong minh.
                             </p>
                         </div>
-
-                        {/* Role Cards */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto">
                             <Link
                                 href="/dashboard"
@@ -72,12 +74,10 @@ export default function Dashboard({ candidate, employer, landlord }: DashboardPr
                                         <p className="text-[12px] text-muted-foreground mt-1">Dang tin, quan ly ung vien</p>
                                     </div>
                                     <div className="flex items-center text-[12px] font-medium text-blue-500 gap-1 group-hover:gap-2 transition-all">
-                                        Bat dau
-                                        <ArrowRight className="h-3 w-3" />
+                                        Bat dau <ArrowRight className="h-3 w-3" />
                                     </div>
                                 </div>
                             </Link>
-
                             <Link
                                 href="/dashboard"
                                 className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card p-6 text-left transition-all duration-300 hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/5 hover:-translate-y-0.5"
@@ -92,8 +92,7 @@ export default function Dashboard({ candidate, employer, landlord }: DashboardPr
                                         <p className="text-[12px] text-muted-foreground mt-1">Tim viec, ung tuyen nhanh</p>
                                     </div>
                                     <div className="flex items-center text-[12px] font-medium text-emerald-500 gap-1 group-hover:gap-2 transition-all">
-                                        Bat dau
-                                        <ArrowRight className="h-3 w-3" />
+                                        Bat dau <ArrowRight className="h-3 w-3" />
                                     </div>
                                 </div>
                             </Link>

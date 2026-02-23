@@ -1,4 +1,4 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import CandidateLayout from '@/Layouts/CandidateLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -29,7 +29,7 @@ export default function Index({ savedJobs }: Props) {
     };
 
     return (
-        <AuthenticatedLayout title="Việc làm da luu" header="Việc làm da luu">
+        <CandidateLayout title="Viec lam da luu">
             <Head title="Việc làm da luu" />
 
             {savedJobs.data.length === 0 ? (
@@ -79,8 +79,8 @@ export default function Index({ savedJobs }: Props) {
                                                 {job.salary_min && job.salary_max
                                                     ? `${formatCurrency(job.salary_min)} - ${formatCurrency(job.salary_max)}`
                                                     : job.salary_min
-                                                      ? `Tu ${formatCurrency(job.salary_min)}`
-                                                      : `Den ${formatCurrency(job.salary_max!)}`}
+                                                        ? `Tu ${formatCurrency(job.salary_min)}`
+                                                        : `Den ${formatCurrency(job.salary_max!)}`}
                                             </p>
                                         )}
 
@@ -133,6 +133,6 @@ export default function Index({ savedJobs }: Props) {
                 confirmLabel="Bỏ lưu"
                 destructive
             />
-        </AuthenticatedLayout>
+        </CandidateLayout>
     );
 }
