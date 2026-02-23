@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->string('email')->unique();
             $table->string('phone', 20)->nullable();
             $table->string('avatar')->nullable();
-            $table->json('roles')->default('["candidate"]'); // candidate, employer, landlord
+            $table->json('roles')->default(new \Illuminate\Database\Query\Expression('(JSON_ARRAY("candidate"))')); // candidate, employer, landlord
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

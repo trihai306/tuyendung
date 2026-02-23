@@ -1,0 +1,13 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Resources\JobCategoryResource\Pages;
+
+use App\Filament\Resources\JobCategoryResource;
+use Filament\Resources\Pages\CreateRecord;
+
+class CreateJobCategory extends CreateRecord
+{
+    protected static string $resource = JobCategoryResource::class;
+}
