@@ -1,14 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Models\Application;
 use App\Models\Interview;
+use App\Services\InterviewService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class InterviewController extends Controller
 {
+    public function __construct(
+        private readonly InterviewService $interviewService,
+    ) {
+    }
+
     /**
      * Employer: create an interview for an application.
      */
@@ -17,7 +25,6 @@ class InterviewController extends Controller
         $user = $request->user();
         abort_unless($user->isEmployer(), 403, 'Only employers can schedule interviews.');
 
-        // Verify the employer owns the job post for this application
         $jobPost = $application->jobPost;
         abort_if($jobPost->employer_id !== $user->id, 403, 'You can only schedule interviews for your own job posts.');
 
@@ -29,11 +36,7 @@ class InterviewController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $validated['application_id'] = $application->id;
-        $validated['status'] = 'scheduled';
-        $validated['result'] = 'pending';
-
-        Interview::create($validated);
+        $this->interviewService->createInterview($application, $validated);
 
         return redirect()->back()
             ->with('success', 'Interview scheduled successfully.');
@@ -47,7 +50,6 @@ class InterviewController extends Controller
         $user = $request->user();
         abort_unless($user->isEmployer(), 403, 'Only employers can update interviews.');
 
-        // Verify ownership through application -> job post -> employer
         $application = $interview->application;
         $jobPost = $application->jobPost;
         abort_if($jobPost->employer_id !== $user->id, 403, 'You can only update interviews for your own job posts.');
@@ -62,7 +64,7 @@ class InterviewController extends Controller
             'result' => ['sometimes', 'in:pass,fail,pending'],
         ]);
 
-        $interview->update($validated);
+        $this->interviewService->updateInterview($interview, $validated);
 
         return redirect()->back()
             ->with('success', 'Interview updated successfully.');

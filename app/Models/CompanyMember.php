@@ -17,6 +17,7 @@ class CompanyMember extends Model
         'invited_by',
         'invited_at',
         'joined_at',
+        'managed_by',
     ];
 
     protected function casts(): array
@@ -42,6 +43,11 @@ class CompanyMember extends Model
     public function invitedByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'invited_by');
+    }
+
+    public function manager(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'managed_by');
     }
 
     // --- Scopes ---

@@ -425,7 +425,7 @@ export default function RoomsIndex({ rooms, filters: initialFilters }: RoomsInde
 
                             {/* Pagination */}
                             <div className="mt-8">
-                                <Pagination meta={rooms} />
+                                <Pagination data={rooms} />
                             </div>
                         </>
                     ) : (

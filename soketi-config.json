@@ -1,0 +1,23 @@
+{
+    "debug": true,
+    "port": 6001,
+    "metrics": {
+        "enabled": false
+    },
+    "appManager.array.apps": [
+        {
+            "id": "tuyendung",
+            "key": "tuyendung-key",
+            "secret": "tuyendung-secret",
+            "maxConnections": 100,
+            "enableClientMessages": false,
+            "maxBackendEventsPerSecond": -1,
+            "maxClientEventsPerSecond": -1,
+            "maxReadRequestsPerSecond": -1
+        }
+    ],
+    "eventLimits.maxChannelsAtOnce": 100,
+    "eventLimits.maxNameLength": 200,
+    "eventLimits.maxPayloadInKb": 100,
+    "eventLimits.maxBatchSize": 10
+}

@@ -47,6 +47,33 @@ class HandleInertiaRequests extends Middleware
                 'warning' => fn() => $request->session()->get('warning'),
                 'info' => fn() => $request->session()->get('info'),
             ],
+            'sidebarBadges' => fn() => $this->getSidebarBadges($request),
         ];
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function getSidebarBadges(Request $request): array
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return [];
+        }
+
+        $badges = [
+            'notifications' => $user->unreadNotifications()->count(),
+        ];
+
+        $roles = $user->roles ?? [];
+
+        if (in_array('employer', $roles, true)) {
+            $badges['tasks'] = \App\Models\RecruitmentTask::forUser($user->id)
+                ->whereIn('status', ['pending', 'in_progress'])
+                ->count();
+        }
+
+        return $badges;
     }
 }

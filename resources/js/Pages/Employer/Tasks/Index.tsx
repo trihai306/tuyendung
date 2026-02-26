@@ -1,5 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PermissionGate from '@/Components/PermissionGate';
+import ConfirmDialog from '@/Components/ConfirmDialog';
+import { useConfirm } from '@/hooks/use-confirm';
 import { Head, Link } from '@inertiajs/react';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -36,6 +38,9 @@ import {
     ArrowUpRight,
     LayoutGrid,
     List,
+    Pencil,
+    Trash2,
+    Banknote,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { RecruitmentTask, CompanyMember, PaginatedData } from '@/types';
@@ -143,6 +148,15 @@ export default function Index({ tasks, members, filters, canAssign }: Props) {
     const [priorityFilter, setPriorityFilter] = useState(filters.priority || 'all');
     const [assigneeFilter, setAssigneeFilter] = useState(filters.assigned_to || 'all');
     const [searchTerm, setSearchTerm] = useState('');
+    const { isOpen, title: confirmTitle, description: confirmDesc, confirm, handleConfirm, handleCancel } = useConfirm();
+
+    const handleDeleteTask = (task: RecruitmentTask) => {
+        confirm(
+            'Xoa nhiem vu',
+            `Ban co chac chan muon xoa nhiem vu "${task.title}"? Hanh dong nay khong the hoan tac.`,
+            () => TaskService.deleteTask(task.id)
+        );
+    };
 
     const applyFilter = (key: string, value: string) => {
         const newFilters: Record<string, string> = {
@@ -177,7 +191,7 @@ export default function Index({ tasks, members, filters, canAssign }: Props) {
         <AuthenticatedLayout title="Nhiệm vụ" header="Nhiệm vụ tuyển dụng">
             <Head title="Nhiệm vụ tuyển dụng" />
 
-            <PermissionGate permission="tasks.view_all">
+            <PermissionGate permission="tasks.view_own">
                 <motion.div className="space-y-5" initial="hidden" animate="visible" variants={stagger}>
 
                     {/* Premium Stats Dashboard */}
@@ -417,12 +431,14 @@ export default function Index({ tasks, members, filters, canAssign }: Props) {
                                     {/* Table header */}
                                     <div className="flex items-center gap-3 px-4 py-2.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40 bg-muted/30">
                                         <div className="w-3" />
-                                        <div className="flex-1">Nhiệm vụ</div>
-                                        <div className="w-[100px] text-center hidden md:block">Loại</div>
-                                        <div className="w-[70px] text-center hidden md:block">Số lượng</div>
-                                        <div className="w-[100px] text-center hidden lg:block">Hạn</div>
-                                        <div className="w-[100px] text-center">Phụ trách</div>
-                                        <div className="w-[120px] text-center">Trạng thái</div>
+                                        <div className="flex-1">Nhiem vu</div>
+                                        <div className="w-[100px] text-center hidden md:block">Loai</div>
+                                        <div className="w-[70px] text-center hidden md:block">So luong</div>
+                                        <div className="w-[90px] text-center hidden lg:block">Luong/ca</div>
+                                        <div className="w-[100px] text-center hidden lg:block">Han</div>
+                                        <div className="w-[100px] text-center">Phu trach</div>
+                                        <div className="w-[120px] text-center">Trang thai</div>
+                                        {canAssign && <div className="w-[60px] text-center">Thao tac</div>}
                                         <div className="w-7" />
                                     </div>
 
@@ -500,6 +516,18 @@ export default function Index({ tasks, members, filters, canAssign }: Props) {
                                                         </span>
                                                     </div>
 
+                                                    {/* Salary / shift rate */}
+                                                    <div className="w-[90px] hidden lg:flex justify-center">
+                                                        {task.type === 'thoi_vu' && task.shift_rate ? (
+                                                            <span className="flex items-center gap-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                                                <Banknote className="h-2.5 w-2.5" />
+                                                                {task.shift_rate.toLocaleString('vi-VN')}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-[10px] text-muted-foreground/40">--</span>
+                                                        )}
+                                                    </div>
+
                                                     {/* Due date */}
                                                     <div className="w-[100px] hidden lg:flex justify-center">
                                                         {task.due_date ? (
@@ -512,38 +540,79 @@ export default function Index({ tasks, members, filters, canAssign }: Props) {
                                                         )}
                                                     </div>
 
-                                                    {/* Assignee */}
+                                                    {/* Assignees */}
                                                     <div className="w-[100px] flex justify-center">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <Avatar className="h-6 w-6 ring-2 ring-background shadow-sm">
-                                                                <AvatarImage src={task.assignee?.avatar} />
-                                                                <AvatarFallback className="text-[8px] bg-gradient-to-br from-violet-500 to-purple-600 text-white font-bold">
-                                                                    {task.assignee?.name?.charAt(0)?.toUpperCase()}
-                                                                </AvatarFallback>
-                                                            </Avatar>
-                                                            <span className="text-[10px] text-muted-foreground hidden xl:inline max-w-[60px] truncate">
-                                                                {task.assignee?.name}
-                                                            </span>
+                                                        <div className="flex items-center -space-x-1.5">
+                                                            {(task.assignees_data && task.assignees_data.length > 0) ? (
+                                                                <>
+                                                                    {task.assignees_data.slice(0, 3).map((user) => (
+                                                                        <Avatar key={user.id} className="h-6 w-6 ring-2 ring-background shadow-sm" title={user.name}>
+                                                                            <AvatarImage src={user.avatar} />
+                                                                            <AvatarFallback className="text-[8px] bg-gradient-to-br from-violet-500 to-purple-600 text-white font-bold">
+                                                                                {user.name?.charAt(0)?.toUpperCase()}
+                                                                            </AvatarFallback>
+                                                                        </Avatar>
+                                                                    ))}
+                                                                    {task.assignees_data.length > 3 && (
+                                                                        <div className="h-6 w-6 rounded-full bg-muted ring-2 ring-background flex items-center justify-center">
+                                                                            <span className="text-[8px] font-bold text-muted-foreground">+{task.assignees_data.length - 3}</span>
+                                                                        </div>
+                                                                    )}
+                                                                </>
+                                                            ) : (
+                                                                <span className="text-[10px] text-muted-foreground">--</span>
+                                                            )}
                                                         </div>
                                                     </div>
 
                                                     {/* Status dropdown */}
                                                     <div className="w-[120px] flex justify-center" onClick={(e) => e.stopPropagation()}>
-                                                        <Select
-                                                            value={task.status}
-                                                            onValueChange={(v) => handleStatusChange(task.id, v)}
-                                                        >
-                                                            <SelectTrigger className="h-7 w-full text-[10px] border-border/40">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="pending">Chờ xử lý</SelectItem>
-                                                                <SelectItem value="in_progress">Đang thực hiện</SelectItem>
-                                                                <SelectItem value="completed">Hoàn thành</SelectItem>
-                                                                <SelectItem value="cancelled">Đã hủy</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
+                                                        {canAssign ? (
+                                                            <Select
+                                                                value={task.status}
+                                                                onValueChange={(v) => handleStatusChange(task.id, v)}
+                                                            >
+                                                                <SelectTrigger className="h-7 w-full text-[10px] border-border/40">
+                                                                    <SelectValue />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="pending">Chờ xử lý</SelectItem>
+                                                                    <SelectItem value="in_progress">Đang thực hiện</SelectItem>
+                                                                    <SelectItem value="completed">Hoàn thành</SelectItem>
+                                                                    <SelectItem value="cancelled">Đã hủy</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        ) : (
+                                                            <Badge variant="outline" className={`text-[10px] px-2 py-0.5 font-semibold ${statusCfg.bg} ${statusCfg.color}`}>
+                                                                {statusCfg.label}
+                                                            </Badge>
+                                                        )}
                                                     </div>
+
+                                                    {/* Actions */}
+                                                    {canAssign && (
+                                                        <div className="w-[60px] flex justify-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                                            <Link href={route('employer.tasks.edit', task.id)}>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-7 w-7 text-muted-foreground hover:text-blue-600 hover:bg-blue-500/10"
+                                                                    title="Chinh sua"
+                                                                >
+                                                                    <Pencil className="h-3.5 w-3.5" />
+                                                                </Button>
+                                                            </Link>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-7 w-7 text-muted-foreground hover:text-red-600 hover:bg-red-500/10"
+                                                                title="Xoa"
+                                                                onClick={() => handleDeleteTask(task)}
+                                                            >
+                                                                <Trash2 className="h-3.5 w-3.5" />
+                                                            </Button>
+                                                        </div>
+                                                    )}
 
                                                     {/* Arrow */}
                                                     <motion.div
@@ -565,11 +634,19 @@ export default function Index({ tasks, members, filters, canAssign }: Props) {
                     {/* Pagination */}
                     {tasks.data.length > 0 && (
                         <motion.div variants={fadeSlide(0.4)}>
-                            <Pagination meta={tasks.meta} />
+                            <Pagination data={tasks} />
                         </motion.div>
                     )}
                 </motion.div>
             </PermissionGate>
+
+            <ConfirmDialog
+                isOpen={isOpen}
+                title={confirmTitle}
+                description={confirmDesc}
+                onConfirm={handleConfirm}
+                onCancel={handleCancel}
+            />
         </AuthenticatedLayout>
     );
 }

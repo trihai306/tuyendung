@@ -118,7 +118,7 @@ export default function Index({ savedJobs }: Props) {
                         })}
                     </div>
 
-                    <Pagination meta={savedJobs.meta} />
+                    <Pagination data={savedJobs} />
                 </div>
             )}
 

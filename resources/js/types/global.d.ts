@@ -2,10 +2,14 @@ import { PageProps as InertiaPageProps } from '@inertiajs/core';
 import { AxiosInstance } from 'axios';
 import { route as ziggyRoute } from 'ziggy-js';
 import { PageProps as AppPageProps } from './';
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
 
 declare global {
     interface Window {
         axios: AxiosInstance;
+        Echo: Echo<'pusher'>;
+        Pusher: typeof Pusher;
     }
 
     /* eslint-disable no-var */
@@ -13,5 +17,5 @@ declare global {
 }
 
 declare module '@inertiajs/core' {
-    interface PageProps extends InertiaPageProps, AppPageProps {}
+    interface PageProps extends InertiaPageProps, AppPageProps { }
 }

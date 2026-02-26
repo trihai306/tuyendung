@@ -1,13 +1,15 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PermissionGate from '@/Components/PermissionGate';
-import { Head, useForm, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
-import { Avatar, AvatarFallback } from '@/Components/ui/avatar';
+import MultiDatePicker from '@/Components/MultiDatePicker';
+import { Avatar, AvatarFallback, AvatarImage } from '@/Components/ui/avatar';
 import { Badge } from '@/Components/ui/badge';
+
 import {
     Select,
     SelectContent,
@@ -26,12 +28,18 @@ import {
     Zap,
     Hash,
     Briefcase,
+    CalendarClock,
+    Clock,
+    X,
+    Plus,
+    Banknote,
 } from 'lucide-react';
 import type { CompanyMember } from '@/types';
 
 interface Props {
     members: CompanyMember[];
 }
+
 
 const PRIORITY_OPTIONS = [
     { value: 'low', label: 'Thap', description: 'Khong can gap', color: 'bg-slate-100 text-slate-700' },
@@ -63,23 +71,58 @@ const ROLE_LABELS: Record<string, string> = {
     member: 'Nhan vien',
 };
 
+const SHIFT_LABELS: Record<string, string> = {
+    sang: 'Ca sang',
+    chieu: 'Ca chieu',
+    toi: 'Ca toi',
+    ca_ngay: 'Ca ngay',
+};
+
 export default function Create({ members }: Props) {
-    const form = useForm({
-        assigned_to: '',
+    const form = useForm<{
+        assigned_to: number[];
+        title: string;
+        type: string;
+        description: string;
+        priority: string;
+        target_quantity: string;
+        due_date: string;
+        work_dates: string[];
+        work_shifts: string[];
+        overtime_hours: string;
+        shift_rate: string;
+        overtime_rate: string;
+    }>({
+        assigned_to: [],
         title: '',
         type: 'chinh_thuc',
         description: '',
         priority: 'medium',
         target_quantity: '1',
         due_date: '',
+        work_dates: [],
+        work_shifts: [],
+        overtime_hours: '0',
+        shift_rate: '',
+        overtime_rate: '',
     });
+
+    const isSeasonalType = form.data.type === 'thoi_vu';
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         form.post(route('employer.tasks.store'));
     };
 
-    const selectedMember = members.find(m => String(m.user_id) === form.data.assigned_to);
+    const selectedMembers = members.filter(m => form.data.assigned_to.includes(m.user_id));
+
+    const toggleAssignee = (userId: number) => {
+        const current = form.data.assigned_to;
+        const updated = current.includes(userId)
+            ? current.filter(id => id !== userId)
+            : [...current, userId];
+        form.setData('assigned_to', updated);
+    };
     const selectedPriority = PRIORITY_OPTIONS.find(p => p.value === form.data.priority);
     const selectedType = TYPE_OPTIONS.find(t => t.value === form.data.type);
 
@@ -96,6 +139,7 @@ export default function Create({ members }: Props) {
                             Quay lai danh sach
                         </Button>
                     </Link>
+
 
                     <form onSubmit={handleSubmit}>
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -148,13 +192,13 @@ export default function Create({ members }: Props) {
                                                                     ? `${opt.border} ${opt.color} ring-2 ring-offset-1 ring-current/20 shadow-sm`
                                                                     : 'border-border/50 hover:border-border bg-muted/20 hover:bg-muted/40'
                                                                 }
-                                                        `}
+                                                            `}
                                                         >
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 <div className={`h-3 w-3 rounded-full border-2 flex items-center justify-center shrink-0 ${form.data.type === opt.value
                                                                     ? 'border-current'
                                                                     : 'border-muted-foreground/30'
-                                                                    }`}>
+                                                                    } `}>
                                                                     {form.data.type === opt.value && (
                                                                         <div className="h-1.5 w-1.5 rounded-full bg-current" />
                                                                     )}
@@ -169,6 +213,166 @@ export default function Create({ members }: Props) {
                                                     <p className="text-[11px] text-destructive">{form.errors.type}</p>
                                                 )}
                                             </div>
+
+                                            {/* Seasonal Work Fields */}
+                                            {isSeasonalType && (
+                                                <div className="space-y-4 p-4 rounded-xl border-2 border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/30">
+                                                    <div className="flex items-center gap-2 text-xs font-semibold text-violet-700 dark:text-violet-300">
+                                                        <CalendarClock className="h-3.5 w-3.5" />
+                                                        Lich lam viec thoi vu
+                                                    </div>
+
+                                                    {/* Work Dates */}
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs font-medium flex items-center gap-1.5">
+                                                            <CalendarDays className="h-3 w-3 text-muted-foreground" />
+                                                            Ngay lam viec *
+                                                        </Label>
+                                                        <MultiDatePicker
+                                                            selectedDates={form.data.work_dates}
+                                                            onChange={dates => form.setData('work_dates', dates)}
+                                                        />
+                                                        {form.errors.work_dates && (
+                                                            <p className="text-[11px] text-destructive">{form.errors.work_dates}</p>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Work Shifts */}
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs font-medium flex items-center gap-1.5">
+                                                            <Clock className="h-3 w-3 text-muted-foreground" />
+                                                            Ca lam viec *
+                                                        </Label>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            {[
+                                                                { value: 'sang', label: 'Ca sang', time: '06:00 - 12:00' },
+                                                                { value: 'chieu', label: 'Ca chieu', time: '12:00 - 18:00' },
+                                                                { value: 'toi', label: 'Ca toi', time: '18:00 - 22:00' },
+                                                                { value: 'ca_ngay', label: 'Ca ngay', time: '08:00 - 17:00' },
+                                                            ].map(shift => {
+                                                                const isChecked = form.data.work_shifts.includes(shift.value);
+                                                                return (
+                                                                    <button
+                                                                        key={shift.value}
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const updated = isChecked
+                                                                                ? form.data.work_shifts.filter(s => s !== shift.value)
+                                                                                : [...form.data.work_shifts, shift.value];
+                                                                            form.setData('work_shifts', updated);
+                                                                        }}
+                                                                        className={`flex items-center gap-2 p-2.5 rounded-lg border-2 text-left transition-all cursor-pointer ${isChecked
+                                                                            ? 'border-violet-400 bg-violet-100 dark:bg-violet-900/50 dark:border-violet-600'
+                                                                            : 'border-border/50 hover:border-border bg-background'
+                                                                            }`}
+                                                                    >
+                                                                        <div className={`h-3.5 w-3.5 rounded border-2 flex items-center justify-center shrink-0 ${isChecked ? 'border-violet-500 bg-violet-500' : 'border-muted-foreground/30'
+                                                                            }`}>
+                                                                            {isChecked && <div className="h-1.5 w-1.5 rounded-sm bg-white" />}
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-xs font-semibold">{shift.label}</p>
+                                                                            <p className="text-[10px] text-muted-foreground">{shift.time}</p>
+                                                                        </div>
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                        {form.errors.work_shifts && (
+                                                            <p className="text-[11px] text-destructive">{form.errors.work_shifts}</p>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Overtime Hours */}
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs font-medium flex items-center gap-1.5">
+                                                            <Zap className="h-3 w-3 text-muted-foreground" />
+                                                            Tang ca (tuy chon)
+                                                        </Label>
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {[
+                                                                { value: '0', label: 'Khong tang ca' },
+                                                                { value: '1', label: '+1 gio' },
+                                                                { value: '2', label: '+2 gio' },
+                                                                { value: '3', label: '+3 gio' },
+                                                                { value: '4', label: '+4 gio' },
+                                                            ].map(opt => {
+                                                                const isSelected = form.data.overtime_hours === opt.value;
+                                                                return (
+                                                                    <button
+                                                                        key={opt.value}
+                                                                        type="button"
+                                                                        onClick={() => form.setData('overtime_hours', opt.value)}
+                                                                        className={`px-3 py-1.5 rounded-lg border-2 text-xs font-medium transition-all cursor-pointer ${isSelected
+                                                                            ? 'border-amber-400 bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:border-amber-600 dark:text-amber-300'
+                                                                            : 'border-border/50 hover:border-border bg-background text-muted-foreground'
+                                                                            }`}
+                                                                    >
+                                                                        {opt.label}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                        <p className="text-[10px] text-muted-foreground">So gio lam them sau ca chinh</p>
+                                                    </div>
+
+                                                    {/* Salary Fields */}
+                                                    <div className="space-y-3 pt-3 border-t border-violet-200/50 dark:border-violet-800/50">
+                                                        <Label className="text-xs font-medium flex items-center gap-1.5">
+                                                            <Banknote className="h-3 w-3 text-muted-foreground" />
+                                                            Luong thoi vu
+                                                        </Label>
+                                                        <div className="grid grid-cols-2 gap-3">
+                                                            <div className="space-y-1">
+                                                                <label className="text-[10px] text-muted-foreground">Luong / ca (VND)</label>
+                                                                <Input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    placeholder="VD: 200000"
+                                                                    value={form.data.shift_rate}
+                                                                    onChange={e => form.setData('shift_rate', e.target.value)}
+                                                                    className="h-9 text-xs"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-[10px] text-muted-foreground">Luong tang ca / gio (VND)</label>
+                                                                <Input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    placeholder="VD: 50000"
+                                                                    value={form.data.overtime_rate}
+                                                                    onChange={e => form.setData('overtime_rate', e.target.value)}
+                                                                    className="h-9 text-xs"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        {/* Estimated total */}
+                                                        {(Number(form.data.shift_rate) > 0 || Number(form.data.overtime_rate) > 0) && (
+                                                            <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/50 dark:border-emerald-800/50">
+                                                                <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mb-1">Uoc tinh chi phi</p>
+                                                                <div className="space-y-0.5 text-[10px] text-muted-foreground">
+                                                                    {Number(form.data.shift_rate) > 0 && (
+                                                                        <p>
+                                                                            {form.data.work_shifts.length} ca x {form.data.work_dates.length} ngay x {Number(form.data.target_quantity || 1)} nguoi = {' '}
+                                                                            <span className="font-bold text-emerald-700 dark:text-emerald-300">
+                                                                                {(Number(form.data.shift_rate) * form.data.work_shifts.length * form.data.work_dates.length * Number(form.data.target_quantity || 1)).toLocaleString('vi-VN')} VND
+                                                                            </span>
+                                                                        </p>
+                                                                    )}
+                                                                    {Number(form.data.overtime_rate) > 0 && Number(form.data.overtime_hours) > 0 && (
+                                                                        <p>
+                                                                            Tang ca: {form.data.overtime_hours}h x {form.data.work_dates.length} ngay x {Number(form.data.target_quantity || 1)} nguoi = {' '}
+                                                                            <span className="font-bold text-amber-700 dark:text-amber-300">
+                                                                                {(Number(form.data.overtime_rate) * Number(form.data.overtime_hours) * form.data.work_dates.length * Number(form.data.target_quantity || 1)).toLocaleString('vi-VN')} VND
+                                                                            </span>
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             {/* Target Quantity */}
                                             <div className="space-y-2">
@@ -223,36 +427,58 @@ export default function Create({ members }: Props) {
                                             </div>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-medium flex items-center gap-1.5">
-                                                <User className="h-3 w-3 text-muted-foreground" />
-                                                Giao cho *
-                                            </Label>
-                                            <Select
-                                                value={form.data.assigned_to}
-                                                onValueChange={v => form.setData('assigned_to', v)}
-                                            >
-                                                <SelectTrigger className="h-10 text-xs">
-                                                    <SelectValue placeholder="Chon nguoi phu trach" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {members.map(m => (
-                                                        <SelectItem key={m.user_id} value={String(m.user_id)}>
-                                                            <div className="flex items-center gap-2">
-                                                                <Avatar className="h-5 w-5">
-                                                                    <AvatarFallback className="text-[8px] bg-violet-500 text-white font-bold">
-                                                                        {m.user?.name?.charAt(0)?.toUpperCase()}
-                                                                    </AvatarFallback>
-                                                                </Avatar>
-                                                                <span>{m.user?.name}</span>
-                                                                <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">
-                                                                    {ROLE_LABELS[m.role] || m.role}
-                                                                </Badge>
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <Label className="text-xs font-medium flex items-center gap-1.5">
+                                                    <User className="h-3 w-3 text-muted-foreground" />
+                                                    Giao cho <span className="text-destructive">*</span>
+                                                </Label>
+                                                {form.data.assigned_to.length > 0 && (
+                                                    <span className="text-[10px] font-semibold text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-950/50 px-2 py-0.5 rounded-full">
+                                                        {form.data.assigned_to.length} da chon
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="space-y-1.5 max-h-[240px] overflow-y-auto rounded-xl border border-border/40 bg-muted/20 p-2">
+                                                {members.map(m => {
+                                                    const isChecked = form.data.assigned_to.includes(m.user_id);
+                                                    return (
+                                                        <button
+                                                            key={m.user_id}
+                                                            type="button"
+                                                            onClick={() => toggleAssignee(m.user_id)}
+                                                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-200 group ${isChecked
+                                                                ? 'bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/40 dark:to-purple-950/30 ring-1 ring-violet-200 dark:ring-violet-800 shadow-sm'
+                                                                : 'hover:bg-white dark:hover:bg-white/5 hover:shadow-sm'
+                                                                }`}
+                                                        >
+                                                            <div className={`flex h-5 w-5 items-center justify-center rounded-md border-2 shrink-0 transition-all duration-200 ${isChecked
+                                                                ? 'bg-violet-600 border-violet-600 text-white scale-110'
+                                                                : 'border-muted-foreground/25 group-hover:border-violet-400'
+                                                                }`}>
+                                                                {isChecked && (
+                                                                    <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none">
+                                                                        <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                                    </svg>
+                                                                )}
                                                             </div>
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                                            <Avatar className={`h-7 w-7 transition-all duration-200 ${isChecked ? 'ring-2 ring-violet-400/50' : ''}`}>
+                                                                <AvatarFallback className={`text-[9px] font-bold text-white ${isChecked ? 'bg-gradient-to-br from-violet-500 to-purple-600' : 'bg-slate-400 dark:bg-slate-600'}`}>
+                                                                    {m.user?.name?.charAt(0)?.toUpperCase()}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className={`text-xs font-semibold truncate transition-colors ${isChecked ? 'text-violet-700 dark:text-violet-300' : 'text-foreground'}`}>
+                                                                    {m.user?.name}
+                                                                </p>
+                                                            </div>
+                                                            <Badge variant="outline" className={`text-[9px] px-1.5 py-0 h-4 shrink-0 transition-colors ${isChecked ? 'border-violet-300 dark:border-violet-700 text-violet-600 dark:text-violet-400' : ''}`}>
+                                                                {ROLE_LABELS[m.role] || m.role}
+                                                            </Badge>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
                                             {form.errors.assigned_to && (
                                                 <p className="text-[11px] text-destructive">{form.errors.assigned_to}</p>
                                             )}
@@ -364,17 +590,21 @@ export default function Create({ members }: Props) {
                                             {/* Assignee */}
                                             <div>
                                                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mb-1">Nguoi phu trach</p>
-                                                {selectedMember ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <Avatar className="h-6 w-6">
-                                                            <AvatarFallback className="text-[9px] bg-gradient-to-br from-violet-500 to-purple-600 text-white font-bold">
-                                                                {selectedMember.user?.name?.charAt(0)?.toUpperCase()}
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                        <span className="text-xs font-medium">{selectedMember.user?.name}</span>
+                                                {selectedMembers.length > 0 ? (
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {selectedMembers.map(m => (
+                                                            <div key={m.user_id} className="flex items-center gap-1 bg-violet-50 dark:bg-violet-950/30 rounded-md px-2 py-0.5">
+                                                                <Avatar className="h-4 w-4">
+                                                                    <AvatarFallback className="text-[7px] bg-violet-500 text-white font-bold">
+                                                                        {m.user?.name?.charAt(0)?.toUpperCase()}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                                <span className="text-[10px] font-medium">{m.user?.name}</span>
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 ) : (
-                                                    <p className="text-xs text-muted-foreground/40 italic">Chua chon</p>
+                                                    <span className="text-xs text-muted-foreground italic">Chua chon</span>
                                                 )}
                                             </div>
 
@@ -396,6 +626,45 @@ export default function Create({ members }: Props) {
                                                         <CalendarDays className="h-3 w-3 text-muted-foreground" />
                                                         <p className="text-xs">{form.data.due_date}</p>
                                                     </div>
+                                                </div>
+                                            )}
+
+                                            {/* Work Schedule Preview */}
+                                            {isSeasonalType && (form.data.work_dates.length > 0 || form.data.work_shifts.length > 0) && (
+                                                <div className="pt-3 mt-2 border-t border-violet-200/50 dark:border-violet-800/50">
+                                                    <p className="text-[10px] uppercase tracking-wider text-violet-600/70 dark:text-violet-400/70 mb-2 flex items-center gap-1">
+                                                        <CalendarClock className="h-3 w-3" />
+                                                        Lich lam viec
+                                                    </p>
+                                                    {form.data.work_dates.length > 0 && (
+                                                        <div className="mb-2">
+                                                            <p className="text-[9px] text-muted-foreground mb-1">{form.data.work_dates.length} ngay lam viec:</p>
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {form.data.work_dates.slice(0, 8).map(d => (
+                                                                    <span key={d} className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400 text-[9px] font-medium">
+                                                                        {new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}
+                                                                    </span>
+                                                                ))}
+                                                                {form.data.work_dates.length > 8 && (
+                                                                    <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground text-[9px]">
+                                                                        +{form.data.work_dates.length - 8}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    {form.data.work_shifts.length > 0 && (
+                                                        <div>
+                                                            <p className="text-[9px] text-muted-foreground mb-1">Ca lam viec:</p>
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {form.data.work_shifts.map(s => (
+                                                                    <span key={s} className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400 text-[9px] font-medium">
+                                                                        {SHIFT_LABELS[s] || s}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>

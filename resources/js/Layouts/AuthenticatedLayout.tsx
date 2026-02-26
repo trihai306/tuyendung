@@ -8,15 +8,12 @@ import {
     BreadcrumbList,
     BreadcrumbPage,
 } from '@/Components/ui/breadcrumb';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/Components/ui/popover';
-import { Bell, Search, BellOff } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/Components/ui/avatar';
 import AppSidebar from '@/Components/AppSidebar';
 import FlashToast from '@/Components/FlashToast';
+import RealtimeNotification from '@/Components/RealtimeNotification';
+import NotificationDropdown from '@/Components/NotificationDropdown';
 import type { PageProps } from '@/types';
 
 interface AuthenticatedLayoutProps extends PropsWithChildren {
@@ -63,29 +60,7 @@ export default function AuthenticatedLayout({ title, header, children }: Authent
 
                     {/* Right: Actions */}
                     <div className="ml-auto flex items-center gap-2">
-                        {/* Notification Dropdown */}
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <button className="relative flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors">
-                                    <Bell className="h-4 w-4" />
-                                    <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
-                                    </span>
-                                </button>
-                            </PopoverTrigger>
-                            <PopoverContent align="end" sideOffset={8} className="w-80 rounded-xl p-0 shadow-xl">
-                                <div className="px-4 py-3 border-b border-border/50">
-                                    <h3 className="text-sm font-semibold">Thong bao</h3>
-                                </div>
-
-                                {/* Empty state */}
-                                <div className="flex flex-col items-center justify-center py-8 px-4">
-                                    <BellOff className="h-8 w-8 text-muted-foreground/30 mb-2" />
-                                    <p className="text-xs text-muted-foreground">Chua co thong bao moi</p>
-                                </div>
-                            </PopoverContent>
-                        </Popover>
+                        <NotificationDropdown />
 
                         <Separator orientation="vertical" className="h-4 bg-border/60 hidden sm:block" />
                         <div className="hidden sm:flex items-center gap-2.5 pl-1">
@@ -106,6 +81,7 @@ export default function AuthenticatedLayout({ title, header, children }: Authent
                 <main className="flex-1 p-4 md:p-6">{children}</main>
             </SidebarInset>
             <FlashToast />
+            <RealtimeNotification />
         </SidebarProvider>
     );
 }

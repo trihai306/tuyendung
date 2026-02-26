@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PermissionGate from '@/Components/PermissionGate';
+import Pagination from '@/Components/Pagination';
 import { Head } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
@@ -61,8 +62,24 @@ interface ChannelAnalytics {
     total_applications: number;
 }
 
+interface PaginatedJobReport {
+    data: JobReport[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number;
+    to: number;
+    first_page_url: string;
+    last_page_url: string;
+    next_page_url: string | null;
+    prev_page_url: string | null;
+    path: string;
+    links: { url: string | null; label: string; active: boolean }[];
+}
+
 interface Props {
-    jobPostReport: JobReport[];
+    jobPostReport: PaginatedJobReport;
     channelAnalytics: ChannelAnalytics;
     memberPerformance: MemberPerformance[];
 }
@@ -95,7 +112,7 @@ type TabKey = 'overview' | 'members' | 'jobs';
 export default function Index({ jobPostReport, channelAnalytics, memberPerformance }: Props) {
     const [activeTab, setActiveTab] = useState<TabKey>('overview');
 
-    const totalJobs = jobPostReport.length;
+    const totalJobs = jobPostReport.total;
     const totalApps = channelAnalytics.total_applications;
     const acceptedApps = channelAnalytics.by_status?.accepted || 0;
     const conversionRate = totalApps > 0 ? ((acceptedApps / totalApps) * 100).toFixed(1) : '0';
@@ -349,8 +366,8 @@ export default function Index({ jobPostReport, channelAnalytics, memberPerforman
 
                     {activeTab === 'jobs' && (
                         <div className="space-y-4">
-                            {jobPostReport.length > 0 ? (
-                                jobPostReport.map((job) => (
+                            {jobPostReport.data.length > 0 ? (
+                                jobPostReport.data.map((job) => (
                                     <Card key={job.id} className="border shadow-sm rounded-xl hover:shadow-md transition-all">
                                         <CardContent className="p-5">
                                             <div className="flex flex-col lg:flex-row lg:items-center gap-4">
@@ -426,6 +443,8 @@ export default function Index({ jobPostReport, channelAnalytics, memberPerforman
                                     </CardContent>
                                 </Card>
                             )}
+
+                            <Pagination data={jobPostReport} />
                         </div>
                     )}
                 </div>

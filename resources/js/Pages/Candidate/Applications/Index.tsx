@@ -60,7 +60,7 @@ export default function Index({ applications }: Props) {
                         emptyMessage="Chưa có don ứng tuyển nao"
                         emptyDescription="Hay tim viec va ứng tuyển ngay"
                     />
-                    <Pagination meta={applications.meta} />
+                    <Pagination data={applications} />
                 </CardContent>
             </Card>
         </CandidateLayout>

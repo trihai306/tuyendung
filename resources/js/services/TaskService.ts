@@ -1,5 +1,22 @@
 import { router } from '@inertiajs/react';
 import type { FormDataConvertible } from '@inertiajs/core';
+import axios from 'axios';
+
+interface ApplicationItem {
+    id: number;
+    candidate_name: string;
+    candidate_phone?: string;
+    candidate_email?: string;
+    source: string;
+    status: string;
+}
+
+interface PaginatedApplications {
+    data: ApplicationItem[];
+    current_page: number;
+    last_page: number;
+    total: number;
+}
 
 const TaskService = {
     createTask(data: Record<string, FormDataConvertible>) {
@@ -22,7 +39,7 @@ const TaskService = {
         );
     },
 
-    addCandidate(taskId: number, data: Record<string, FormDataConvertible>) {
+    addCandidates(taskId: number, data: { application_ids: number[]; status: string; notes?: string; hired_date?: string }) {
         return router.post(
             route('employer.tasks.candidates.store', taskId),
             data,
@@ -43,6 +60,22 @@ const TaskService = {
             preserveScroll: true,
         });
     },
+
+    async searchApplications(taskId: number, params: { search?: string; page?: number; per_page?: number }): Promise<PaginatedApplications> {
+        const { data } = await axios.get<PaginatedApplications>(
+            route('employer.tasks.applications.search', taskId),
+            { params }
+        );
+        return data;
+    },
+
+    deleteTask(taskId: number) {
+        return router.delete(
+            route('employer.tasks.destroy', taskId),
+            { preserveScroll: true }
+        );
+    },
 };
 
+export type { ApplicationItem, PaginatedApplications };
 export default TaskService;

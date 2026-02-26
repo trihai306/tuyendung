@@ -99,10 +99,14 @@ export interface Application {
     candidate_name?: string;
     candidate_email?: string;
     candidate_phone?: string;
+    candidate_photo?: string;
+    candidate_id_card_front?: string;
+    candidate_id_card_back?: string;
     source: 'system' | 'facebook' | 'zalo' | 'tiktok' | 'linkedin' | 'referral' | 'other';
     source_note?: string;
     social_links?: SocialLink[];
     added_by?: number;
+    assigned_to?: number;
     cover_letter?: string;
     resume_url?: string;
     status: 'pending' | 'reviewing' | 'shortlisted' | 'accepted' | 'rejected';
@@ -112,6 +116,7 @@ export interface Application {
     job_post?: JobPost;
     candidate?: User;
     added_by_user?: User;
+    assigned_to_user?: User;
     interviews?: Interview[];
 }
 
@@ -136,15 +141,19 @@ export interface CompanyMember {
     status: 'pending' | 'active' | 'inactive';
     invited_at: string;
     joined_at?: string;
+    created_at?: string;
+    managed_by?: number | null;
     user?: User;
     invited_by_user?: User;
+    manager?: User | null;
 }
 
 export interface RecruitmentTask {
     id: number;
     employer_profile_id: number;
-    assigned_to: number;
+    assigned_to: number[];
     assigned_by: number;
+    assignees_data?: User[];
     title: string;
     type: 'chinh_thuc' | 'thoi_vu';
     description?: string;
@@ -155,6 +164,11 @@ export interface RecruitmentTask {
     completed_at?: string;
     notes?: string;
     completion_report?: string;
+    work_dates?: string[];
+    work_shifts?: string[];
+    overtime_hours?: number;
+    shift_rate?: number;
+    overtime_rate?: number;
     created_at: string;
     updated_at: string;
     assignee?: User;
@@ -172,6 +186,73 @@ export interface TaskCandidate {
     status: 'hired' | 'trial' | 'rejected';
     notes?: string;
     hired_date?: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Payroll {
+    id: number;
+    task_candidate_id: number;
+    recruitment_task_id: number;
+    period_start: string;
+    period_end: string;
+    total_shifts: number;
+    overtime_hours: number;
+    shift_amount: number;
+    overtime_amount: number;
+    bonus: number;
+    deduction: number;
+    total_amount: number;
+    status: 'draft' | 'confirmed' | 'paid';
+    paid_at?: string;
+    notes?: string;
+    created_at: string;
+    updated_at: string;
+    task_candidate?: TaskCandidate;
+    recruitment_task?: RecruitmentTask;
+}
+
+export interface Attendance {
+    id: number;
+    task_candidate_id: number;
+    recruitment_task_id: number;
+    work_date: string;
+    status: 'present' | 'absent' | 'half_day' | 'late';
+    shifts_worked: number;
+    overtime_hours: number;
+    notes?: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface AttendanceRecord {
+    id?: number;
+    status: 'present' | 'absent' | 'half_day' | 'late';
+    shifts_worked: number;
+    overtime_hours: number;
+    notes?: string;
+}
+
+export interface AppNotification {
+    id: string;
+    type: string;
+    data: {
+        type: 'new_application' | 'task_assigned' | 'application_status' | 'interview_scheduled';
+        message: string;
+        application_id?: number;
+        candidate_name?: string;
+        job_title?: string;
+        source?: string;
+        task_id?: number;
+        task_title?: string;
+        assigner_name?: string;
+        priority?: string;
+        new_status?: string;
+        interview_id?: number;
+        scheduled_at?: string;
+        interview_type?: string;
+    };
+    read_at: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -237,15 +318,18 @@ export interface RoomReview {
 // Shared / Pagination
 export interface PaginatedData<T> {
     data: T[];
-    links: PaginationLinks;
-    meta: PaginationMeta;
-}
-
-export interface PaginationLinks {
-    first: string;
-    last: string;
-    prev?: string;
-    next?: string;
+    current_page: number;
+    first_page_url: string;
+    from: number;
+    last_page: number;
+    last_page_url: string;
+    links: { url: string | null; label: string; active: boolean }[];
+    next_page_url: string | null;
+    path: string;
+    per_page: number;
+    prev_page_url: string | null;
+    to: number;
+    total: number;
 }
 
 export interface PaginationMeta {
@@ -270,11 +354,18 @@ export type CompanyRole = 'owner' | 'manager' | 'member';
 export type PermissionKey =
     | 'team.view' | 'team.invite' | 'team.change_role' | 'team.remove' | 'team.regenerate_code'
     | 'jobs.view' | 'jobs.create' | 'jobs.edit' | 'jobs.delete'
-    | 'applications.view' | 'applications.update' | 'applications.add_external'
+    | 'applications.view' | 'applications.view_all' | 'applications.update' | 'applications.add_external' | 'applications.transfer' | 'applications.delete'
     | 'interviews.create' | 'interviews.update'
-    | 'tasks.view_all' | 'tasks.create' | 'tasks.assign' | 'tasks.update_any'
+    | 'tasks.view_all' | 'tasks.view_own' | 'tasks.create' | 'tasks.assign' | 'tasks.update_any'
     | 'company.view' | 'company.edit'
-    | 'reports.view';
+    | 'reports.view'
+    | 'payroll.view' | 'payroll.manage'
+    | 'ai_agents.view' | 'ai_agents.create' | 'ai_agents.manage';
+
+export interface SidebarBadges {
+    tasks?: number;
+    notifications?: number;
+}
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
     auth: {
@@ -283,5 +374,6 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
         permissions: Record<PermissionKey, boolean>;
     };
     flash: FlashMessages;
+    sidebarBadges: SidebarBadges;
     ziggy: { url: string; port: number | null; defaults: Record<string, unknown>; location: string };
 };

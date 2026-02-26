@@ -1,6 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PermissionGate from '@/Components/PermissionGate';
-import { Head, Link } from '@inertiajs/react';
+import ConfirmDialog from '@/Components/ConfirmDialog';
+import { useConfirm } from '@/hooks/use-confirm';
+import { Head, Link, router } from '@inertiajs/react';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
@@ -26,7 +28,8 @@ import { Textarea } from '@/Components/ui/textarea';
 import { Label } from '@/Components/ui/label';
 import { formatDate } from '@/lib/utils';
 import TaskService from '@/services/TaskService';
-import { useState } from 'react';
+import type { ApplicationItem } from '@/services/TaskService';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
     ArrowLeft,
     CalendarDays,
@@ -53,24 +56,21 @@ import {
     Mail,
     FileCheck,
     UserCircle,
+    Check,
     Search,
+    CalendarCheck,
+    Wallet,
 } from 'lucide-react';
 import type { RecruitmentTask, TaskCandidate } from '@/types';
-
-interface ApplicationItem {
-    id: number;
-    candidate_name: string;
-    candidate_phone?: string;
-    candidate_email?: string;
-    source: string;
-    status: string;
-}
 
 interface Props {
     task: RecruitmentTask;
     canAssign: boolean;
     hiredCount: number;
-    applications: ApplicationItem[];
+}
+
+function formatMoney(amount: number): string {
+    return new Intl.NumberFormat('vi-VN').format(amount) + 'd';
 }
 
 const TYPE_CONFIG: Record<string, { label: string; color: string; bg: string; description: string }> = {
@@ -108,36 +108,111 @@ const CANDIDATE_STATUS_CONFIG: Record<string, { label: string; color: string; bg
     rejected: { label: 'Khong dat', color: 'text-red-600', bg: 'bg-red-500/10 border-red-500/20' },
 };
 
-export default function Show({ task, canAssign, hiredCount, applications }: Props) {
+export default function Show({ task, canAssign, hiredCount }: Props) {
     const priorityCfg = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium;
     const statusCfg = STATUS_CONFIG[task.status] || STATUS_CONFIG.pending;
     const typeCfg = TYPE_CONFIG[task.type] || TYPE_CONFIG.chinh_thuc;
     const StatusIcon = statusCfg.icon;
     const PriorityIcon = priorityCfg.icon;
     const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed';
+    const { isOpen: confirmOpen, title: confirmTitle, description: confirmDesc, confirm: showConfirm, handleConfirm, handleCancel } = useConfirm();
 
     // Completion report state
     const [report, setReport] = useState(task.completion_report || '');
     const [reportSaving, setReportSaving] = useState(false);
 
+    // Hired candidates for display
+    const isSeasonalTask = task.type === 'thoi_vu';
+    const hiredCandidates = (task.candidates || []).filter((c: TaskCandidate) => c.status === 'hired' || c.status === 'trial');
+
     // Add candidate dialog state
     const [candidateDialogOpen, setCandidateDialogOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedApplication, setSelectedApplication] = useState<ApplicationItem | null>(null);
+    const [selectedAppIds, setSelectedAppIds] = useState<Set<number>>(new Set());
     const [candidateStatus, setCandidateStatus] = useState<'hired' | 'trial' | 'rejected'>('hired');
     const [candidateNotes, setCandidateNotes] = useState('');
     const [hiredDate, setHiredDate] = useState('');
 
-    // Filter applications by search query
-    const filteredApplications = applications.filter((app) => {
-        if (!searchQuery.trim()) return true;
-        const q = searchQuery.toLowerCase();
-        return (
-            app.candidate_name?.toLowerCase().includes(q) ||
-            app.candidate_phone?.toLowerCase().includes(q) ||
-            app.candidate_email?.toLowerCase().includes(q)
-        );
-    });
+    // API-based application loading state
+    const [applications, setApplications] = useState<ApplicationItem[]>([]);
+    const [appLoading, setAppLoading] = useState(false);
+    const [appPage, setAppPage] = useState(1);
+    const [appLastPage, setAppLastPage] = useState(1);
+    const [appTotal, setAppTotal] = useState(0);
+    const listRef = useRef<HTMLDivElement>(null);
+    const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const fetchApplications = useCallback(async (page: number, search: string, append: boolean) => {
+        setAppLoading(true);
+        try {
+            const result = await TaskService.searchApplications(task.id, {
+                search: search || undefined,
+                page,
+                per_page: 20,
+            });
+            setApplications((prev) => append ? [...prev, ...result.data] : result.data);
+            setAppPage(result.current_page);
+            setAppLastPage(result.last_page);
+            setAppTotal(result.total);
+        } catch {
+            // silently fail
+        } finally {
+            setAppLoading(false);
+        }
+    }, [task.id]);
+
+    // Fetch when dialog opens
+    useEffect(() => {
+        if (candidateDialogOpen) {
+            setApplications([]);
+            setSelectedAppIds(new Set());
+            setSearchQuery('');
+            setAppPage(1);
+            fetchApplications(1, '', false);
+        }
+    }, [candidateDialogOpen, fetchApplications]);
+
+    // Debounced search
+    useEffect(() => {
+        if (!candidateDialogOpen) return;
+        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+        searchTimeoutRef.current = setTimeout(() => {
+            setAppPage(1);
+            fetchApplications(1, searchQuery, false);
+        }, 400);
+        return () => {
+            if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+        };
+    }, [searchQuery]);
+
+    // Infinite scroll handler
+    const handleListScroll = useCallback(() => {
+        const el = listRef.current;
+        if (!el || appLoading || appPage >= appLastPage) return;
+        if (el.scrollTop + el.clientHeight >= el.scrollHeight - 40) {
+            fetchApplications(appPage + 1, searchQuery, true);
+        }
+    }, [appLoading, appPage, appLastPage, searchQuery, fetchApplications]);
+
+    const toggleApplication = (appId: number) => {
+        setSelectedAppIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(appId)) {
+                next.delete(appId);
+            } else {
+                next.add(appId);
+            }
+            return next;
+        });
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedAppIds.size === applications.length && applications.length > 0) {
+            setSelectedAppIds(new Set());
+        } else {
+            setSelectedAppIds(new Set(applications.map((a) => a.id)));
+        }
+    };
 
     const SOURCE_LABELS: Record<string, string> = {
         system: 'He thong',
@@ -159,15 +234,15 @@ export default function Show({ task, canAssign, hiredCount, applications }: Prop
         setTimeout(() => setReportSaving(false), 1000);
     };
 
-    const handleAddCandidate = () => {
-        if (!selectedApplication) return;
-        TaskService.addCandidate(task.id, {
-            application_id: selectedApplication.id,
+    const handleAddCandidates = () => {
+        if (selectedAppIds.size === 0) return;
+        TaskService.addCandidates(task.id, {
+            application_ids: Array.from(selectedAppIds),
             status: candidateStatus,
-            notes: candidateNotes,
-            hired_date: hiredDate,
+            notes: candidateNotes || undefined,
+            hired_date: hiredDate || undefined,
         });
-        setSelectedApplication(null);
+        setSelectedAppIds(new Set());
         setSearchQuery('');
         setCandidateStatus('hired');
         setCandidateNotes('');
@@ -176,9 +251,13 @@ export default function Show({ task, canAssign, hiredCount, applications }: Prop
     };
 
     const handleRemoveCandidate = (candidateId: number) => {
-        if (confirm('Ban co chac chan muon xoa ung vien nay?')) {
-            TaskService.removeCandidate(task.id, candidateId);
-        }
+        showConfirm(
+            'Xoa ung vien',
+            'Ban co chac chan muon xoa ung vien nay khoi nhiem vu? Hanh dong nay khong the hoan tac.',
+            () => {
+                TaskService.removeCandidate(task.id, candidateId);
+            }
+        );
     };
 
     const getDaysInfo = () => {
@@ -201,7 +280,7 @@ export default function Show({ task, canAssign, hiredCount, applications }: Prop
         <AuthenticatedLayout title="Chi tiet nhiem vu" header="Chi tiet nhiem vu">
             <Head title={`Nhiem vu: ${task.title}`} />
 
-            <PermissionGate permission="tasks.view_all">
+            <PermissionGate permission="tasks.view_own">
                 <div className="max-w-5xl mx-auto space-y-6">
                     {/* Back */}
                     <Link href={route('employer.tasks.index')}>
@@ -274,37 +353,44 @@ export default function Show({ task, canAssign, hiredCount, applications }: Prop
                                 </div>
 
                                 <div className="shrink-0">
-                                    <Select value={task.status} onValueChange={handleStatusChange}>
-                                        <SelectTrigger className="w-[170px] h-10 text-xs font-medium">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="pending">
-                                                <div className="flex items-center gap-2">
-                                                    <Clock className="h-3.5 w-3.5 text-yellow-600" />
-                                                    Cho xu ly
-                                                </div>
-                                            </SelectItem>
-                                            <SelectItem value="in_progress">
-                                                <div className="flex items-center gap-2">
-                                                    <Zap className="h-3.5 w-3.5 text-blue-600" />
-                                                    Dang thuc hien
-                                                </div>
-                                            </SelectItem>
-                                            <SelectItem value="completed">
-                                                <div className="flex items-center gap-2">
-                                                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                                                    Hoan thanh
-                                                </div>
-                                            </SelectItem>
-                                            <SelectItem value="cancelled">
-                                                <div className="flex items-center gap-2">
-                                                    <XCircle className="h-3.5 w-3.5 text-gray-500" />
-                                                    Da huy
-                                                </div>
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    {canAssign ? (
+                                        <Select value={task.status} onValueChange={handleStatusChange}>
+                                            <SelectTrigger className="w-[170px] h-10 text-xs font-medium">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="pending">
+                                                    <div className="flex items-center gap-2">
+                                                        <Clock className="h-3.5 w-3.5 text-yellow-600" />
+                                                        Cho xu ly
+                                                    </div>
+                                                </SelectItem>
+                                                <SelectItem value="in_progress">
+                                                    <div className="flex items-center gap-2">
+                                                        <Zap className="h-3.5 w-3.5 text-blue-600" />
+                                                        Dang thuc hien
+                                                    </div>
+                                                </SelectItem>
+                                                <SelectItem value="completed">
+                                                    <div className="flex items-center gap-2">
+                                                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                                                        Hoan thanh
+                                                    </div>
+                                                </SelectItem>
+                                                <SelectItem value="cancelled">
+                                                    <div className="flex items-center gap-2">
+                                                        <XCircle className="h-3.5 w-3.5 text-gray-500" />
+                                                        Da huy
+                                                    </div>
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    ) : (
+                                        <Badge variant="outline" className={`text-xs px-3 py-2 font-semibold ${statusCfg.bg} ${statusCfg.color}`}>
+                                            <StatusIcon className="h-3.5 w-3.5 mr-1.5" />
+                                            {statusCfg.label}
+                                        </Badge>
+                                    )}
                                 </div>
                             </div>
                         </CardContent>
@@ -378,85 +464,127 @@ export default function Show({ task, canAssign, hiredCount, applications }: Prop
                                         </div>
 
                                         <Dialog open={candidateDialogOpen} onOpenChange={setCandidateDialogOpen}>
-                                            <DialogTrigger asChild>
-                                                <Button size="sm" className="gap-1.5 text-xs h-8">
-                                                    <Plus className="h-3.5 w-3.5" />
-                                                    Them ung vien
-                                                </Button>
-                                            </DialogTrigger>
+                                            {canAssign && (
+                                                <DialogTrigger asChild>
+                                                    <Button size="sm" className="gap-1.5 text-xs h-8">
+                                                        <Plus className="h-3.5 w-3.5" />
+                                                        Them ung vien
+                                                    </Button>
+                                                </DialogTrigger>
+                                            )}
                                             <DialogContent className="sm:max-w-lg">
                                                 <DialogHeader>
                                                     <DialogTitle className="text-base">Chon ung vien tu danh sach</DialogTitle>
                                                 </DialogHeader>
                                                 <div className="space-y-4 py-3">
-                                                    {/* Search input */}
-                                                    <div className="relative">
-                                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                        <Input
-                                                            placeholder="Tim theo ten, SDT, email..."
-                                                            value={searchQuery}
-                                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                                            className="pl-9"
-                                                        />
+                                                    {/* Search + Select all */}
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="relative flex-1">
+                                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                            <Input
+                                                                placeholder="Tim theo ten, SDT, email..."
+                                                                value={searchQuery}
+                                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                                className="pl-9"
+                                                            />
+                                                        </div>
+                                                        {applications.length > 0 && (
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="text-[11px] h-9 shrink-0"
+                                                                onClick={toggleSelectAll}
+                                                            >
+                                                                {selectedAppIds.size === applications.length ? 'Bo chon tat ca' : 'Chon tat ca'}
+                                                            </Button>
+                                                        )}
                                                     </div>
 
-                                                    {/* Application list */}
-                                                    <div className="max-h-[240px] overflow-y-auto space-y-1.5 border rounded-lg p-2">
-                                                        {filteredApplications.length > 0 ? (
-                                                            filteredApplications.map((app) => (
-                                                                <button
-                                                                    key={app.id}
-                                                                    type="button"
-                                                                    onClick={() => setSelectedApplication(app)}
-                                                                    className={`w-full flex items-center gap-3 p-2.5 rounded-lg text-left transition-colors ${selectedApplication?.id === app.id
-                                                                            ? 'bg-primary/10 border border-primary/30 ring-1 ring-primary/20'
-                                                                            : 'hover:bg-muted/50 border border-transparent'
-                                                                        }`}
-                                                                >
-                                                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-500/10 shrink-0">
-                                                                        <UserCircle className="h-4 w-4 text-teal-600" />
+                                                    <div
+                                                        ref={listRef}
+                                                        onScroll={handleListScroll}
+                                                        className="max-h-[260px] overflow-y-auto space-y-1.5 border rounded-lg p-2"
+                                                    >
+                                                        {applications.length > 0 ? (
+                                                            <>
+                                                                {applications.map((app: ApplicationItem) => {
+                                                                    const isSelected = selectedAppIds.has(app.id);
+                                                                    return (
+                                                                        <button
+                                                                            key={app.id}
+                                                                            type="button"
+                                                                            onClick={() => toggleApplication(app.id)}
+                                                                            className={`w-full flex items-center gap-3 p-2.5 rounded-lg text-left transition-colors ${isSelected
+                                                                                ? 'bg-primary/10 border border-primary/30 ring-1 ring-primary/20'
+                                                                                : 'hover:bg-muted/50 border border-transparent'
+                                                                                }`}
+                                                                        >
+                                                                            <div className={`flex h-5 w-5 items-center justify-center rounded border-2 shrink-0 transition-colors ${isSelected
+                                                                                ? 'bg-primary border-primary text-primary-foreground'
+                                                                                : 'border-muted-foreground/30'
+                                                                                }`}>
+                                                                                {isSelected && <Check className="h-3 w-3" />}
+                                                                            </div>
+                                                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-500/10 shrink-0">
+                                                                                <UserCircle className="h-4 w-4 text-teal-600" />
+                                                                            </div>
+                                                                            <div className="flex-1 min-w-0">
+                                                                                <p className="text-xs font-semibold truncate">{app.candidate_name}</p>
+                                                                                <div className="flex items-center gap-2 mt-0.5">
+                                                                                    {app.candidate_phone && (
+                                                                                        <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                                                                            <Phone className="h-2.5 w-2.5" />
+                                                                                            {app.candidate_phone}
+                                                                                        </span>
+                                                                                    )}
+                                                                                    {app.candidate_email && (
+                                                                                        <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 truncate">
+                                                                                            <Mail className="h-2.5 w-2.5" />
+                                                                                            {app.candidate_email}
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>
+                                                                            <Badge variant="outline" className="text-[9px] px-1.5 py-0 shrink-0">
+                                                                                {SOURCE_LABELS[app.source] || app.source}
+                                                                            </Badge>
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                                {appLoading && (
+                                                                    <div className="flex items-center justify-center py-3">
+                                                                        <div className="h-4 w-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                                                        <span className="text-[10px] text-muted-foreground ml-2">Dang tai...</span>
                                                                     </div>
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <p className="text-xs font-semibold truncate">{app.candidate_name}</p>
-                                                                        <div className="flex items-center gap-2 mt-0.5">
-                                                                            {app.candidate_phone && (
-                                                                                <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                                                                                    <Phone className="h-2.5 w-2.5" />
-                                                                                    {app.candidate_phone}
-                                                                                </span>
-                                                                            )}
-                                                                            {app.candidate_email && (
-                                                                                <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 truncate">
-                                                                                    <Mail className="h-2.5 w-2.5" />
-                                                                                    {app.candidate_email}
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 shrink-0">
-                                                                        {SOURCE_LABELS[app.source] || app.source}
-                                                                    </Badge>
-                                                                </button>
-                                                            ))
+                                                                )}
+                                                                {!appLoading && appPage < appLastPage && (
+                                                                    <p className="text-[10px] text-center text-muted-foreground/50 py-1">
+                                                                        Cuon xuong de tai them ({appTotal - applications.length} con lai)
+                                                                    </p>
+                                                                )}
+                                                            </>
+                                                        ) : appLoading ? (
+                                                            <div className="flex items-center justify-center py-6">
+                                                                <div className="h-5 w-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                                                <span className="text-xs text-muted-foreground ml-2">Dang tai danh sach...</span>
+                                                            </div>
                                                         ) : (
                                                             <div className="p-4 text-center">
                                                                 <UserCircle className="h-8 w-8 text-muted-foreground/20 mx-auto mb-2" />
                                                                 <p className="text-xs text-muted-foreground/50">
-                                                                    {searchQuery ? 'Khong tim thay ung vien phu hop' : 'Chua co ung vien nao'}
+                                                                    {searchQuery ? 'Khong tim thay ung vien phu hop' : 'Tat ca ung vien da duoc them'}
                                                                 </p>
                                                             </div>
                                                         )}
                                                     </div>
 
-                                                    {/* Selected info */}
-                                                    {selectedApplication && (
+                                                    {/* Selected count info */}
+                                                    {selectedAppIds.size > 0 && (
                                                         <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
-                                                            <p className="text-[11px] font-medium text-primary mb-1">Da chon:</p>
-                                                            <p className="text-xs font-semibold">{selectedApplication.candidate_name}</p>
-                                                            <div className="flex items-center gap-3 mt-0.5 text-[10px] text-muted-foreground">
-                                                                {selectedApplication.candidate_phone && <span>{selectedApplication.candidate_phone}</span>}
-                                                                {selectedApplication.candidate_email && <span>{selectedApplication.candidate_email}</span>}
-                                                            </div>
+                                                            <p className="text-[11px] font-medium text-primary">
+                                                                Da chon {selectedAppIds.size} ung vien
+                                                            </p>
                                                         </div>
                                                     )}
 
@@ -511,10 +639,10 @@ export default function Show({ task, canAssign, hiredCount, applications }: Prop
                                                     </DialogClose>
                                                     <Button
                                                         size="sm"
-                                                        onClick={handleAddCandidate}
-                                                        disabled={!selectedApplication}
+                                                        onClick={handleAddCandidates}
+                                                        disabled={selectedAppIds.size === 0}
                                                     >
-                                                        Them ung vien
+                                                        Them {selectedAppIds.size > 0 ? `${selectedAppIds.size} ung vien` : 'ung vien'}
                                                     </Button>
                                                 </DialogFooter>
                                             </DialogContent>
@@ -579,14 +707,16 @@ export default function Show({ task, canAssign, hiredCount, applications }: Prop
                                                                 <p className="text-[10px] text-muted-foreground/70 mt-0.5 truncate">{c.notes}</p>
                                                             )}
                                                         </div>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive/60 hover:text-destructive"
-                                                            onClick={() => handleRemoveCandidate(c.id)}
-                                                        >
-                                                            <Trash2 className="h-3.5 w-3.5" />
-                                                        </Button>
+                                                        {canAssign && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive/60 hover:text-destructive"
+                                                                onClick={() => handleRemoveCandidate(c.id)}
+                                                            >
+                                                                <Trash2 className="h-3.5 w-3.5" />
+                                                            </Button>
+                                                        )}
                                                     </div>
                                                 );
                                             })}
@@ -599,6 +729,31 @@ export default function Show({ task, canAssign, hiredCount, applications }: Prop
                                     )}
                                 </CardContent>
                             </Card>
+
+                            {/* Attendance & Salary Link - Only for seasonal tasks */}
+                            {isSeasonalTask && (
+                                <Card className="border-none shadow-sm">
+                                    <CardContent className="pt-5 pb-5">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10">
+                                                    <CalendarCheck className="h-4 w-4 text-violet-600" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-sm font-semibold">Cham cong & Luong</h3>
+                                                    <p className="text-[11px] text-muted-foreground">Theo doi ngay lam viec va tinh luong</p>
+                                                </div>
+                                            </div>
+                                            <Link href={route('employer.tasks.attendance', task.id)}>
+                                                <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8">
+                                                    <Wallet className="h-3.5 w-3.5" />
+                                                    Quan ly cham cong
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
 
                             {/* Completion Report Section */}
                             <Card className="border-none shadow-sm">
@@ -620,21 +775,24 @@ export default function Show({ task, canAssign, hiredCount, applications }: Prop
                                             value={report}
                                             onChange={(e) => setReport(e.target.value)}
                                             className="text-sm resize-none"
+                                            readOnly={!canAssign}
                                         />
-                                        <div className="flex items-center justify-between">
-                                            <p className="text-[10px] text-muted-foreground">
-                                                {report.length}/10000 ky tu
-                                            </p>
-                                            <Button
-                                                size="sm"
-                                                className="gap-1.5 text-xs h-8"
-                                                onClick={handleSubmitReport}
-                                                disabled={reportSaving}
-                                            >
-                                                <Save className="h-3.5 w-3.5" />
-                                                {reportSaving ? 'Dang luu...' : 'Luu bao cao'}
-                                            </Button>
-                                        </div>
+                                        {canAssign && (
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-[10px] text-muted-foreground">
+                                                    {report.length}/10000 ky tu
+                                                </p>
+                                                <Button
+                                                    size="sm"
+                                                    className="gap-1.5 text-xs h-8"
+                                                    onClick={handleSubmitReport}
+                                                    disabled={reportSaving}
+                                                >
+                                                    <Save className="h-3.5 w-3.5" />
+                                                    {reportSaving ? 'Dang luu...' : 'Luu bao cao'}
+                                                </Button>
+                                            </div>
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -679,9 +837,9 @@ export default function Show({ task, canAssign, hiredCount, applications }: Prop
                                                 <div className="w-px flex-1 bg-border/50" />
                                             </div>
                                             <div className="pb-6">
-                                                <p className="text-xs font-medium">Phan cong cho {task.assignee?.name}</p>
+                                                <p className="text-xs font-medium">Phan cong cho {task.assignees_data?.map(u => u.name).join(', ') || 'N/A'}</p>
                                                 <p className="text-[11px] text-muted-foreground mt-0.5">
-                                                    Nguoi phu trach chinh cua nhiem vu
+                                                    {(task.assignees_data?.length || 0) > 1 ? `${task.assignees_data?.length} nguoi phu trach` : 'Nguoi phu trach chinh cua nhiem vu'}
                                                 </p>
                                                 <p className="text-[10px] text-muted-foreground/60 mt-1">{formatDate(task.created_at)}</p>
                                             </div>
@@ -756,19 +914,30 @@ export default function Show({ task, canAssign, hiredCount, applications }: Prop
                                     <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Thanh vien</h3>
 
                                     <div className="space-y-4">
-                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-violet-500/5 border border-violet-500/10">
-                                            <Avatar className="h-9 w-9 ring-2 ring-violet-500/20">
-                                                <AvatarImage src={task.assignee?.avatar} />
-                                                <AvatarFallback className="text-xs bg-gradient-to-br from-violet-500 to-purple-600 text-white font-bold">
-                                                    {task.assignee?.name?.charAt(0)?.toUpperCase()}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-semibold truncate">{task.assignee?.name || 'N/A'}</p>
-                                                <p className="text-[10px] text-violet-600 dark:text-violet-400 font-medium">Nguoi phu trach</p>
+                                        {(task.assignees_data && task.assignees_data.length > 0) ? (
+                                            task.assignees_data.map(user => (
+                                                <div key={user.id} className="flex items-center gap-3 p-3 rounded-lg bg-violet-500/5 border border-violet-500/10">
+                                                    <Avatar className="h-9 w-9 ring-2 ring-violet-500/20">
+                                                        <AvatarImage src={user.avatar} />
+                                                        <AvatarFallback className="text-xs bg-gradient-to-br from-violet-500 to-purple-600 text-white font-bold">
+                                                            {user.name?.charAt(0)?.toUpperCase()}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-xs font-semibold truncate">{user.name}</p>
+                                                        <p className="text-[10px] text-violet-600 dark:text-violet-400 font-medium">Nguoi phu trach</p>
+                                                    </div>
+                                                    <UserCheck className="h-4 w-4 text-violet-500/50 shrink-0" />
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="flex items-center gap-3 p-3 rounded-lg bg-violet-500/5 border border-violet-500/10">
+                                                <div className="h-9 w-9 rounded-full bg-violet-500/10 flex items-center justify-center">
+                                                    <UserCheck className="h-4 w-4 text-violet-400" />
+                                                </div>
+                                                <p className="text-xs text-muted-foreground">Chua phan cong</p>
                                             </div>
-                                            <UserCheck className="h-4 w-4 text-violet-500/50 shrink-0" />
-                                        </div>
+                                        )}
 
                                         <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/30">
                                             <Avatar className="h-9 w-9 ring-2 ring-border/50">
@@ -904,6 +1073,16 @@ export default function Show({ task, canAssign, hiredCount, applications }: Prop
                     </div>
                 </div>
             </PermissionGate>
+
+            <ConfirmDialog
+                isOpen={confirmOpen}
+                title={confirmTitle}
+                description={confirmDesc}
+                onConfirm={handleConfirm}
+                onCancel={handleCancel}
+                confirmLabel="Xoa"
+                destructive
+            />
         </AuthenticatedLayout>
     );
 }

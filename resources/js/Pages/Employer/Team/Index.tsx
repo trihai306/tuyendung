@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PermissionGate from '@/Components/PermissionGate';
+import Pagination from '@/Components/Pagination';
 import { Head, useForm, usePage, router } from '@inertiajs/react';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -54,15 +55,29 @@ import {
     Loader2,
     Send,
 } from 'lucide-react';
-import type { CompanyMember, EmployerProfile, PageProps } from '@/types';
+import type { CompanyMember, EmployerProfile, PageProps, PaginatedData } from '@/types';
 import { useState, useMemo } from 'react';
 import { usePermission } from '@/hooks/usePermission';
 
+interface ManagerOption {
+    id: number;
+    name: string;
+    email: string;
+    avatar: string | null;
+    role: string;
+}
+
 interface Props {
-    members: CompanyMember[];
+    members: PaginatedData<CompanyMember>;
     company: EmployerProfile;
     currentUserRole: string | null;
     inviteCode: string;
+    managers: ManagerOption[];
+    stats: {
+        total: number;
+        managers: number;
+        pending: number;
+    };
 }
 
 const ROLE_CONFIG: Record<string, { label: string; icon: typeof Crown; color: string; bg: string }> = {
@@ -121,7 +136,7 @@ const STAT_CARDS = [
 
 type TabKey = 'active' | 'pending';
 
-export default function Index({ members, company, currentUserRole, inviteCode }: Props) {
+export default function Index({ members, company, currentUserRole, inviteCode, managers, stats }: Props) {
     const { flash } = usePage<PageProps>().props;
     const [isInviteOpen, setIsInviteOpen] = useState(false);
     const [copied, setCopied] = useState(false);
@@ -156,6 +171,14 @@ export default function Index({ members, company, currentUserRole, inviteCode }:
         TeamService.removeMember(memberId);
     };
 
+    const handleAssignManager = (memberId: number, managerId: string) => {
+        router.patch(route('employer.team.assign-manager', memberId), {
+            managed_by: managerId === 'none' ? null : parseInt(managerId, 10),
+        }, {
+            preserveScroll: true,
+        });
+    };
+
     const handleCopyCode = () => {
         navigator.clipboard.writeText(inviteCode);
         setCopied(true);
@@ -168,18 +191,13 @@ export default function Index({ members, company, currentUserRole, inviteCode }:
         });
     };
 
-    const activeMembers = useMemo(() => members.filter(m => m.status === 'active'), [members]);
-    const pendingMembers = useMemo(() => members.filter(m => m.status === 'pending'), [members]);
-
-    const managersCount = useMemo(
-        () => activeMembers.filter(m => m.role === 'manager' || m.role === 'owner').length,
-        [activeMembers],
-    );
+    const activeMembers = useMemo(() => members.data.filter(m => m.status === 'active'), [members]);
+    const pendingMembers = useMemo(() => members.data.filter(m => m.status === 'pending'), [members]);
 
     const statValues: Record<string, number> = {
-        total: activeMembers.length,
-        managers: managersCount,
-        pending: pendingMembers.length,
+        total: stats.total,
+        managers: stats.managers,
+        pending: stats.pending,
     };
 
     const displayedMembers = useMemo(() => {
@@ -561,7 +579,7 @@ export default function Index({ members, company, currentUserRole, inviteCode }:
                                     </p>
                                 </div>
                             ) : (
-                                <div className="divide-y divide-border/40">
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-5">
                                     {displayedMembers.map((member) => {
                                         const roleConfig = ROLE_CONFIG[member.role];
                                         const RoleIcon = roleConfig?.icon || Users;
@@ -569,21 +587,55 @@ export default function Index({ members, company, currentUserRole, inviteCode }:
                                         return (
                                             <div
                                                 key={member.id}
-                                                className="group flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors"
+                                                className="group relative rounded-xl border border-border/60 bg-card p-4 hover:shadow-md hover:border-border transition-all duration-200"
                                             >
-                                                {/* Left: Avatar + Info */}
-                                                <div className="flex items-center gap-4 min-w-0">
-                                                    <Avatar className="h-11 w-11 shrink-0">
+                                                {/* Top: Avatar + Name + Role */}
+                                                <div className="flex items-start gap-3.5">
+                                                    <Avatar className="h-12 w-12 shrink-0 ring-2 ring-background shadow-sm">
                                                         <AvatarImage src={member.user?.avatar} />
                                                         <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-sm font-bold">
                                                             {member.user?.name?.charAt(0)?.toUpperCase()}
                                                         </AvatarFallback>
                                                     </Avatar>
-                                                    <div className="min-w-0">
-                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex items-center justify-between gap-2">
                                                             <p className="text-sm font-semibold truncate">
                                                                 {member.user?.name}
                                                             </p>
+                                                            {/* Delete button */}
+                                                            {canManage && member.role !== 'owner' && (
+                                                                <AlertDialog>
+                                                                    <AlertDialogTrigger asChild>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="h-7 w-7 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                                                                        >
+                                                                            <Trash2 className="h-3.5 w-3.5" />
+                                                                        </Button>
+                                                                    </AlertDialogTrigger>
+                                                                    <AlertDialogContent>
+                                                                        <AlertDialogHeader>
+                                                                            <AlertDialogTitle>Xoa thanh vien</AlertDialogTitle>
+                                                                            <AlertDialogDescription>
+                                                                                Ban co chac chan muon xoa {member.user?.name} khoi doi ngu?
+                                                                                Hanh dong nay khong the hoan tac.
+                                                                            </AlertDialogDescription>
+                                                                        </AlertDialogHeader>
+                                                                        <AlertDialogFooter>
+                                                                            <AlertDialogCancel>Huy</AlertDialogCancel>
+                                                                            <AlertDialogAction
+                                                                                onClick={() => handleRemove(member.id)}
+                                                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                                            >
+                                                                                Xoa
+                                                                            </AlertDialogAction>
+                                                                        </AlertDialogFooter>
+                                                                    </AlertDialogContent>
+                                                                </AlertDialog>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex items-center gap-2 mt-1">
                                                             <Badge
                                                                 variant="outline"
                                                                 className={`text-[10px] gap-1 border ${roleConfig?.bg || ''} ${roleConfig?.color || ''}`}
@@ -595,78 +647,100 @@ export default function Index({ members, company, currentUserRole, inviteCode }:
                                                                 <StatusBadge status="pending" />
                                                             )}
                                                         </div>
-                                                        <div className="flex items-center gap-3 mt-1">
-                                                            <span className="flex items-center gap-1 text-xs text-muted-foreground truncate">
-                                                                <Mail className="h-3 w-3 shrink-0" />
-                                                                {member.user?.email}
-                                                            </span>
-                                                            {member.created_at && (
-                                                                <span className="hidden sm:flex items-center gap-1 text-[11px] text-muted-foreground/70 shrink-0">
-                                                                    <Calendar className="h-3 w-3" />
-                                                                    {new Date(member.created_at).toLocaleDateString('vi-VN')}
+                                                    </div>
+                                                </div>
+
+                                                {/* Contact info */}
+                                                <div className="mt-3 space-y-1.5 pl-[3.75rem]">
+                                                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                        <Mail className="h-3 w-3 shrink-0" />
+                                                        <span className="truncate">{member.user?.email}</span>
+                                                    </div>
+                                                    {member.created_at && (
+                                                        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/70">
+                                                            <Calendar className="h-3 w-3 shrink-0" />
+                                                            <span>Tham gia {new Date(member.created_at).toLocaleDateString('vi-VN')}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Manager assignment + Role change - for members only */}
+                                                {member.role === 'member' && member.status === 'active' && (
+                                                    <div className="mt-3 pt-3 border-t border-border/40">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
+                                                                <Shield className="h-3.5 w-3.5 text-blue-500" />
+                                                                <span className="font-medium">Phu trach:</span>
+                                                            </div>
+                                                            {canManage ? (
+                                                                <Select
+                                                                    value={member.managed_by ? String(member.managed_by) : 'none'}
+                                                                    onValueChange={(v) => handleAssignManager(member.id, v)}
+                                                                >
+                                                                    <SelectTrigger className="h-7 flex-1 text-xs border-dashed">
+                                                                        <SelectValue placeholder="Chon quan ly..." />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="none">
+                                                                            <span className="text-muted-foreground">Chua phan cong</span>
+                                                                        </SelectItem>
+                                                                        {managers.map((mgr) => (
+                                                                            <SelectItem key={mgr.id} value={String(mgr.id)}>
+                                                                                <span className="flex items-center gap-1.5">
+                                                                                    {mgr.role === 'owner' ? (
+                                                                                        <Crown className="h-3 w-3 text-amber-500" />
+                                                                                    ) : (
+                                                                                        <Shield className="h-3 w-3 text-blue-500" />
+                                                                                    )}
+                                                                                    {mgr.name}
+                                                                                </span>
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            ) : (
+                                                                <span className="text-xs text-muted-foreground">
+                                                                    {member.manager?.name || 'Chua phan cong'}
                                                                 </span>
                                                             )}
                                                         </div>
                                                     </div>
-                                                </div>
+                                                )}
 
-                                                {/* Right: Actions */}
-                                                <div className="flex items-center gap-2 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                                                    {/* Role change - only owner can change */}
-                                                    {isOwner && member.role !== 'owner' && member.status === 'active' && (
-                                                        <Select
-                                                            value={member.role}
-                                                            onValueChange={(v) => handleRoleUpdate(member.id, v)}
-                                                        >
-                                                            <SelectTrigger className="h-8 w-[120px] text-xs">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="manager">Quan ly</SelectItem>
-                                                                <SelectItem value="member">Nhan vien</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-
-                                                    {/* Remove button */}
-                                                    {canManage && member.role !== 'owner' && (
-                                                        <AlertDialog>
-                                                            <AlertDialogTrigger asChild>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                </Button>
-                                                            </AlertDialogTrigger>
-                                                            <AlertDialogContent>
-                                                                <AlertDialogHeader>
-                                                                    <AlertDialogTitle>Xoa thanh vien</AlertDialogTitle>
-                                                                    <AlertDialogDescription>
-                                                                        Ban co chac chan muon xoa {member.user?.name} khoi doi ngu?
-                                                                        Hanh dong nay khong the hoan tac.
-                                                                    </AlertDialogDescription>
-                                                                </AlertDialogHeader>
-                                                                <AlertDialogFooter>
-                                                                    <AlertDialogCancel>Huy</AlertDialogCancel>
-                                                                    <AlertDialogAction
-                                                                        onClick={() => handleRemove(member.id)}
-                                                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                                                    >
-                                                                        Xoa
-                                                                    </AlertDialogAction>
-                                                                </AlertDialogFooter>
-                                                            </AlertDialogContent>
-                                                        </AlertDialog>
-                                                    )}
-                                                </div>
+                                                {/* Role change for owner */}
+                                                {isOwner && member.role !== 'owner' && member.status === 'active' && (
+                                                    <div className={`${member.role !== 'member' ? 'mt-3 pt-3 border-t border-border/40' : 'mt-2'}`}>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
+                                                                <UserCircle className="h-3.5 w-3.5 text-violet-500" />
+                                                                <span className="font-medium">Vai tro:</span>
+                                                            </div>
+                                                            <Select
+                                                                value={member.role}
+                                                                onValueChange={(v) => handleRoleUpdate(member.id, v)}
+                                                            >
+                                                                <SelectTrigger className="h-7 flex-1 text-xs border-dashed">
+                                                                    <SelectValue />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="manager">Quan ly</SelectItem>
+                                                                    <SelectItem value="member">Nhan vien</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     })}
                                 </div>
                             )}
                         </CardContent>
+
+                        {/* Pagination */}
+                        <div className="border-t border-border/50 px-5 py-3">
+                            <Pagination data={members} />
+                        </div>
                     </Card>
                 </div>
             </PermissionGate>

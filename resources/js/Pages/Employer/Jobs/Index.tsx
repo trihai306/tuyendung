@@ -1,5 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PermissionGate from '@/Components/PermissionGate';
+import ConfirmDialog from '@/Components/ConfirmDialog';
+import { useConfirm } from '@/hooks/use-confirm';
 import { Head, Link, router } from '@inertiajs/react';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -76,6 +78,7 @@ const TASK_STATUS_ICONS: Record<string, typeof Clock> = {
 export default function Index({ jobPosts, filters, stats, recentTasks }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const { can } = usePermission();
+    const { isOpen, title, description, confirm, handleConfirm, handleCancel } = useConfirm();
 
     const handleFilter = (key: string, value: string) => {
         router.get(
@@ -91,9 +94,13 @@ export default function Index({ jobPosts, filters, stats, recentTasks }: Props) 
     };
 
     const handleDelete = (jobId: number) => {
-        if (confirm('Ban co chac muon xoa tin nay?')) {
-            router.delete(route('employer.jobs.destroy', jobId));
-        }
+        confirm(
+            'Xoa tin tuyen dung',
+            'Ban co chac chan muon xoa tin tuyen dung nay? Hanh dong nay khong the hoan tac.',
+            () => {
+                router.delete(route('employer.jobs.destroy', jobId));
+            }
+        );
     };
 
     const STAT_CARDS = [
@@ -181,12 +188,14 @@ export default function Index({ jobPosts, filters, stats, recentTasks }: Props) 
                                             <p className="text-xs text-muted-foreground max-w-sm mb-4">
                                                 Tao tin tuyen dung dau tien de bat dau tim ung vien phu hop.
                                             </p>
-                                            <Link href={route('employer.jobs.create')}>
-                                                <Button size="sm" className="gap-1.5">
-                                                    <Plus className="h-3.5 w-3.5" />
-                                                    Tao tin tuyen dung
-                                                </Button>
-                                            </Link>
+                                            {can('jobs.create') && (
+                                                <Link href={route('employer.jobs.create')}>
+                                                    <Button size="sm" className="gap-1.5">
+                                                        <Plus className="h-3.5 w-3.5" />
+                                                        Tao tin tuyen dung
+                                                    </Button>
+                                                </Link>
+                                            )}
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -298,7 +307,7 @@ export default function Index({ jobPosts, filters, stats, recentTasks }: Props) 
 
                             {/* Pagination */}
                             {jobPosts.data.length > 0 && (
-                                <Pagination meta={jobPosts.meta} />
+                                <Pagination data={jobPosts} />
                             )}
                         </div>
 
@@ -323,12 +332,14 @@ export default function Index({ jobPosts, filters, stats, recentTasks }: Props) 
                                         <div className="text-center py-8">
                                             <ListChecks className="h-8 w-8 text-muted-foreground/20 mx-auto mb-2" />
                                             <p className="text-xs text-muted-foreground">Chua co nhiem vu</p>
-                                            <Link href={route('employer.tasks.create')} className="mt-2 inline-block">
-                                                <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1 mt-2">
-                                                    <Plus className="h-3 w-3" />
-                                                    Tao nhiem vu
-                                                </Button>
-                                            </Link>
+                                            {can('tasks.create') && (
+                                                <Link href={route('employer.tasks.create')} className="mt-2 inline-block">
+                                                    <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1 mt-2">
+                                                        <Plus className="h-3 w-3" />
+                                                        Tao nhiem vu
+                                                    </Button>
+                                                </Link>
+                                            )}
                                         </div>
                                     ) : (
                                         <div className="space-y-2.5">
@@ -406,6 +417,16 @@ export default function Index({ jobPosts, filters, stats, recentTasks }: Props) 
                     </div>
                 </div>
             </PermissionGate>
+
+            <ConfirmDialog
+                isOpen={isOpen}
+                title={title}
+                description={description}
+                onConfirm={handleConfirm}
+                onCancel={handleCancel}
+                confirmLabel="Xoa"
+                destructive
+            />
         </AuthenticatedLayout>
     );
 }

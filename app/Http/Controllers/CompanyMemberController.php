@@ -32,15 +32,44 @@ class CompanyMemberController extends Controller
         $this->memberService->ensureOwner($company);
 
         $members = $company->members()
-            ->with(['user', 'invitedByUser'])
+            ->with(['user', 'invitedByUser', 'manager'])
             ->orderByRaw("FIELD(role, 'owner', 'manager', 'member')")
-            ->get();
+            ->paginate(15)
+            ->withQueryString();
+
+        // Get managers for assignment dropdown
+        $managers = $company->members()
+            ->active()
+            ->whereIn('role', ['owner', 'manager'])
+            ->with('user')
+            ->get()
+            ->map(fn(CompanyMember $m) => [
+                'id' => $m->user_id,
+                'name' => $m->user?->name,
+                'email' => $m->user?->email,
+                'avatar' => $m->user?->avatar,
+                'role' => $m->role,
+            ]);
+
+        // Pass stats separately since they need full-set counts
+        $totalActive = $company->members()->where('status', 'active')->count();
+        $managersCount = $company->members()
+            ->where('status', 'active')
+            ->whereIn('role', ['owner', 'manager'])
+            ->count();
+        $pendingCount = $company->members()->where('status', 'pending')->count();
 
         return Inertia::render('Employer/Team/Index', [
             'members' => $members,
             'company' => $company,
-            'currentUserRole' => $members->where('user_id', $user->id)->first()?->role,
+            'currentUserRole' => $company->members()->where('user_id', $user->id)->first()?->role,
             'inviteCode' => $company->invite_code,
+            'managers' => $managers,
+            'stats' => [
+                'total' => $totalActive,
+                'managers' => $managersCount,
+                'pending' => $pendingCount,
+            ],
         ]);
     }
 
@@ -190,5 +219,45 @@ class CompanyMemberController extends Controller
 
         return redirect()->back()
             ->with('success', 'Da xoa thanh vien thanh cong.');
+    }
+
+    /**
+     * Assign a manager to supervise a member.
+     */
+    public function assignManager(Request $request, CompanyMember $member): RedirectResponse
+    {
+        $user = $request->user();
+        $company = $user->getCompany();
+        abort_unless($company, 403);
+        abort_if($member->employer_profile_id !== $company->id, 403);
+
+        // Only owner/manager can assign
+        $ownership = CompanyMember::where('employer_profile_id', $company->id)
+            ->where('user_id', $user->id)
+            ->first();
+        abort_unless($ownership?->canAssignTasks(), 403, 'Ban khong co quyen gan phu trach.');
+
+        // Only assign to members (not owner/manager)
+        abort_unless($member->role === 'member', 422, 'Chi co the gan phu trach cho nhan vien.');
+
+        $request->validate([
+            'managed_by' => ['nullable', 'integer', 'exists:users,id'],
+        ]);
+
+        $managerId = $request->input('managed_by');
+
+        // Verify the manager belongs to this company and is owner/manager
+        if ($managerId) {
+            $managerMember = CompanyMember::where('employer_profile_id', $company->id)
+                ->where('user_id', $managerId)
+                ->active()
+                ->first();
+            abort_unless($managerMember && $managerMember->canAssignTasks(), 422, 'Nguoi nay khong phai quan ly.');
+        }
+
+        $member->update(['managed_by' => $managerId]);
+
+        return redirect()->back()
+            ->with('success', 'Da cap nhat phu trach thanh cong.');
     }
 }

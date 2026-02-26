@@ -16,10 +16,14 @@ class Application extends Model
         'candidate_name',
         'candidate_email',
         'candidate_phone',
+        'candidate_photo',
+        'candidate_id_card_front',
+        'candidate_id_card_back',
         'source',
         'source_note',
         'social_links',
         'added_by',
+        'assigned_to',
         'cover_letter',
         'resume_url',
         'status',
@@ -55,6 +59,11 @@ class Application extends Model
     public function addedByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'added_by');
+    }
+
+    public function assignedToUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
     }
 
     /**

@@ -407,7 +407,7 @@ export default function JobsIndex({ jobs, filters: initialFilters, categories }:
 
                             {/* Pagination */}
                             <div className="mt-8">
-                                <Pagination meta={jobs} />
+                                <Pagination data={jobs} />
                             </div>
                         </>
                     ) : (

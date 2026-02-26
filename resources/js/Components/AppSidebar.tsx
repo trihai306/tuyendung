@@ -36,6 +36,11 @@ import {
     Settings,
     Zap,
     BarChart3,
+    Wallet,
+    CalendarCheck,
+    Bell,
+    ClipboardList,
+    UserCog,
 } from 'lucide-react';
 import type { PageProps, PermissionKey } from '@/types';
 import { usePermission } from '@/hooks/usePermission';
@@ -49,73 +54,143 @@ interface NavItem {
     permission?: PermissionKey;
 }
 
+interface NavGroup {
+    label: string;
+    items: NavItem[];
+}
+
 function getRoleConfig(roles: string[]) {
     if (roles.includes('employer')) {
         return {
-            navItems: [
-                { title: 'Tong quan', href: '/dashboard', icon: LayoutDashboard, routeName: 'dashboard' },
-                { title: 'Tin tuyen dung', href: '/employer/jobs', icon: Briefcase, routeName: 'employer.jobs.index', permission: 'jobs.view' },
-                { title: 'Dang tin moi', href: '/employer/jobs/create', icon: PlusCircle, routeName: 'employer.jobs.create', badge: 'Moi', permission: 'jobs.create' },
-                { title: 'Ung vien', href: '/employer/applications', icon: Users, routeName: 'employer.applications.index', permission: 'applications.view' },
-                { title: 'Doi ngu', href: '/employer/team', icon: Users, routeName: 'employer.team.index', permission: 'team.view' },
-                { title: 'Nhiem vu', href: '/employer/tasks', icon: FileText, routeName: 'employer.tasks.index', permission: 'tasks.view_all' },
-                { title: 'Bao cao', href: '/employer/reports', icon: BarChart3, routeName: 'employer.reports.index', permission: 'reports.view' },
-                { title: 'Ho so cong ty', href: '/employer/profile', icon: Building2, routeName: 'employer.profile.edit', permission: 'company.view' },
-            ] as NavItem[],
+            navGroups: [
+                {
+                    label: '',
+                    items: [
+                        { title: 'Tong quan', href: '/dashboard', icon: LayoutDashboard, routeName: 'dashboard' },
+                        { title: 'Thong bao', href: '/notifications', icon: Bell, routeName: 'notifications.index' },
+                    ],
+                },
+                {
+                    label: 'Tuyen dung',
+                    items: [
+                        { title: 'Tin tuyen dung', href: '/employer/jobs', icon: Briefcase, routeName: 'employer.jobs.index', permission: 'jobs.view' },
+                        { title: 'Dang tin moi', href: '/employer/jobs/create', icon: PlusCircle, routeName: 'employer.jobs.create', badge: 'Moi', permission: 'jobs.create' },
+                        { title: 'Ung vien', href: '/employer/applications', icon: Users, routeName: 'employer.applications.index', permission: 'applications.view' },
+                    ],
+                },
+                {
+                    label: 'Quan ly',
+                    items: [
+                        { title: 'Doi ngu', href: '/employer/team', icon: UserCog, routeName: 'employer.team.index', permission: 'team.view' },
+                        { title: 'Nhiem vu', href: '/employer/tasks', icon: ClipboardList, routeName: 'employer.tasks.index', permission: 'tasks.view_own' },
+                        { title: 'Cham cong', href: '/employer/attendance', icon: CalendarCheck, routeName: 'employer.attendance.index', permission: 'tasks.view_own' },
+                        { title: 'Luong', href: '/employer/payroll', icon: Wallet, routeName: 'employer.payroll.index', permission: 'payroll.view' },
+                        { title: 'Tro ly AI', href: '/employer/ai-agents', icon: Zap, routeName: 'employer.ai-agents.index', permission: 'ai_agents.view' },
+                    ],
+                },
+                {
+                    label: 'Cong ty',
+                    items: [
+                        { title: 'Bao cao', href: '/employer/reports', icon: BarChart3, routeName: 'employer.reports.index', permission: 'reports.view' },
+                        { title: 'Ho so cong ty', href: '/employer/profile', icon: Building2, routeName: 'employer.profile.edit', permission: 'company.view' },
+                    ],
+                },
+            ] as NavGroup[],
             roleLabel: 'Quan ly',
             accent: '#3b82f6',
         };
     }
     if (roles.includes('candidate')) {
         return {
-            navItems: [
-                { title: 'Tổng quan', href: '/dashboard', icon: LayoutDashboard, routeName: 'dashboard' },
-                { title: 'Tim viec', href: '/viec-lam', icon: Search, routeName: 'jobs.index' },
-                { title: 'Đơn ứng tuyển', href: '/candidate/applications', icon: FileText, routeName: 'candidate.applications.index' },
-                { title: 'Viec da luu', href: '/candidate/saved-jobs', icon: Heart, routeName: 'candidate.saved-jobs.index' },
-                { title: 'Hồ sơ', href: '/candidate/profile', icon: UserCircle, routeName: 'candidate.profile.edit' },
-            ] as NavItem[],
-            roleLabel: 'Cá nhân',
+            navGroups: [
+                {
+                    label: '',
+                    items: [
+                        { title: 'Tong quan', href: '/dashboard', icon: LayoutDashboard, routeName: 'dashboard' },
+                        { title: 'Thong bao', href: '/notifications', icon: Bell, routeName: 'notifications.index' },
+                    ],
+                },
+                {
+                    label: 'Viec lam',
+                    items: [
+                        { title: 'Tim viec', href: '/viec-lam', icon: Search, routeName: 'jobs.index' },
+                        { title: 'Don ung tuyen', href: '/candidate/applications', icon: FileText, routeName: 'candidate.applications.index' },
+                        { title: 'Viec da luu', href: '/candidate/saved-jobs', icon: Heart, routeName: 'candidate.saved-jobs.index' },
+                    ],
+                },
+                {
+                    label: 'Ca nhan',
+                    items: [
+                        { title: 'Ho so', href: '/candidate/profile', icon: UserCircle, routeName: 'candidate.profile.edit' },
+                    ],
+                },
+            ] as NavGroup[],
+            roleLabel: 'Ca nhan',
             accent: '#10b981',
         };
     }
     if (roles.includes('landlord')) {
         return {
-            navItems: [
-                { title: 'Tổng quan', href: '/dashboard', icon: LayoutDashboard, routeName: 'dashboard' },
-                { title: 'Dang phong moi', href: '/landlord/rooms/create', icon: PlusCircle, routeName: 'landlord.rooms.create' },
-                { title: 'Hợp đồng', href: '/landlord/contracts', icon: FileSignature, routeName: 'landlord.contracts.index' },
-            ] as NavItem[],
-            roleLabel: 'Quản lý',
+            navGroups: [
+                {
+                    label: '',
+                    items: [
+                        { title: 'Tong quan', href: '/dashboard', icon: LayoutDashboard, routeName: 'dashboard' },
+                        { title: 'Dang phong moi', href: '/landlord/rooms/create', icon: PlusCircle, routeName: 'landlord.rooms.create' },
+                        { title: 'Hop dong', href: '/landlord/contracts', icon: FileSignature, routeName: 'landlord.contracts.index' },
+                    ],
+                },
+            ] as NavGroup[],
+            roleLabel: 'Quan ly',
             accent: '#f59e0b',
         };
     }
     return {
-        navItems: [
-            { title: 'Tổng quan', href: '/dashboard', icon: LayoutDashboard, routeName: 'dashboard' },
-        ] as NavItem[],
+        navGroups: [
+            {
+                label: '',
+                items: [
+                    { title: 'Tong quan', href: '/dashboard', icon: LayoutDashboard, routeName: 'dashboard' },
+                ],
+            },
+        ] as NavGroup[],
         roleLabel: 'Menu',
         accent: '#6366f1',
     };
 }
 
 const exploreItems: NavItem[] = [
-    { title: 'Việc làm', href: '/viec-lam', icon: Briefcase, routeName: 'jobs.index' },
-    { title: 'Phòng trọ', href: '/phong-tro', icon: Home, routeName: 'rooms.index' },
+    { title: 'Viec lam', href: '/viec-lam', icon: Briefcase, routeName: 'jobs.index' },
+    { title: 'Phong tro', href: '/phong-tro', icon: Home, routeName: 'rooms.index' },
 ];
 
 export default function AppSidebar() {
-    const { auth } = usePage<PageProps>().props;
+    const { auth, sidebarBadges } = usePage<PageProps>().props;
     const { can } = usePermission();
     const user = auth.user;
     const roles = user?.roles || [];
     const config = getRoleConfig(roles);
 
-    // Filter nav items by permission
-    const filteredNavItems = config.navItems.filter(item => {
-        if (!item.permission) return true;
-        return can(item.permission);
-    });
+    // Filter nav groups by permission and inject dynamic badges
+    const filteredGroups = config.navGroups
+        .map(group => ({
+            ...group,
+            items: group.items
+                .filter(item => {
+                    if (!item.permission) return true;
+                    return can(item.permission);
+                })
+                .map(item => {
+                    if (item.routeName === 'employer.tasks.index' && sidebarBadges?.tasks && sidebarBadges.tasks > 0) {
+                        return { ...item, badge: String(sidebarBadges.tasks) };
+                    }
+                    if (item.routeName === 'notifications.index' && sidebarBadges?.notifications && sidebarBadges.notifications > 0) {
+                        return { ...item, badge: String(sidebarBadges.notifications) };
+                    }
+                    return item;
+                }),
+        }))
+        .filter(group => group.items.length > 0);
 
     const isActive = (routeName: string) => {
         try {
@@ -125,138 +200,95 @@ export default function AppSidebar() {
         }
     };
 
+    const renderNavItem = (item: NavItem) => {
+        const active = isActive(item.routeName);
+        return (
+            <SidebarMenuItem key={item.routeName}>
+                <SidebarMenuButton
+                    asChild
+                    isActive={active}
+                    className="relative h-9 rounded-xl px-3 transition-all duration-150 hover:bg-sidebar-foreground/[0.08]"
+                >
+                    <Link href={item.href} className="flex items-center gap-3">
+                        {active && (
+                            <div
+                                className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full"
+                                style={{ backgroundColor: config.accent }}
+                            />
+                        )}
+                        <item.icon className={`h-4 w-4 shrink-0 transition-colors ${active ? 'text-sidebar-foreground' : 'text-sidebar-foreground/40'
+                            }`} />
+                        <span className={`text-[13px] transition-colors ${active
+                            ? 'font-semibold text-sidebar-foreground'
+                            : 'font-medium text-sidebar-foreground/60'
+                            }`}>
+                            {item.title}
+                        </span>
+                        {item.badge && (
+                            <span className="ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400">
+                                {item.badge}
+                            </span>
+                        )}
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+        );
+    };
+
     return (
         <Sidebar className="border-r border-sidebar-border/50">
             {/* Logo */}
-            <SidebarHeader className="p-5 pb-6">
+            <SidebarHeader className="p-5 pb-4">
                 <Link href="/" className="flex items-center gap-3 group">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-blue-500 to-cyan-400 shadow-lg shadow-blue-500/30 transition-all duration-300 group-hover:shadow-blue-500/50 group-hover:scale-[1.05]">
-                        <Briefcase className="h-5 w-5 text-white drop-shadow-sm" />
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-blue-500 to-cyan-400 shadow-lg shadow-blue-500/30 transition-all duration-300 group-hover:shadow-blue-500/50 group-hover:scale-[1.05]">
+                        <Briefcase className="h-4.5 w-4.5 text-white drop-shadow-sm" />
                     </div>
                     <div className="flex flex-col gap-0.5">
-                        <span className="text-[15px] font-bold tracking-tight text-sidebar-foreground leading-none">TuyenDung</span>
-                        <span className="text-[10px] text-sidebar-foreground/35 font-medium leading-none">Tuyển dụng thông minh</span>
+                        <span className="text-[14px] font-bold tracking-tight text-sidebar-foreground leading-none">TuyenDung</span>
+                        <span className="text-[10px] text-sidebar-foreground/35 font-medium leading-none">Tuyen dung thong minh</span>
                     </div>
                 </Link>
             </SidebarHeader>
 
             <SidebarContent className="px-3">
-                {/* Main Navigation */}
-                <SidebarGroup className="py-0">
-                    <SidebarGroupLabel className="px-3 mb-2 text-[10px] uppercase tracking-[0.14em] font-bold text-sidebar-foreground/25">
-                        {config.roleLabel}
-                    </SidebarGroupLabel>
-                    <SidebarGroupContent>
-                        <SidebarMenu className="gap-1">
-                            {filteredNavItems.map((item) => {
-                                const active = isActive(item.routeName);
-                                return (
-                                    <SidebarMenuItem key={item.routeName}>
-                                        <SidebarMenuButton
-                                            asChild
-                                            isActive={active}
-                                            className="relative h-10 rounded-xl px-3 transition-all duration-150 hover:bg-sidebar-foreground/[0.08]"
-                                        >
-                                            <Link href={item.href} className="flex items-center gap-3">
-                                                {active && (
-                                                    <div
-                                                        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full"
-                                                        style={{ backgroundColor: config.accent }}
-                                                    />
-                                                )}
-                                                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors duration-150 ${active
-                                                    ? 'bg-sidebar-foreground/[0.12]'
-                                                    : 'bg-sidebar-foreground/[0.05]'
-                                                    }`}>
-                                                    <item.icon className={`h-[16px] w-[16px] transition-colors ${active ? 'text-sidebar-foreground' : 'text-sidebar-foreground/45'
-                                                        }`} />
-                                                </div>
-                                                <span className={`text-[13px] transition-colors ${active
-                                                    ? 'font-semibold text-sidebar-foreground'
-                                                    : 'font-medium text-sidebar-foreground/60'
-                                                    }`}>
-                                                    {item.title}
-                                                </span>
-                                                {item.badge && (
-                                                    <span className="ml-auto text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">
-                                                        {item.badge}
-                                                    </span>
-                                                )}
-                                            </Link>
-                                        </SidebarMenuButton>
-                                    </SidebarMenuItem>
-                                );
-                            })}
-                        </SidebarMenu>
-                    </SidebarGroupContent>
-                </SidebarGroup>
+                {/* Grouped Navigation */}
+                {filteredGroups.map((group, groupIndex) => (
+                    <SidebarGroup key={group.label || `group-${groupIndex}`} className="py-0">
+                        {group.label ? (
+                            <SidebarGroupLabel className="px-3 mb-1 mt-4 text-[10px] uppercase tracking-[0.14em] font-bold text-sidebar-foreground/25">
+                                {group.label}
+                            </SidebarGroupLabel>
+                        ) : (
+                            groupIndex > 0 && (
+                                <div className="mx-3 my-3">
+                                    <div className="h-px bg-gradient-to-r from-transparent via-sidebar-foreground/10 to-transparent" />
+                                </div>
+                            )
+                        )}
+                        <SidebarGroupContent>
+                            <SidebarMenu className="gap-0.5">
+                                {group.items.map(renderNavItem)}
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                ))}
 
                 {/* Divider */}
-                <div className="mx-3 my-4">
+                <div className="mx-3 my-3">
                     <div className="h-px bg-gradient-to-r from-transparent via-sidebar-foreground/10 to-transparent" />
                 </div>
 
                 {/* Explore */}
                 <SidebarGroup className="py-0">
-                    <SidebarGroupLabel className="px-3 mb-2 text-[10px] uppercase tracking-[0.14em] font-bold text-sidebar-foreground/25">
+                    <SidebarGroupLabel className="px-3 mb-1 text-[10px] uppercase tracking-[0.14em] font-bold text-sidebar-foreground/25">
                         Kham pha
                     </SidebarGroupLabel>
                     <SidebarGroupContent>
-                        <SidebarMenu className="gap-1">
-                            {exploreItems.map((item) => {
-                                const active = isActive(item.routeName);
-                                return (
-                                    <SidebarMenuItem key={item.routeName}>
-                                        <SidebarMenuButton
-                                            asChild
-                                            isActive={active}
-                                            className="relative h-10 rounded-xl px-3 transition-all duration-150 hover:bg-sidebar-foreground/[0.08]"
-                                        >
-                                            <Link href={item.href} className="flex items-center gap-3">
-                                                {active && (
-                                                    <div
-                                                        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full"
-                                                        style={{ backgroundColor: config.accent }}
-                                                    />
-                                                )}
-                                                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${active ? 'bg-sidebar-foreground/[0.12]' : 'bg-sidebar-foreground/[0.05]'
-                                                    }`}>
-                                                    <item.icon className={`h-[16px] w-[16px] ${active ? 'text-sidebar-foreground' : 'text-sidebar-foreground/45'
-                                                        }`} />
-                                                </div>
-                                                <span className={`text-[13px] ${active ? 'font-semibold text-sidebar-foreground' : 'font-medium text-sidebar-foreground/60'
-                                                    }`}>
-                                                    {item.title}
-                                                </span>
-                                            </Link>
-                                        </SidebarMenuButton>
-                                    </SidebarMenuItem>
-                                );
-                            })}
+                        <SidebarMenu className="gap-0.5">
+                            {exploreItems.map(renderNavItem)}
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
-
-                {/* Upgrade Card */}
-                <div className="mt-auto mx-1 mb-2 pt-4">
-                    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500/20 via-blue-500/10 to-cyan-500/5 border border-indigo-500/10 p-4">
-                        <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-indigo-500/10 blur-2xl" />
-                        <div className="relative space-y-3">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/20">
-                                <Zap className="h-4 w-4 text-indigo-400" />
-                            </div>
-                            <div>
-                                <p className="text-[12px] font-semibold text-sidebar-foreground/80">Nang cap Pro</p>
-                                <p className="text-[11px] text-sidebar-foreground/35 leading-relaxed mt-0.5">
-                                    Mo khoa tinh nang nang cao.
-                                </p>
-                            </div>
-                            <button className="w-full h-8 rounded-lg bg-indigo-500/20 text-[11px] font-semibold text-indigo-300 hover:bg-indigo-500/30 transition-colors">
-                                Tim hieu them
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </SidebarContent>
 
             {/* User Footer */}
@@ -301,13 +333,13 @@ export default function AppSidebar() {
                         <DropdownMenuItem asChild className="h-9 rounded-lg cursor-pointer gap-2.5">
                             <Link href="/profile">
                                 <UserCircle className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-[13px]">Hồ sơ cá nhân</span>
+                                <span className="text-[13px]">Ho so ca nhan</span>
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild className="h-9 rounded-lg cursor-pointer gap-2.5">
                             <Link href="/profile">
                                 <Settings className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-[13px]">Cài đặt</span>
+                                <span className="text-[13px]">Cai dat</span>
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="mx-0" />
@@ -316,7 +348,7 @@ export default function AppSidebar() {
                             className="h-9 rounded-lg text-red-500 focus:text-red-500 focus:bg-red-500/10 cursor-pointer gap-2.5"
                         >
                             <LogOut className="h-4 w-4" />
-                            <span className="text-[13px]">Đăng xuất</span>
+                            <span className="text-[13px]">Dang xuat</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

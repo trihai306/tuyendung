@@ -16,10 +16,8 @@ class StoreTaskCandidateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'application_id' => ['nullable', 'integer', 'exists:applications,id'],
-            'candidate_name' => ['required_without:application_id', 'nullable', 'string', 'max:255'],
-            'candidate_phone' => ['nullable', 'string', 'max:20'],
-            'candidate_email' => ['nullable', 'email', 'max:255'],
+            'application_ids' => ['required', 'array', 'min:1'],
+            'application_ids.*' => ['integer', 'exists:applications,id'],
             'status' => ['sometimes', 'in:hired,trial,rejected'],
             'notes' => ['nullable', 'string', 'max:2000'],
             'hired_date' => ['nullable', 'date'],

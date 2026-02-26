@@ -25,6 +25,11 @@ class RecruitmentTask extends Model
         'completed_at',
         'notes',
         'completion_report',
+        'work_dates',
+        'work_shifts',
+        'overtime_hours',
+        'shift_rate',
+        'overtime_rate',
     ];
 
     protected function casts(): array
@@ -32,6 +37,12 @@ class RecruitmentTask extends Model
         return [
             'due_date' => 'date',
             'completed_at' => 'datetime',
+            'assigned_to' => 'array',
+            'work_dates' => 'array',
+            'work_shifts' => 'array',
+            'overtime_hours' => 'integer',
+            'shift_rate' => 'integer',
+            'overtime_rate' => 'integer',
         ];
     }
 
@@ -47,9 +58,12 @@ class RecruitmentTask extends Model
         return $this->belongsTo(JobPost::class);
     }
 
-    public function assignee(): BelongsTo
+    /**
+     * Get the users assigned to this task.
+     */
+    public function assignees()
     {
-        return $this->belongsTo(User::class, 'assigned_to');
+        return User::whereIn('id', $this->assigned_to ?? [])->get();
     }
 
     public function assigner(): BelongsTo
@@ -82,6 +96,6 @@ class RecruitmentTask extends Model
 
     public function scopeForUser($query, int $userId)
     {
-        return $query->where('assigned_to', $userId);
+        return $query->whereJsonContains('assigned_to', $userId);
     }
 }

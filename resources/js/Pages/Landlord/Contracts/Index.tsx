@@ -81,7 +81,7 @@ export default function Index({ contracts }: Props) {
                         emptyMessage="Chưa có hợp đồng nao"
                         emptyDescription="Các hợp đồng thuê phòng sẽ hiển thị tại đây"
                     />
-                    <Pagination meta={contracts.meta} />
+                    <Pagination data={contracts} />
                 </CardContent>
             </Card>
         </AuthenticatedLayout>

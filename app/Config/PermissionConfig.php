@@ -28,8 +28,12 @@ final class PermissionConfig
 
             // Applications
             'applications.view' => true,
+            'applications.view_all' => true,
+            'applications.view_managed' => true,
             'applications.update' => true,
             'applications.add_external' => true,
+            'applications.transfer' => true,
+            'applications.delete' => true,
 
             // Interviews
             'interviews.create' => true,
@@ -37,6 +41,7 @@ final class PermissionConfig
 
             // Tasks
             'tasks.view_all' => true,
+            'tasks.view_own' => true,
             'tasks.create' => true,
             'tasks.assign' => true,
             'tasks.update_any' => true,
@@ -47,6 +52,15 @@ final class PermissionConfig
 
             // Reports
             'reports.view' => true,
+
+            // Payroll
+            'payroll.view' => true,
+            'payroll.manage' => true,
+
+            // AI Agents
+            'ai_agents.view' => true,
+            'ai_agents.create' => true,
+            'ai_agents.manage' => true,
         ],
 
         'manager' => [
@@ -65,8 +79,12 @@ final class PermissionConfig
 
             // Applications
             'applications.view' => true,
+            'applications.view_all' => false,
+            'applications.view_managed' => true,
             'applications.update' => true,
             'applications.add_external' => true,
+            'applications.transfer' => true,
+            'applications.delete' => true,
 
             // Interviews
             'interviews.create' => true,
@@ -74,6 +92,7 @@ final class PermissionConfig
 
             // Tasks
             'tasks.view_all' => true,
+            'tasks.view_own' => true,
             'tasks.create' => true,
             'tasks.assign' => true,
             'tasks.update_any' => true,
@@ -84,6 +103,15 @@ final class PermissionConfig
 
             // Reports
             'reports.view' => true,
+
+            // Payroll
+            'payroll.view' => true,
+            'payroll.manage' => true,
+
+            // AI Agents
+            'ai_agents.view' => true,
+            'ai_agents.create' => true,
+            'ai_agents.manage' => false,
         ],
 
         'member' => [
@@ -102,8 +130,12 @@ final class PermissionConfig
 
             // Applications
             'applications.view' => true,
+            'applications.view_all' => false,
+            'applications.view_managed' => false,
             'applications.update' => false,
             'applications.add_external' => false,
+            'applications.transfer' => false,
+            'applications.delete' => false,
 
             // Interviews
             'interviews.create' => false,
@@ -111,6 +143,7 @@ final class PermissionConfig
 
             // Tasks
             'tasks.view_all' => false,
+            'tasks.view_own' => true,
             'tasks.create' => false,
             'tasks.assign' => false,
             'tasks.update_any' => false,
@@ -121,6 +154,15 @@ final class PermissionConfig
 
             // Reports
             'reports.view' => false,
+
+            // Payroll
+            'payroll.view' => false,
+            'payroll.manage' => false,
+
+            // AI Agents
+            'ai_agents.view' => false,
+            'ai_agents.create' => false,
+            'ai_agents.manage' => false,
         ],
     ];
 

@@ -18,9 +18,9 @@ class ReportService
      *
      * @return array<string, mixed>
      */
-    public function getJobPostReport(int $ownerId): array
+    public function getJobPostReport(int $ownerId): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        $jobPosts = JobPost::where('employer_id', $ownerId)
+        return JobPost::where('employer_id', $ownerId)
             ->withCount([
                 'applications',
                 'applications as pending_count' => fn($q) => $q->where('status', 'pending'),
@@ -35,9 +35,8 @@ class ReportService
             ])
             ->with(['creator:id,name', 'category:id,name'])
             ->latest()
-            ->get();
-
-        return $jobPosts->toArray();
+            ->paginate(10)
+            ->withQueryString();
     }
 
     /**

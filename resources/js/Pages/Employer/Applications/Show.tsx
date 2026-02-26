@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { usePermission } from '@/hooks/usePermission';
 import { Head, Link } from '@inertiajs/react';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -40,6 +41,8 @@ import {
     UserPlus,
     Layers,
     Shield,
+    Image,
+    Camera,
 } from 'lucide-react';
 import type { Application } from '@/types';
 
@@ -84,6 +87,7 @@ const STATUS_PROGRESS: Record<string, number> = {
 };
 
 export default function Show({ application }: Props) {
+    const { can } = usePermission();
     const statusCfg = STATUS_CONFIG[application.status] || STATUS_CONFIG.pending;
     const StatusIcon = statusCfg.icon;
     const isSystemCandidate = application.candidate_id !== null;
@@ -188,43 +192,49 @@ export default function Show({ application }: Props) {
 
                             {/* Status changer */}
                             <div className="shrink-0">
-                                <Select value={application.status} onValueChange={handleStatusChange}>
-                                    <SelectTrigger className="w-[170px] h-10 text-xs font-medium">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="pending">
-                                            <div className="flex items-center gap-2">
-                                                <Clock className="h-3.5 w-3.5 text-yellow-600" />
-                                                Cho xu ly
-                                            </div>
-                                        </SelectItem>
-                                        <SelectItem value="reviewing">
-                                            <div className="flex items-center gap-2">
-                                                <Eye className="h-3.5 w-3.5 text-blue-600" />
-                                                Dang xem xet
-                                            </div>
-                                        </SelectItem>
-                                        <SelectItem value="shortlisted">
-                                            <div className="flex items-center gap-2">
-                                                <Star className="h-3.5 w-3.5 text-violet-600" />
-                                                Danh sach ngan
-                                            </div>
-                                        </SelectItem>
-                                        <SelectItem value="accepted">
-                                            <div className="flex items-center gap-2">
-                                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                                                Chap nhan
-                                            </div>
-                                        </SelectItem>
-                                        <SelectItem value="rejected">
-                                            <div className="flex items-center gap-2">
-                                                <XCircle className="h-3.5 w-3.5 text-red-600" />
-                                                Tu choi
-                                            </div>
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                {can('applications.update') ? (
+                                    <Select value={application.status} onValueChange={handleStatusChange}>
+                                        <SelectTrigger className="w-[170px] h-10 text-xs font-medium">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="pending">
+                                                <div className="flex items-center gap-2">
+                                                    <Clock className="h-3.5 w-3.5 text-yellow-600" />
+                                                    Cho xu ly
+                                                </div>
+                                            </SelectItem>
+                                            <SelectItem value="reviewing">
+                                                <div className="flex items-center gap-2">
+                                                    <Eye className="h-3.5 w-3.5 text-blue-600" />
+                                                    Dang xem xet
+                                                </div>
+                                            </SelectItem>
+                                            <SelectItem value="shortlisted">
+                                                <div className="flex items-center gap-2">
+                                                    <Star className="h-3.5 w-3.5 text-violet-600" />
+                                                    Danh sach ngan
+                                                </div>
+                                            </SelectItem>
+                                            <SelectItem value="accepted">
+                                                <div className="flex items-center gap-2">
+                                                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                                                    Chap nhan
+                                                </div>
+                                            </SelectItem>
+                                            <SelectItem value="rejected">
+                                                <div className="flex items-center gap-2">
+                                                    <XCircle className="h-3.5 w-3.5 text-red-600" />
+                                                    Tu choi
+                                                </div>
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                ) : (
+                                    <Badge variant="outline" className={`text-xs px-3 py-2 font-semibold ${statusCfg.bg} ${statusCfg.color}`}>
+                                        {statusCfg.label}
+                                    </Badge>
+                                )}
                             </div>
                         </div>
                     </CardContent>
@@ -311,6 +321,61 @@ export default function Show({ application }: Props) {
                             </Card>
                         )}
 
+                        {/* Candidate Photos & ID Card */}
+                        {(application.candidate_photo || application.candidate_id_card_front || application.candidate_id_card_back) && (
+                            <Card className="border-none shadow-sm">
+                                <CardContent className="pt-5 pb-5">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-500/10">
+                                            <Camera className="h-4 w-4 text-teal-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-semibold">Anh & Can cuoc cong dan</h3>
+                                            <p className="text-[11px] text-muted-foreground">Anh chan dung va CCCD cua ung vien</p>
+                                        </div>
+                                    </div>
+                                    <div className="ml-10 grid grid-cols-3 gap-4">
+                                        {application.candidate_photo && (
+                                            <div className="space-y-1.5">
+                                                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Anh chan dung</p>
+                                                <a href={`/storage/${application.candidate_photo}`} target="_blank" rel="noopener noreferrer" className="block group">
+                                                    <img
+                                                        src={`/storage/${application.candidate_photo}`}
+                                                        alt="Anh chan dung"
+                                                        className="w-full h-32 object-cover rounded-lg border border-border/50 group-hover:opacity-90 group-hover:shadow-md transition-all"
+                                                    />
+                                                </a>
+                                            </div>
+                                        )}
+                                        {application.candidate_id_card_front && (
+                                            <div className="space-y-1.5">
+                                                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">CCCD mat truoc</p>
+                                                <a href={`/storage/${application.candidate_id_card_front}`} target="_blank" rel="noopener noreferrer" className="block group">
+                                                    <img
+                                                        src={`/storage/${application.candidate_id_card_front}`}
+                                                        alt="CCCD mat truoc"
+                                                        className="w-full h-32 object-cover rounded-lg border border-border/50 group-hover:opacity-90 group-hover:shadow-md transition-all"
+                                                    />
+                                                </a>
+                                            </div>
+                                        )}
+                                        {application.candidate_id_card_back && (
+                                            <div className="space-y-1.5">
+                                                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">CCCD mat sau</p>
+                                                <a href={`/storage/${application.candidate_id_card_back}`} target="_blank" rel="noopener noreferrer" className="block group">
+                                                    <img
+                                                        src={`/storage/${application.candidate_id_card_back}`}
+                                                        alt="CCCD mat sau"
+                                                        className="w-full h-32 object-cover rounded-lg border border-border/50 group-hover:opacity-90 group-hover:shadow-md transition-all"
+                                                    />
+                                                </a>
+                                            </div>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
                         {/* Employer Notes (editable) */}
                         <Card className="border-none shadow-sm">
                             <CardContent className="pt-5 pb-5">
@@ -330,21 +395,24 @@ export default function Show({ application }: Props) {
                                         value={notes}
                                         onChange={(e) => setNotes(e.target.value)}
                                         className="text-sm resize-none"
+                                        readOnly={!can('applications.update')}
                                     />
-                                    <div className="flex items-center justify-between">
-                                        <p className="text-[10px] text-muted-foreground">
-                                            {notes.length} ky tu
-                                        </p>
-                                        <Button
-                                            size="sm"
-                                            className="gap-1.5 text-xs h-8"
-                                            onClick={handleSaveNotes}
-                                            disabled={notesSaving}
-                                        >
-                                            <Save className="h-3.5 w-3.5" />
-                                            {notesSaving ? 'Dang luu...' : 'Luu ghi chu'}
-                                        </Button>
-                                    </div>
+                                    {can('applications.update') && (
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-[10px] text-muted-foreground">
+                                                {notes.length} ky tu
+                                            </p>
+                                            <Button
+                                                size="sm"
+                                                className="gap-1.5 text-xs h-8"
+                                                onClick={handleSaveNotes}
+                                                disabled={notesSaving}
+                                            >
+                                                <Save className="h-3.5 w-3.5" />
+                                                {notesSaving ? 'Dang luu...' : 'Luu ghi chu'}
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
