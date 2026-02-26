@@ -18,3 +18,8 @@ use Illuminate\Support\Facades\Broadcast;
 Broadcast::channel('user.{id}', function ($user, int $id): bool {
     return $user->id === $id;
 });
+
+// AutoApp agent channel - each user gets their own agent channel
+Broadcast::channel('agent.{id}', function ($user, int $id): bool {
+    return $user->id === $id;
+});

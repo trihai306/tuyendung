@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-app-region: no-drag;
+  }
+
+  body {
+    @apply bg-[#0a0a0f] text-gray-100 font-sans;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-1;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full hover:bg-white/20;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/[0.03] backdrop-blur-xl border border-white/[0.06];
+  }
+
+  .glass-hover {
+    @apply hover:bg-white/[0.06] hover:border-white/[0.1];
+  }
+
+  .glass-card {
+    @apply bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] rounded-2xl;
+  }
+
+  .glow-brand {
+    box-shadow: 0 0 40px -12px rgba(99, 102, 241, 0.4);
+  }
+
+  .glow-sm {
+    box-shadow: 0 0 20px -8px rgba(99, 102, 241, 0.3);
+  }
+
+  .gradient-brand {
+    @apply bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-indigo-400 via-violet-400 to-purple-400 bg-clip-text text-transparent;
+  }
+
+  .mesh-gradient {
+    background-image:
+      radial-gradient(at 20% 20%, rgba(99, 102, 241, 0.08) 0, transparent 50%),
+      radial-gradient(at 80% 80%, rgba(139, 92, 246, 0.06) 0, transparent 50%),
+      radial-gradient(at 50% 0%, rgba(168, 85, 247, 0.04) 0, transparent 50%);
+  }
+
+  .animate-glow {
+    animation: glow 3s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from {
+      opacity: 0.5;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-12px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.4s ease-out both;
+  }
+
+  .animate-slideIn {
+    animation: slideIn 0.3s ease-out both;
+  }
+
+  .animate-scaleIn {
+    animation: scaleIn 0.3s ease-out both;
+  }
+}

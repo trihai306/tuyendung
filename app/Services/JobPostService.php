@@ -97,6 +97,22 @@ class JobPostService
                 ->exists();
         }
 
+        // Related jobs: same category or same city, excluding current
+        $data['relatedJobs'] = JobPost::active()
+            ->where('id', '!=', $jobPost->id)
+            ->where(function ($q) use ($jobPost): void {
+                if ($jobPost->category_id) {
+                    $q->where('category_id', $jobPost->category_id);
+                }
+                if ($jobPost->city) {
+                    $q->orWhere('city', $jobPost->city);
+                }
+            })
+            ->with(['employer.employerProfile'])
+            ->latest()
+            ->take(5)
+            ->get();
+
         return $data;
     }
 
